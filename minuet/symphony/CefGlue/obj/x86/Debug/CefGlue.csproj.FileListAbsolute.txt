@@ -1,0 +1,6 @@
+C:\Developer\SymphonyPackage\bin\paragon\Xilium.CefGlue.dll
+C:\Developer\SymphonyPackage\bin\paragon\Xilium.CefGlue.pdb
+C:\Developer\SymphonyPackage\bin\paragon\Xilium.CefGlue.xml
+C:\Developer\SymphonyPackage\CefGlue\obj\x86\Debug\CefGlue.csprojResolveAssemblyReference.cache
+C:\Developer\SymphonyPackage\CefGlue\obj\x86\Debug\Xilium.CefGlue.dll
+C:\Developer\SymphonyPackage\CefGlue\obj\x86\Debug\Xilium.CefGlue.pdb

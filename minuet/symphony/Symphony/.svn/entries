@@ -1,0 +1,43 @@
+10
+
+dir
+10419
+svn+ssh://cp-desktop.svn.services.gs.com/svnroot/cp-desktop/paragondesktop/trunk/Symphony
+svn+ssh://cp-desktop.svn.services.gs.com/svnroot/cp-desktop
+
+
+
+2015-03-24T15:29:34.671935Z
+10419
+daviga
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+31641870-b5cf-4c56-a20c-b60c819f8780
+
+Symphony.Crypto
+dir
+
+Symphony.Setup
+dir
+
+Symphony
+dir
+
+dependencies
+dir
+
+Paragon.Extension.Notifications.Tests
+dir
+

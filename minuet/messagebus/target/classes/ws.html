@@ -1,0 +1,65 @@
+/**
+* Created by stamaw on 2/20/2015.
+*/
+<!DOCTYPE html>
+<!--
+  ~ Copyright 2014 Goldman Sachs.
+  -->
+<html>
+<head><title>MEOW Test</title> <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE"></head>
+<body>
+<script src="meow.js" type="text/javascript" charset="UTF-8"></script>
+
+<script>
+    var queryString = window.location.search;
+    var mb = Paragon.MessageBus("ws://localhost:{BROKER_PORT_NUMBER}/paragon/messagebus" + queryString);
+
+    function send(address, message) {
+
+        mb.send(address, message, function(responseMessage){
+            alert("Response message: " + JSON.stringify(responseMessage));
+        });
+
+    }
+
+    function publish(address, message) {
+
+        mb.publish(address, message);
+
+    }
+
+    function subscribe(address) {
+
+        mb.subscribe(address, function(envelope){
+            var strMsg = JSON.stringify(envelope);
+            var replyAddress = envelope.replyaddress;
+            alert("Incoming message: " + strMsg);
+            if (replyAddress){
+                var reply = "Got your message(" + envelope.message.content + ").  Thx!";
+                mb.send(replyAddress, reply);
+            }
+        }, function(responseMessage){
+            alert("Response message: " + JSON.stringify(responseMessage));
+        });
+
+    }
+
+    function unsubscribe(address) {
+
+        mb.unsubscribe(address, function(responseMessage){
+            alert("responseMessage message: " + JSON.stringify(responseMessage));
+        });
+
+    }
+</script>
+<form onsubmit="return false;">
+    <input type="text" name="sendAddress" value="topic"/>
+    <input type="text" name="message" value="Hello, World!"/>
+    <input type="button" value="Send" onclick="send(this.form.sendAddress.value, this.form.message.value)"/>
+    <input type="button" value="Publish" onclick="publish(this.form.sendAddress.value, this.form.message.value)"/>
+    <input type="text" name="subscriberAddress" value="gs.dept.appName"/>
+    <input type="button" value="register" onclick="subscribe(this.form.subscriberAddress.value)"/>
+    <input type="button" value="unregister" onclick="unsubscribe(this.form.subscriberAddress.value)"/>
+</form>
+</body>
+</html>

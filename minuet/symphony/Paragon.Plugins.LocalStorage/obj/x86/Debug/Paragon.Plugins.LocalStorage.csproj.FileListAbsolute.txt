@@ -1,0 +1,15 @@
+C:\Developer\Symphony\bin\paragon\Paragon.Plugins.LocalStorage.dll
+C:\Developer\Symphony\bin\paragon\Paragon.Plugins.LocalStorage.pdb
+C:\Developer\Symphony\Paragon.Plugins.LocalStorage\obj\x86\Debug\Paragon.Plugins.LocalStorage.dll
+C:\Developer\Symphony\Paragon.Plugins.LocalStorage\obj\x86\Debug\Paragon.Plugins.LocalStorage.pdb
+C:\Developer\Symphony\Paragon.Plugins.LocalStorage\obj\x86\Debug\Paragon.Plugins.LocalStorage.csprojResolveAssemblyReference.cache
+C:\Developer\SymphonyPackage\bin\paragon\Paragon.Plugins.LocalStorage.dll
+C:\Developer\SymphonyPackage\bin\paragon\Paragon.Plugins.LocalStorage.pdb
+C:\Developer\SymphonyPackage\Paragon.Plugins.LocalStorage\obj\x86\Debug\Paragon.Plugins.LocalStorage.dll
+C:\Developer\SymphonyPackage\Paragon.Plugins.LocalStorage\obj\x86\Debug\Paragon.Plugins.LocalStorage.pdb
+C:\Developer\SymphonyPackage\Paragon.Plugins.LocalStorage\obj\x86\Debug\Paragon.Plugins.LocalStorage.csprojResolveAssemblyReference.cache
+C:\Developer\Symphony_Snapshot_3\bin\paragon\Paragon.Plugins.LocalStorage.dll
+C:\Developer\Symphony_Snapshot_3\bin\paragon\Paragon.Plugins.LocalStorage.pdb
+C:\Developer\Symphony_Snapshot_3\Paragon.Plugins.LocalStorage\obj\x86\Debug\Paragon.Plugins.LocalStorage.csprojResolveAssemblyReference.cache
+C:\Developer\Symphony_Snapshot_3\Paragon.Plugins.LocalStorage\obj\x86\Debug\Paragon.Plugins.LocalStorage.dll
+C:\Developer\Symphony_Snapshot_3\Paragon.Plugins.LocalStorage\obj\x86\Debug\Paragon.Plugins.LocalStorage.pdb

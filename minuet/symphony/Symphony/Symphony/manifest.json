@@ -1,0 +1,61 @@
+﻿{
+    "name": "Symphony",
+    "version": "5.0.1.0",
+    "manifest_version": 2,
+    "id" : "client.platforms.symphony",
+	"defaultFrameType": "windowsDefault",
+    "singleInstance": true,
+    "icons": {
+		"128": "symphony_logo.ico"
+	},
+	"type": "packaged",
+
+    "app": {
+        "background": {
+            "scripts": ["background.js"]
+        }
+    },
+	"externalUrlWhitelist" : ["*"],
+
+    "applicationPlugins" : [
+	{
+		"name": "appbridge.js",
+        "assembly": "appbridge.js",
+		"Path": "",
+    },
+	{
+		"name": "SymphonyInterop",
+        "assembly": "SymphonyInterop.js",
+		"Path": "",
+    },
+	{
+        "name": "Symphony.Plugins.AppWindowPlugin",
+        "assembly": "Symphony.dll",
+    },
+	{
+        "name": "Symphony.Plugins.CachePlugin",
+        "assembly": "Symphony.dll",
+    },
+    {
+        "name": "Symphony.Crypto.CryptoPlugin",
+        "runInRenderer" : true,
+        "assembly": "Symphony.Crypto.dll",
+	"UnmanagedDLLs" : [ "zlib.dll", "libeay32.dll", "ssleay32.dll", "SFE-CryptoLib-Project.dll" ]
+    },
+    {
+        "name": "Symphony.Plugins.DownloadPlugin",
+        "assembly": "Symphony.dll",
+    },
+	{
+        "name": "Symphony.Plugins.ExternalPlugin",
+        "assembly": "Symphony.dll",
+    },
+	{
+        "name": "Symphony.Plugins.SettingsPlugin",
+        "assembly": "Symphony.dll",
+    },
+	{
+        "name": "Symphony.Plugins.SystemInfoPlugin",
+        "assembly": "Symphony.dll",
+    }]
+}

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <appSettings>
+    <add key="BrokerLibraryPath" value="\\firmwide\appstore\1188\Test\messagebus.jar"/>
+    <add key="BrokerExePath" value="detect"/>
+    <!--
+    <add key="BrokerPort" value="8000"/>
+    <add key="BrokerLoggingConfigFile" value="detect"/>
+    -->
+  </appSettings>
+</configuration>

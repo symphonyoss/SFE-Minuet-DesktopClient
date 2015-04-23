@@ -1,0 +1,13 @@
+C:\Developer\Symphony\bin\paragon\Paragon.Plugins.dll
+C:\Developer\Symphony\bin\paragon\Paragon.Plugins.pdb
+C:\Developer\Symphony\Paragon.Extensibility\obj\x86\Debug\Paragon.Plugins.dll
+C:\Developer\Symphony\Paragon.Extensibility\obj\x86\Debug\Paragon.Plugins.pdb
+C:\Developer\SymphonyPackage\bin\paragon\Paragon.Plugins.dll
+C:\Developer\SymphonyPackage\bin\paragon\Paragon.Plugins.pdb
+C:\Developer\SymphonyPackage\Paragon.Extensibility\obj\x86\Debug\Paragon.Plugins.dll
+C:\Developer\SymphonyPackage\Paragon.Extensibility\obj\x86\Debug\Paragon.Plugins.pdb
+C:\Developer\SymphonyPackage\Paragon.Extensibility\obj\x86\Debug\Paragon.Extensibility.csprojResolveAssemblyReference.cache
+C:\Developer\Symphony_Snapshot_3\bin\paragon\Paragon.Plugins.dll
+C:\Developer\Symphony_Snapshot_3\bin\paragon\Paragon.Plugins.pdb
+C:\Developer\Symphony_Snapshot_3\Paragon.Extensibility\obj\x86\Debug\Paragon.Plugins.dll
+C:\Developer\Symphony_Snapshot_3\Paragon.Extensibility\obj\x86\Debug\Paragon.Plugins.pdb

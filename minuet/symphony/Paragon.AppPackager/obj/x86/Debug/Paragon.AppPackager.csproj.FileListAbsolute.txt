@@ -1,0 +1,10 @@
+C:\Developer\Symphony\bin\paragon\Paragon.AppPackager.exe
+C:\Developer\Symphony\bin\paragon\Paragon.AppPackager.pdb
+C:\Developer\Symphony\Paragon.AppPackager\obj\x86\Debug\Paragon.AppPackager.exe
+C:\Developer\Symphony\Paragon.AppPackager\obj\x86\Debug\Paragon.AppPackager.pdb
+C:\Developer\Symphony\Paragon.AppPackager\obj\x86\Debug\Paragon.AppPackager.csprojResolveAssemblyReference.cache
+C:\Developer\SymphonyPackage\bin\paragon\Paragon.AppPackager.exe
+C:\Developer\SymphonyPackage\bin\paragon\Paragon.AppPackager.pdb
+C:\Developer\SymphonyPackage\Paragon.AppPackager\obj\x86\Debug\Paragon.AppPackager.csprojResolveAssemblyReference.cache
+C:\Developer\SymphonyPackage\Paragon.AppPackager\obj\x86\Debug\Paragon.AppPackager.exe
+C:\Developer\SymphonyPackage\Paragon.AppPackager\obj\x86\Debug\Paragon.AppPackager.pdb
