@@ -1,16 +1,14 @@
 package com.gs.paragon;
 
 
+import java.io.IOException;
+import java.net.URL;
+
 import org.apache.log4j.Logger;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Handler;
 import org.vertx.java.platform.PlatformLocator;
 import org.vertx.java.platform.PlatformManager;
-
-import java.io.IOException;
-import java.net.URL;
-
-import org.apache.log4j.Logger;
 
 import com.gs.paragon.verticles.HttpServerVerticle;
 
@@ -18,8 +16,10 @@ public class MessageBus {
     private static final Logger logger = Logger.getLogger(MessageBus.class);
 
     public static void main(String[] args) throws IOException {
-        if( logger.isInfoEnabled())
+        if( logger.isInfoEnabled()) {
             logger.info("Paragon message broker starting ...");
+        }
+        
         //default number of verticle instances to deploy is 2
         int instances = 2;
 
@@ -71,8 +71,9 @@ public class MessageBus {
             @Override
             public void handle(AsyncResult<String> asyncResult) {
                 if(asyncResult.succeeded()){
-                    if( logger.isInfoEnabled())
+                    if( logger.isInfoEnabled()) {
                         logger.info("Message Broker Bridge verticle deployed : Deployment ID: " + asyncResult.result());
+                    }
                 }
                 else {
                     logger.error("Error deploying Message Broker Bridge verticle : " + asyncResult.cause().getStackTrace().toString());

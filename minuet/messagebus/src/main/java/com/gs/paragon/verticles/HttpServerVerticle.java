@@ -4,7 +4,11 @@
  */
 package com.gs.paragon.verticles;
 
+import java.io.InputStream;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.commons.io.IOUtil;
+import org.apache.log4j.Logger;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
@@ -14,10 +18,6 @@ import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.http.ServerWebSocket;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
-import org.apache.log4j.Logger;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class HttpServerVerticle extends Verticle {
     private static final Logger logger = Logger.getLogger(HttpServerVerticle.class);
@@ -25,15 +25,11 @@ public class HttpServerVerticle extends Verticle {
     public void start() {
         String portProp = System.getProperty("paragon.messagebroker.port");
 
-        int port = DEFAULT_PORT;
-        if(portProp != null) {
-            port = Integer.parseInt(portProp);
+        final Integer portNumber = portProp != null ? Integer.parseInt(portProp) : DEFAULT_PORT;
+
+        if(logger.isInfoEnabled()) {
+            logger.info("Starting Paragon Message Broker (HTTP) verticle on port - " + portNumber);
         }
-
-        final Integer portNumber = port;
-
-        if(logger.isInfoEnabled())
-            logger.info("Starting Paragon Message Broker (HTTP) verticle on port - " + port);
 
         vertx.createHttpServer().requestHandler(new Handler<HttpServerRequest>() {
             public void handle(HttpServerRequest req) {
@@ -73,6 +69,10 @@ public class HttpServerVerticle extends Verticle {
                 }
             }
         }).websocketHandler(new Handler<ServerWebSocket>() {
+        	
+        	private ConcurrentHashMap<ServerWebSocket, ConcurrentHashMap<String, Handler<Message<JsonObject>>>> socketHandlerMap = 
+            		new ConcurrentHashMap<ServerWebSocket, ConcurrentHashMap<String, Handler<Message<JsonObject>>>>();
+        	
             public void handle(final ServerWebSocket socket) {
                 socket.dataHandler(new Handler<Buffer>() {
                     @Override
@@ -86,7 +86,7 @@ public class HttpServerVerticle extends Verticle {
                     @Override
                     public void handle(Void aVoid) {
                         // Remove topic-to-handler map from socket.
-                        ConcurrentHashMap<String, Handler<Message<JsonObject>>> handlerMap = _socketHandlerMap.remove(socket);
+                        ConcurrentHashMap<String, Handler<Message<JsonObject>>> handlerMap = socketHandlerMap.remove(socket);
                         if (handlerMap != null) {
                             // Unregister all associated handlers.
                             EventBus eb = vertx.eventBus();
@@ -96,26 +96,6 @@ public class HttpServerVerticle extends Verticle {
                         }
                     }
                 });
-            }
-
-            private String getPartValue(String query, String partName) {
-                String finalPart = null;
-                if (query != null) {
-                    String[] parts = query.split("\\?" + partName + "=", 2);
-                    if (parts.length != 2) {
-                        parts = query.split("&" + partName + "=", 2);
-                    }
-                    if (parts.length == 2) {
-                        System.out.println(parts[1]);
-
-                        String[] interimPart = parts[1].split("&", 2);
-                        finalPart = interimPart[0];
-
-                        //TODO: remove
-                        System.out.println(finalPart);
-                    }
-                }
-                return finalPart;
             }
 
             private void processIncomingSocketMessage(String message, final ServerWebSocket socket) {
@@ -146,7 +126,7 @@ public class HttpServerVerticle extends Verticle {
                     final Handler<Message<JsonObject>> theHandler;
 
                     // Get the registered handler for this socket on the given address.
-                    final ConcurrentHashMap<String, Handler<Message<JsonObject>>> addressMap = _socketHandlerMap.get(socket);
+                    final ConcurrentHashMap<String, Handler<Message<JsonObject>>> addressMap = socketHandlerMap.get(socket);
                     Handler<Message<JsonObject>> aHandler = null;
                     if (addressMap != null) {
                         aHandler = addressMap.get(address);
@@ -189,7 +169,7 @@ public class HttpServerVerticle extends Verticle {
                                     ConcurrentHashMap<String, Handler<Message<JsonObject>>> theAddressMap = addressMap;
                                     if (theAddressMap == null) {
                                         theAddressMap = new ConcurrentHashMap<String, Handler<Message<JsonObject>>>();
-                                        _socketHandlerMap.put(socket, theAddressMap);
+                                        socketHandlerMap.put(socket, theAddressMap);
                                     }
                                     theAddressMap.put(address, theHandler);
                                 }
@@ -226,7 +206,7 @@ public class HttpServerVerticle extends Verticle {
                     logger.trace("unregisterTopic - address = " + (address != null ? address : "") + ", rid = " + (rid != null ? rid : ""));
                 }
                 if (address != null) {
-                    final ConcurrentHashMap<String, Handler<Message<JsonObject>>> addressMap = _socketHandlerMap.get(socket);
+                    final ConcurrentHashMap<String, Handler<Message<JsonObject>>> addressMap = socketHandlerMap.get(socket);
 
                     Handler<Message<JsonObject>> handler = null;
                     if (addressMap != null) {
@@ -310,8 +290,6 @@ public class HttpServerVerticle extends Verticle {
                     eb.publish(address, msg);
                 }
             }
-
-            private ConcurrentHashMap<ServerWebSocket, ConcurrentHashMap<String, Handler<Message<JsonObject>>>> _socketHandlerMap = new ConcurrentHashMap<ServerWebSocket, ConcurrentHashMap<String, Handler<Message<JsonObject>>>>();
         }).listen(portNumber, "localhost");
     }
 }
