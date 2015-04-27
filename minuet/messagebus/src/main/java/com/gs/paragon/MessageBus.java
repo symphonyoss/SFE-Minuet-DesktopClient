@@ -9,7 +9,10 @@ import org.vertx.java.platform.PlatformManager;
 
 import java.io.IOException;
 import java.net.URL;
+
 import org.apache.log4j.Logger;
+
+import com.gs.paragon.verticles.HttpServerVerticle;
 
 public class MessageBus {
     private static final Logger logger = Logger.getLogger(MessageBus.class);
@@ -62,7 +65,9 @@ public class MessageBus {
 
         // Deploy verticles
         PlatformManager pm = PlatformLocator.factory.createPlatformManager();
-        pm.deployVerticle("com.gs.paragon.verticles.HttpServerVerticle", null, new URL[]{}, instances, null, new Handler<AsyncResult<String>>() {
+        
+        
+        pm.deployVerticle(HttpServerVerticle.class.getName(), null, new URL[]{}, instances, null, new Handler<AsyncResult<String>>() {
             @Override
             public void handle(AsyncResult<String> asyncResult) {
                 if(asyncResult.succeeded()){
