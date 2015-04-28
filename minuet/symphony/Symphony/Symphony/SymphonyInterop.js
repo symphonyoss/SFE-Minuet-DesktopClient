@@ -8,7 +8,7 @@ Symphony.Interop.init = function () {
             "version": 1,
             "event": "open:im",
             "payload": {
-                "userName": "matt",
+                "userName": message.message.userName,
                 "sendMessage": message.message.content
             }
         }, "*");

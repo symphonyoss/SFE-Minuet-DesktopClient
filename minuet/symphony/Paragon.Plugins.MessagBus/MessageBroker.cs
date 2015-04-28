@@ -141,7 +141,7 @@ namespace Paragon.Plugins.MessageBus
                 return;
             }
 
-            _socket = new WebSocket(string.Format("ws://localhost:{0}?appid=app{1}", _brokerPort, _idcount++));
+            _socket = new WebSocket(string.Format("ws://localhost:{0}/paragon/messagebus", _brokerPort));
             _socket.Opened += OnSocketOpened;
             _socket.Error += OnSocketError;
             _socket.Closed += OnSocketClosed;
