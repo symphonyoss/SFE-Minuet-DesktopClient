@@ -1,4 +1,6 @@
-echo "clean bin directory before build"
+echo "go to folder"
+cd minuet
+cd symphony
 
 echo "Set Visual Studio env vars"
 $path1='c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC'
