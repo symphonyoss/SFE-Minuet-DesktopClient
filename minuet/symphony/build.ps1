@@ -1,4 +1,4 @@
-echo "go to folder"
+echo "go to minuet/symphony folder"
 cd minuet
 cd symphony
 
