@@ -1,40 +1,0 @@
-10
-
-dir
-10750
-svn+ssh://cp-desktop.svn.services.gs.com/svnroot/cp-desktop/paragondesktop/trunk/Paragon.Runtime/Kernel
-svn+ssh://cp-desktop.svn.services.gs.com/svnroot/cp-desktop
-
-
-
-2015-04-17T17:00:31.058401Z
-10748
-blakjo
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-31641870-b5cf-4c56-a20c-b60c819f8780
-
-Plugins
-dir
-
-Windowing
-dir
-
-Applications
-dir
-
-HotKeys
-dir
-
