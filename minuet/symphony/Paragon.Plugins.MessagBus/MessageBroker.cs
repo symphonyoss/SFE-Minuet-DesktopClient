@@ -11,7 +11,9 @@ namespace Paragon.Plugins.MessageBus
     public class MessageBroker : IMessageBroker
     {
         public static int DefaultPort = 65534;
-        private const string DefaultBrokerLibPath = "\\\\firmwide\\appstore\\1188\\Test\\messagebus.jar";
+        private const string DefaultBrokerExePath = "\\\\firmwide.corp.gs.com\\appstore\\51\\Production\\14974\\bin\\java.exe";
+        private const string DefaultBrokerLibPath = "\\\\firmwide\\appstore\\1188\\Production\\messagebus.jar";
+        private const string DefaultBrokerLibPath2 = "\\\\firmwide\\appstore\\1188\\Test\\messagebus.jar";
         private static int _idcount = 1;
         private readonly TimeSpan _reconnectFrequency = TimeSpan.FromSeconds(10);
         private long _disconnectRequested;
@@ -120,12 +122,19 @@ namespace Paragon.Plugins.MessageBus
 
         public void Reconnect()
         {
-            if (Interlocked.Read(ref _disconnectRequested) == 0)
+            try
             {
-                Thread.Sleep(_reconnectFrequency);
-                _logger.Warn("Attempting to re-connect to the broker.");
-                DisconnectInternal();
-                ConnectInternal();
+                if (Interlocked.Read(ref _disconnectRequested) == 0)
+                {
+                    Thread.Sleep(_reconnectFrequency);
+                    _logger.Warn("Attempting to re-connect to the broker.");
+                    DisconnectInternal();
+                    ConnectInternal();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Failed to reconnect.", ex);
             }
         }
 
@@ -141,7 +150,7 @@ namespace Paragon.Plugins.MessageBus
                 return;
             }
 
-            _socket = new WebSocket(string.Format("ws://localhost:{0}/paragon/messagebus", _brokerPort));
+            _socket = new WebSocket(string.Format("ws://localhost:{0}?appid=app{1}", _brokerPort, _idcount++));
             _socket.Opened += OnSocketOpened;
             _socket.Error += OnSocketError;
             _socket.Closed += OnSocketClosed;
@@ -206,23 +215,17 @@ namespace Paragon.Plugins.MessageBus
         private MessageBrokerWatcher CreateBrokerWatcher()
         {
             var appConfig = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location);
-            var brokerLibPath = string.Empty;
-            var brokerExePath = string.Empty;
-            var brokerLoggingConfig = string.Empty;
-            if (appConfig != null && appConfig.AppSettings.Settings.Count > 0 )
+            var brokerLibPath = GetSetting(appConfig,"BrokerLibraryPath");
+            var brokerExePath = GetSetting(appConfig, "BrokerExePath");
+            var brokerLoggingConfig = GetSetting(appConfig, "BrokerLoggingConfigFile");
+            var brokerPort = GetSetting(appConfig, "BrokerPort");
+
+            if (!string.IsNullOrEmpty(brokerPort))
             {
-                try
+                int portNum;
+                if (int.TryParse(brokerPort, out portNum))
                 {
-                    brokerLibPath = appConfig.AppSettings.Settings["BrokerLibraryPath"].Value;
-                    brokerExePath = appConfig.AppSettings.Settings["BrokerExePath"].Value;
-                    brokerLoggingConfig = appConfig.AppSettings.Settings["BrokerLoggingConfigFile"].Value;
-                    var brokerPortVal = appConfig.AppSettings.Settings["BrokerPort"].Value;
-                    if (!string.IsNullOrEmpty(brokerPortVal))
-                        _brokerPort = int.Parse(brokerPortVal);
-                }
-                catch
-                {
-                    // No op
+                    _brokerPort = portNum;
                 }
             }
 
@@ -231,9 +234,9 @@ namespace Paragon.Plugins.MessageBus
                 brokerExePath = DetectJavaPath();
             }
 
-            if (string.IsNullOrEmpty(brokerLibPath))
+            if (string.IsNullOrEmpty(brokerLibPath) || brokerLibPath.Equals("detect", StringComparison.InvariantCultureIgnoreCase))
             {
-                brokerLibPath = DefaultBrokerLibPath;
+                brokerLibPath = DetectBrokerLibPath();
             }
 
             if (string.IsNullOrEmpty(brokerLoggingConfig) || brokerLoggingConfig.Equals("detect", StringComparison.InvariantCultureIgnoreCase))
@@ -248,42 +251,31 @@ namespace Paragon.Plugins.MessageBus
             return new MessageBrokerWatcher(_logger, "-jar ", brokerLibPath, brokerExePath, brokerLoggingConfig, _brokerPort);
         }
 
-        string DetectJavaPath()
+        private string GetSetting(Configuration config, string key)
         {
-            var javaPath = string.Empty;
-
-            int currJDKVersion = 7;
-            int currJDKBuild = -1;
-
-            // Find the latest path to the latest java.exe (JDK v1.7 or later)
-            foreach (var dir in Directory.GetDirectories("I:\\JDK", "1.*"))
+            try
             {
-                int jdkVersion = int.Parse(dir.Split('.')[1]);
-                if (jdkVersion > currJDKVersion)
-                {
-                    currJDKVersion = jdkVersion;
-                }
-
-                if (jdkVersion >= 7)
-                {
-                    var jdkBuildParts = dir.Split('_');
-                    var jdkBuildInfo = jdkBuildParts.Length >= 2 ? jdkBuildParts[1].Split('.')[0] : null;
-                    if (jdkBuildInfo != null)
-                    {
-                        var jdkBuild = int.Parse(jdkBuildInfo);
-                        if (jdkBuild > currJDKBuild)
-                        {
-                            var newJavaPath = Path.Combine(Path.Combine(dir, "bin"), "java.exe");
-                            if (File.Exists(newJavaPath))
-                            {
-                                javaPath = newJavaPath;
-                            }
-                        }
-                    }
-                }
+                var entry = config.AppSettings.Settings[key];
+                return entry == null ? null : entry.Value;
             }
+            catch
+            {
+                return null;
+            }
+        }
 
-            return javaPath;
+        public static string DetectJavaPath()
+        {
+            return DefaultBrokerExePath;
+        }
+
+        public static string DetectBrokerLibPath()
+        {
+            if (File.Exists(DefaultBrokerLibPath))
+                return DefaultBrokerLibPath;
+            if (File.Exists(DefaultBrokerLibPath2))
+                return DefaultBrokerLibPath2;
+            return string.Empty;
         }
     }
 }

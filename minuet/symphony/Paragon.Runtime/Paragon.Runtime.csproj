@@ -76,6 +76,7 @@
     <Compile Include="ApplicationFactory.cs" />
     <Compile Include="CefHandlers\LoadStartEventArgs.cs" />
     <Compile Include="EventArgs\ProtocolExecutionEventArgs.cs" />
+    <Compile Include="EventHandlerExtensions.cs" />
     <Compile Include="ExcludeFromCodeCoverageAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Kernel\Plugins\LoggerPlugin.cs" />
@@ -89,7 +90,6 @@
     <Compile Include="CefHandlers\CefWebDisplayHandler.cs" />
     <Compile Include="CefHandlers\CefWebDownloadHandler.cs" />
     <Compile Include="CefHandlers\CefWebDragHandler.cs" />
-    <Compile Include="CefHandlers\CefWebFocusHandler.cs" />
     <Compile Include="CefHandlers\CefWebJSDialogHandler.cs" />
     <Compile Include="CefHandlers\CefWebKeyboardHandler.cs" />
     <Compile Include="CefHandlers\CefWebLifeSpanHandler.cs" />
@@ -133,6 +133,7 @@
     <Compile Include="Kernel\Windowing\CreateWindowOptions.cs" />
     <Compile Include="Kernel\Windowing\CreateWindowRequest.cs" />
     <Compile Include="Kernel\Windowing\DisplaySettings.cs" />
+    <Compile Include="Kernel\Windowing\FileDialogCallback.cs" />
     <Compile Include="Kernel\Windowing\FrameOptions.cs" />
     <Compile Include="Kernel\Windowing\IApplicationWindowEx.cs" />
     <Compile Include="Kernel\Windowing\IApplicationWindowManagerEx.cs" />
@@ -148,7 +149,6 @@
     <Compile Include="ParagonTraceSources.cs" />
     <Compile Include="Desktop\WindowInfo.cs" />
     <Compile Include="Plugins\IBrowserCallResponseHandler.cs" />
-    <Compile Include="EventHandlerExtensions.cs" />
     <Compile Include="PackagedApplication\DirectoryPackage.cs" />
     <Compile Include="PackagedApplication\FilePackagePart.cs" />
     <Compile Include="ParagonRuntime.cs" />
@@ -267,22 +267,10 @@
     <Compile Include="Win32\WindowPropertyStore.cs" />
     <Compile Include="WindowsVersion.cs" />
     <Compile Include="WinForms\ContainerWindowMoveListener.cs" />
-    <Compile Include="WinForms\ControlExtensions.cs" />
-    <Compile Include="WinForms\DevToolsWebBrowser.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="WinForms\FocusLossListener.cs" />
+    <Compile Include="WinForms\WidgetWindowZOrderHandler.cs" />
     <Compile Include="WinForms\NativeApplicationWindow.cs" />
-    <Compile Include="WinForms\PromptDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="WinForms\WidgetWindow.cs" />
-    <Compile Include="WinForms\WidgetWindowCreationListener.cs" />
-    <Compile Include="WinForms\Win32Window.cs" />
-    <Compile Include="WinForms\WinFormsCefBrowser.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="WPF\AutoSaveWindowPositionBehavior.cs" />
+    <Compile Include="WPF\BrowserHwndHost.cs" />
     <Compile Include="WPF\CefWebBrowser.cs" />
     <Compile Include="WPF\GlowWindow.xaml.cs">
       <DependentUpon>GlowWindow.xaml</DependentUpon>

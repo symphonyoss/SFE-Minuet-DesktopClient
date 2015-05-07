@@ -15,10 +15,10 @@ namespace Paragon.Runtime.PackagedApplication
     {
         private const string EventPage = "_events.html";
         private static readonly ILogger Logger = ParagonLogManager.GetLogger();
-        private static readonly string Domain;
         private static readonly string SchemeName;
         private readonly IApplicationPackage _package;
         private string _baseUrl;
+        public static readonly string Domain;
 
         static PackagedApplicationSchemeHandlerFactory()
         {

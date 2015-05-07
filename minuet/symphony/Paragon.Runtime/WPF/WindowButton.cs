@@ -5,6 +5,11 @@ namespace Paragon.Runtime.WPF
 {
     internal class WindowButton : Button
     {
+        public WindowButton()
+        {
+            Focusable = false;
+        }
+
         public override void EndInit()
         {
             base.EndInit();

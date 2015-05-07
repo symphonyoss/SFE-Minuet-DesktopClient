@@ -140,23 +140,6 @@
     }
 
     assignDraggableListeners();
-})();
-
-// Set up onfocus/onblur handlers.
-(function () {
-    paragon.app.window.getCurrent(function (win) {
-        win.onGotFocus.addListener(function () {
-            if (window.gotfocus) {
-                window.gotfocus();
-            }
-        });
-
-        win.onLostFocus.addListener(function () {
-            if (window.onblur) {
-                window.onblur();
-            }
-        });
-    });
 })();";
 
             return script;

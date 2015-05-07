@@ -184,5 +184,9 @@ namespace Paragon.Runtime
         /// </summary>
         /// <param name="set"></param>
         void SetTopMost(bool set);
+
+        void SetZoomLevel(double level);
+
+        void RunFileDialog(CefFileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, CefRunFileDialogCallback callback);
     }
 }

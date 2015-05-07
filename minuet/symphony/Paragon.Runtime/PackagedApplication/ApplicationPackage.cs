@@ -16,35 +16,57 @@ namespace Paragon.Runtime.PackagedApplication
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         public ApplicationPackage(string packageFilePath)
         {
+            if (string.IsNullOrEmpty(packageFilePath))
+            {
+                throw new ArgumentNullException("packageFilePath");
+            }
+
             Package package;
             ApplicationManifest manifest = null;
-
-            packageFilePath = new Uri(packageFilePath).LocalPath;
-
-            if (!string.IsNullOrEmpty(packageFilePath) && 
-                packageFilePath.EndsWith(PackagedAppManifestFileName, StringComparison.InvariantCultureIgnoreCase) && 
-                File.Exists(packageFilePath))
+            
+            //packageFilePath argument passed must be a manifest file, path to a directory which has the manifest file or a pgx package
+            var localPath = new Uri(packageFilePath).LocalPath;
+            if (File.Exists(localPath))
             {
-                packageFilePath = packageFilePath.Replace(PackagedAppManifestFileName, string.Empty);
-                package = new DirectoryPackage(packageFilePath);
+                if (PackagedAppManifestFileName.Equals(Path.GetFileName(localPath), StringComparison.OrdinalIgnoreCase))
+                {
+                    //A path to a manifest file was passed in.
+                    _packageFilePath = localPath.Replace(PackagedAppManifestFileName, string.Empty);
+                    package = new DirectoryPackage(_packageFilePath);
+                }
+                else
+                {
+                    var ext = Path.GetExtension(localPath);
+                    if (!string.IsNullOrEmpty(ext) && ext.Equals(".pgx", StringComparison.OrdinalIgnoreCase))
+                    {
+                        //A path to a pgx package was passed in.
+                        _packageFilePath = localPath;
+                        package = Package.Open(_packageFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Unknown package file: "+localPath);
+                    }
+                }
             }
-            else if( !string.IsNullOrEmpty(packageFilePath) && 
-                     Directory.Exists(packageFilePath) && 
-                     File.Exists(Path.Combine(packageFilePath, PackagedAppManifestFileName)))
+            else if (Directory.Exists(localPath))
             {
-                package = new DirectoryPackage(packageFilePath);
+                //A path to a package directory was passed in.
+                var manifestPath = Path.Combine(localPath, PackagedAppManifestFileName);
+                if (File.Exists(manifestPath))
+                {
+                    _packageFilePath = localPath;
+                    package = new DirectoryPackage(_packageFilePath);
+                }
+                else
+                {
+                    throw new FileNotFoundException("Manifest file not found: " + manifestPath);
+                }
             }
             else
             {
-                if (string.IsNullOrEmpty(packageFilePath) || !File.Exists(packageFilePath))
-                {
-                    throw new Exception(string.Format("Application '{0}' does not exist", packageFilePath));
-                }
-
-                package = Package.Open(packageFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                throw new InvalidOperationException("Application package not found: " + packageFilePath);
             }
-            
-            _packageFilePath = packageFilePath;
 
             var manifestFile = GetPart(package, PackagedAppManifestFileName);
             if (manifestFile != null)
@@ -230,7 +252,7 @@ namespace Paragon.Runtime.PackagedApplication
             app.Launch = null;
             app.Background = new BackgroundInfo
             {
-                Scripts = new[] {"background.js"}
+                Scripts = new[] { "background.js" }
             };
             return new ApplicationPackage(newPackage, manifest);
         }
@@ -252,7 +274,7 @@ namespace Paragon.Runtime.PackagedApplication
             return background;
         }
 
-// ReSharper disable UnusedAutoPropertyAccessor.Local
+        // ReSharper disable UnusedAutoPropertyAccessor.Local
 
         private class BoundsSpecification
         {
@@ -278,6 +300,6 @@ namespace Paragon.Runtime.PackagedApplication
             public double MaxHeight { get; set; }
         }
 
-// ReSharper restore UnusedAutoPropertyAccessor.Local
+        // ReSharper restore UnusedAutoPropertyAccessor.Local
     }
 }

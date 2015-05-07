@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Security.Permissions;
 using System.Windows;
@@ -6,388 +7,999 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Input;
+using System.Windows.Interop;
 using Paragon.Plugins;
+using Paragon.Runtime.Plugins;
+using Paragon.Runtime.Win32;
 using Paragon.Runtime.WinForms;
 using Xilium.CefGlue;
 using Control = System.Windows.Forms.Control;
 using KeyEventArgs = System.Windows.Forms.KeyEventArgs;
+using System.Linq;
+using Paragon.Runtime.PackagedApplication;
+using Paragon.Runtime.Properties;
 
 namespace Paragon.Runtime.WPF
 {
-    public class CefWebBrowser : ContentControl, ICefWebBrowser
+    public class CefWebBrowser : BrowserHwndHost, ICefWebBrowser, ICefWebBrowserInternal
     {
-        [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public CefWebBrowser()
-            : this(new WinFormsCefBrowser())
-        {
-        }
+        private const string DevToolsUrlPrefix = "chrome-devtools://devtools/";
+        private static readonly ILogger Logger = ParagonLogManager.GetLogger();
+        private readonly List<string> _allowedProtocols = new List<string>();
+
+        private readonly int _parentBrowserId = -1;
+        private CefBrowser _browser;
+        private IntPtr _browserWindowHandle;
+        private CefWebClient _client;
+        private ContainerWindowMoveListener _containerWindowMoveListener;
+        private string _currentUrl = "about:blank";
+        private bool _disableContextMenu;
+        private bool _disablePopups;
+        private WidgetWindowZOrderHandler _widgetWindowZOrderHandler;
+        private bool _controlCreated;
+        private bool _mainFrameResourceNotAccessible;
+        private bool _mainFrameCertificateError;
+        private string _name = Guid.NewGuid().ToString();
+        private IBrowserSideMessageRouter _router;
+        private string _sourceUrl = "about:blank";
+
+        public event EventHandler<BrowserCreateEventArgs> BeforeBrowserCreate;
+        public event EventHandler<ContextMenuEventArgs> BeforeContextMenu;
+        public event EventHandler<BeforePopupEventArgs> BeforePopup;
+        public event EventHandler<ResourceLoadEventArgs> BeforeResourceLoad;
+        public event EventHandler<UnloadDialogEventArgs> BeforeUnloadDialog;
+        public event EventHandler BrowserAfterCreated;
+        public event EventHandler BrowserClosed;
+        public event EventHandler<ContextMenuCommandEventArgs> ContextMenuCommand;
+        public event EventHandler<DownloadProgressEventArgs> DownloadUpdated;
+        public event EventHandler<JsDialogEventArgs> JSDialog;
+        public event EventHandler<LoadEndEventArgs> LoadEnd;
+        public event EventHandler<LoadErrorEventArgs> LoadError;
+        public event EventHandler<RenderProcessTerminatedEventArgs> RenderProcessTerminated;
+        public event EventHandler<ShowPopupEventArgs> ShowPopup;
+        public event EventHandler<TitleChangedEventArgs> TitleChanged;
+        public event EventHandler<DragEnterEventArgs> WebDragEnter;
+        public event EventHandler<ProtocolExecutionEventArgs> ProtocolExecution;
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        protected CefWebBrowser(WinFormsCefBrowser control)
+        public CefWebBrowser()
         {
             KeyboardNavigation.SetIsTabStop(this, false);
             KeyboardNavigation.SetTabNavigation(this, KeyboardNavigationMode.Cycle);
             KeyboardNavigation.SetDirectionalNavigation(this, KeyboardNavigationMode.Cycle);
-
-            WinFormsControl = control;
-            WinFormsControlHost = new WindowsFormsHost();
+            _disablePopups = false;
+            _disableContextMenu = false;
             Loaded += OnLoaded;
-            if (!DesignerProperties.GetIsInDesignMode(this))
-            {
-                WinFormsControlHost.Child = WinFormsControl;
-                AttachEventWrappers();
-            }
-
-            Content = WinFormsControlHost;
+            ParagonRuntime.AddBrowser(this);
+            _allowedProtocols.AddRange(CefBrowserApplication.AllowedProtocols);
         }
 
-        protected WinFormsCefBrowser WinFormsControl { get; private set; }
-        protected WindowsFormsHost WinFormsControlHost { get; private set; }
+        protected CefWebBrowser(int parentId, IBrowserSideMessageRouter router)
+            : this()
+        {
+            _parentBrowserId = parentId;
+            _router = router;
+        }
 
-        public event EventHandler<BrowserCreateEventArgs> BeforeBrowserCreate;
-        public event EventHandler<BeforePopupEventArgs> BeforePopup;
-        public event EventHandler BrowserAfterCreated;
-        public event EventHandler BrowserClosed;
-        public event EventHandler<TakeFocusEventArgs> BrowserLostFocus;
-        public event EventHandler<ShowPopupEventArgs> ShowPopup;
-        public event EventHandler<TitleChangedEventArgs> TitleChanged;
-        public event EventHandler<LoadEndEventArgs> LoadEnd;
-        public event EventHandler<LoadErrorEventArgs> LoadError;
-        public event EventHandler<RenderProcessTerminatedEventArgs> RenderProcessTerminated;
-        public event EventHandler<ContextMenuCommandEventArgs> ContextMenuCommand;
-        public event EventHandler<ContextMenuEventArgs> BeforeContextMenu;
-        public event EventHandler<DownloadProgressEventArgs> DownloadUpdated;
-        public event EventHandler<ResourceLoadEventArgs> BeforeResourceLoad;
-        public event EventHandler<JsDialogEventArgs> JSDialog;
-        public event EventHandler<UnloadDialogEventArgs> BeforeUnloadDialog;
-        public event EventHandler<DragEnterEventArgs> WebDragEnter;
-        public event EventHandler<ProtocolExecutionEventArgs> ProtocolExecution;
+        protected override IntPtr BrowserWindowHandle
+        {
+            get
+            {
+                return _browserWindowHandle;
+            }
+        }
+
+        private bool IsPopup
+        {
+            get { return _parentBrowserId > 0 || (_browser != null && _browser.IsPopup); }
+        }
+
+        private bool DesignMode
+        {
+            get
+            {
+                return DesignerProperties.GetIsInDesignMode(this);
+            }
+        }
 
         public string BrowserName
         {
-            get { return WinFormsControl.BrowserName; }
+            get { return _name; }
         }
 
         public int Identifier
         {
-            get { return WinFormsControl.Identifier; }
+            get { return _browser != null ? _browser.Identifier : -1; }
         }
 
         public string Source
         {
-            get { return WinFormsControl.Source; }
-            set { WinFormsControl.Source = value; }
-        }
-
-        public void Reload(bool ignoreCache)
-        {
-            WinFormsControl.Reload(ignoreCache);
-        }
-
-        public void ExecuteJavaScript(string script)
-        {
-            WinFormsControl.ExecuteJavaScript(script);
-        }
-
-        public void Close(bool force = false)
-        {
-            if (WinFormsControl != null)
+            get { return _sourceUrl; }
+            set
             {
-                WinFormsControl.Close(force);
+                if (!_sourceUrl.Equals(value))
+                {
+                    _sourceUrl = value;
+                    if (!DesignMode)
+                    {
+                        NavigateTo(_sourceUrl);
+                    }
+                }
             }
-        }
-
-        public IDisposable GetDeveloperToolsControl(CefPoint element, CefWindowInfo info = null, CefBrowserSettings settings = null)
-        {
-            var ctl = WinFormsControl.GetDeveloperToolsControl(element, info, settings);
-            return ctl != null ? new DevToolsControl(ctl) : null;
         }
 
         public void BlurBrowser()
         {
-            if (WinFormsControl != null)
+            if (_browser != null)
             {
-                WinFormsControl.BlurBrowser();
+                _browser.GetHost().SetFocus(false);
+            }
+        }
+
+        public void Close(bool force = false)
+        {
+            Logger.Info(fmt => fmt("Closing browser {0}", Identifier));
+            if (_browser != null)
+            {
+                _browser.GetHost().CloseBrowser(force);
+            }
+        }
+
+        public void ExecuteJavaScript(string script)
+        {
+            using (var frame = _browser.GetMainFrame())
+            {
+                frame.ExecuteJavaScript(script, string.Empty, 1);
             }
         }
 
         public void FocusBrowser()
         {
-            if (WinFormsControl != null)
+            if (_browser != null)
             {
-                WinFormsControl.FocusBrowser();
-            }
-        }
-
-        public void SetTopMost(bool set = true)
-        {
-            if (WinFormsControl != null)
-            {
-                WinFormsControl.SetTopMost(set);
-            }
-        }
-
-        public void CreateControl()
-        {
-            WinFormsControl.CreateControl();
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing)
-            {
-                return;
-            }
-
-            if (WinFormsControlHost != null)
-            {
-                WinFormsControlHost.Dispose();
-                WinFormsControlHost = null;
-            }
-
-            if (WinFormsControl != null)
-            {
-                DetachEventWrappers();
-                WinFormsControl = null;
+                _browser.GetHost().SetFocus(true);
             }
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            if (WinFormsControl != null)
+            Loaded -= OnLoaded;
+            if (_containerWindowMoveListener == null)
             {
-                WinFormsControl.OnParentLoaded();
+                _containerWindowMoveListener = new ContainerWindowMoveListener(_browserWindowHandle, () => _browser.GetHost().NotifyMoveOrResizeStarted());
+            }
+        }
+
+        public IDisposable GetDeveloperToolsControl(CefPoint element, CefWindowInfo info = null, CefBrowserSettings settings = null)
+        {
+            if (_browser != null)
+            {
+                var ctl = new DevToolsWebBrowser();
+
+                ctl.Disposed += (sender, args) =>
+                {
+                    if (_browser != null)
+                    {
+                        _browser.GetHost().CloseDevTools();
+                    }
+                };
+
+                ctl.CreateControl();
+
+                if (info == null)
+                {
+                    info = CefWindowInfo.Create();
+                    info.Width = (int)ActualWidth;
+                    info.Height = (int)ActualHeight;
+                }
+                if (ctl.ParentHandle != IntPtr.Zero)
+                {
+                    info.SetAsChild(ctl.ParentHandle, new CefRectangle(0, 0, info.Width, info.Height));
+                }
+
+                if (settings == null)
+                {
+                    settings = new CefBrowserSettings();
+                }
+
+                if (element.X > int.MinValue && element.Y > int.MinValue)
+                {
+                    _browser.GetHost().ShowDevTools(info, ctl.Client, settings, element);
+                }
+                else
+                {
+                    _browser.GetHost().ShowDevTools(info, ctl.Client, settings);
+                }
+
+                return ctl;
+            }
+
+            return null;
+        }
+
+        public void Reload(bool ignoreCache)
+        {
+            if (ignoreCache)
+            {
+                if (_browser != null)
+                {
+                    _browser.ReloadIgnoreCache();
+                }
+            }
+            else
+            {
+                if (_browser != null)
+                {
+                    _browser.Reload();
+                }
+            }
+        }
+
+        public void SetTopMost(bool set)
+        {
+            if (_widgetWindowZOrderHandler != null)
+            {
+                _widgetWindowZOrderHandler.SetTopMost(set);
+            }
+        }
+
+        public override void CreateControl()
+        {
+            base.CreateControl();
+
+            if (!_controlCreated && !DesignMode)
+            {
+                if (!ParagonRuntime.IsInitialized)
+                {
+                    ParagonRuntime.Initialize();
+                }
+
+                _client = new CefWebClient(this);
+
+                if (!IsPopup && _browser == null)
+                {
+                    var settings = new CefBrowserSettings
+                    {
+                        Java = CefState.Disabled
+                    };
+
+                    using (AutoStopwatch.TimeIt("Creating browser"))
+                    {
+                        var info = CefWindowInfo.Create();
+                        var ea = new BrowserCreateEventArgs();
+
+                        using (AutoStopwatch.TimeIt("Raising BeforeBrowserCreate event"))
+                        {
+                            BeforeBrowserCreate.Raise(this, ea);
+                        }
+
+                        _router = ea.Router;
+                        _currentUrl = _sourceUrl;
+
+                        if (IntPtr.Zero != ParentHandle)
+                        {
+                            RECT rect = new RECT();
+                            Win32Api.GetClientRect(ParentHandle, ref rect);
+                            info.SetAsChild(ParentHandle, new CefRectangle(rect.Left, rect.Top, rect.Width, rect.Height));
+                        }
+
+                        Logger.Info(fmt => fmt("OnHandleCreated - Creating a browser with url {0}", _currentUrl));
+                        CefBrowserHost.CreateBrowser(info, _client, settings, _currentUrl);
+                    }
+                }
+
+                _controlCreated = true;
+            }
+        }
+
+        public void SetZoomLevel(double level)
+        {
+            if (_browser != null)
+            {
+                _browser.GetHost().SetZoomLevel(level);
+            }
+        }
+
+        public void RunFileDialog(CefFileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, CefRunFileDialogCallback callback)
+        {
+            if (_browser != null)
+            {
+                _browser.GetHost().RunFileDialog(mode, title, defaultFileName, acceptTypes, callback);
             }
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        private void AttachEventWrappers()
+        protected override void Dispose(bool disposing)
         {
-            WinFormsControl.KeyDown += OnControlKeyDown;
-            WinFormsControl.PreviewKeyDown += OnControlPreviewKeyDown;
-            WinFormsControl.BeforeBrowserCreate += OnControlBeforeBrowserCreate;
-            WinFormsControl.BrowserAfterCreated += OnControlBrowserAfterCreated;
-            WinFormsControl.BeforePopup += OnControlBrowserBeforePopup;
-            WinFormsControl.ShowPopup += OnControlShowPopup;
-            WinFormsControl.TitleChanged += OnControlTitleChanged;
-            WinFormsControl.LoadEnd += OnControlLoadEnd;
-            WinFormsControl.LoadError += OnControlLoadError;
-            WinFormsControl.RenderProcessTerminated += OnControlRenderProcessTerminated;
-            WinFormsControl.ContextMenuCommand += OnControlContextMenuCommand;
-            WinFormsControl.BeforeContextMenu += OnControlBeforeContextMenu;
-            WinFormsControl.DownloadUpdated += OnControlDownloadUpdated;
-            WinFormsControl.BeforeResourceLoad += OnControlBeforeResourceLoad;
-            WinFormsControl.JSDialog += OnControlJSDialog;
-            WinFormsControl.BeforeUnloadDialog += OnControlBeforeUnloadDialog;
-            WinFormsControl.WebDragEnter += OnWebDragEnter;
-            WinFormsControl.BrowserLostFocus += ControlLostFocusEventHandler;
-            WinFormsControl.BrowserClosed += OnControlBrowserClosed;
-            WinFormsControl.ProtocolExecution += OnProtocolExecution;
-        }
-
-        private void DetachEventWrappers()
-        {
-            WinFormsControl.PreviewKeyDown -= OnControlPreviewKeyDown;
-            WinFormsControl.BeforeBrowserCreate -= OnControlBeforeBrowserCreate;
-            WinFormsControl.BrowserAfterCreated -= OnControlBrowserAfterCreated;
-            WinFormsControl.BeforePopup -= OnControlBrowserBeforePopup;
-            WinFormsControl.ShowPopup -= OnControlShowPopup;
-            WinFormsControl.TitleChanged -= OnControlTitleChanged;
-            WinFormsControl.LoadEnd -= OnControlLoadEnd;
-            WinFormsControl.LoadError -= OnControlLoadError;
-            WinFormsControl.RenderProcessTerminated -= OnControlRenderProcessTerminated;
-            WinFormsControl.ContextMenuCommand -= OnControlContextMenuCommand;
-            WinFormsControl.BeforeContextMenu -= OnControlBeforeContextMenu;
-            WinFormsControl.DownloadUpdated -= OnControlDownloadUpdated;
-            WinFormsControl.BeforeResourceLoad -= OnControlBeforeResourceLoad;
-            WinFormsControl.JSDialog -= OnControlJSDialog;
-            WinFormsControl.BeforeUnloadDialog -= OnControlBeforeUnloadDialog;
-            WinFormsControl.WebDragEnter -= OnWebDragEnter;
-            WinFormsControl.BrowserLostFocus -= ControlLostFocusEventHandler;
-            WinFormsControl.BrowserClosed -= OnControlBrowserClosed;
-            WinFormsControl.ProtocolExecution -= OnProtocolExecution;
-        }
-
-        private void OnControlBrowserClosed(object sender, EventArgs e)
-        {
-            BrowserClosed.Raise(this, e);
-        }
-
-        private void OnControlBeforeBrowserCreate(object sender, BrowserCreateEventArgs e)
-        {
-            BeforeBrowserCreate.Raise(this, e);
-        }
-
-        private void OnControlBrowserAfterCreated(object sender, EventArgs e)
-        {
-            BrowserAfterCreated.Raise(this, e);
-        }
-
-        private void OnControlBrowserBeforePopup(object sender, BeforePopupEventArgs e)
-        {
-            BeforePopup.Raise(this, e);
-        }
-
-        protected virtual CefWebBrowser CreatePopupBrowser(WinFormsCefBrowser winFormsBrowser)
-        {
-            return new CefWebBrowser(winFormsBrowser);
-        }
-
-        private void OnControlShowPopup(object source, ShowPopupEventArgs ea)
-        {
-            var handler = ShowPopup;
-            if (handler != null)
+            if (_browser != null && disposing)
             {
-                var winFormsBrowser = (WinFormsCefBrowser) ea.PopupBrowser;
-                var browser = CreatePopupBrowser(winFormsBrowser);
-
-                browser.RenderSize = new Size(winFormsBrowser.Width, winFormsBrowser.Height);
-                browser.Width = browser.RenderSize.Width;
-                browser.Height = browser.RenderSize.Height;
-                var ea2 = new ShowPopupEventArgs(browser);
-                handler(this, ea2);
-
-                ea.Shown = ea2.Shown;
-                if (!ea.Shown)
+                ParagonRuntime.RemoveBrowser(this);
+                if (_widgetWindowZOrderHandler != null)
                 {
-                    browser.WinFormsControl = null;
-                    browser.Close();
+                    _widgetWindowZOrderHandler.Dispose();
+                }
+                if (_containerWindowMoveListener != null)
+                {
+                    _containerWindowMoveListener.Dispose();
+                }
+                if (_router != null)
+                {
+                    _router = null;
+                }
+                if (_client != null)
+                {
+                    _client.Dispose();
+                }
+                if (_browser != null)
+                {
+                    _browser.Dispose();
+                }
+                _browser = null;
+                _browserWindowHandle = IntPtr.Zero;
+            }
+        }
+
+        #region ICefWebBrowserInternal implementation
+        void ICefWebBrowserInternal.OnBeforeContextMenu(ContextMenuEventArgs ea)
+        {
+            // Raised on UI thread. Invoke is needed if multi-threaded-message-loop is used.
+            // However, we shall fire this on the IO thread, because the Model is a value type and changes made in the
+            // UI thread will be made on a copy
+
+            try
+            {
+                if (!_disableContextMenu && BeforeContextMenu != null )
+                {
+                    BeforeContextMenu(this, ea);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(fmt => fmt("Error in OnBeforeContextMenu : {0}", ex));
+            }
+            finally
+            {
+                if (!ea.Handled && _disableContextMenu)
+                {
+                    ea.Model.Clear();
                 }
             }
         }
 
-        private void OnControlTitleChanged(object sender, TitleChangedEventArgs e)
+        void ICefWebBrowserInternal.OnBeforePopup(BeforePopupEventArgs e)
         {
-            TitleChanged.Raise(this, e);
-        }
-
-        private void OnControlLoadEnd(object sender, LoadEndEventArgs e)
-        {
-            LoadEnd.Raise(this, e);
-        }
-
-        private void OnControlLoadError(object sender, LoadErrorEventArgs e)
-        {
-            LoadError.Raise(this, e);
-        }
-
-        private void OnControlRenderProcessTerminated(object sender, RenderProcessTerminatedEventArgs e)
-        {
-            RenderProcessTerminated.Raise(this, e);
-        }
-
-        private void OnControlContextMenuCommand(object sender, ContextMenuCommandEventArgs e)
-        {
-            ContextMenuCommand.Raise(this, e);
-        }
-
-        private void OnControlBeforeContextMenu(object sender, ContextMenuEventArgs e)
-        {
-            BeforeContextMenu.Raise(this, e);
-        }
-
-        private void OnControlDownloadUpdated(object sender, DownloadProgressEventArgs e)
-        {
-            DownloadUpdated.Raise(this, e);
-        }
-
-        private void OnControlBeforeResourceLoad(object sender, ResourceLoadEventArgs e)
-        {
-            BeforeResourceLoad.Raise(this, e);
-        }
-
-        private void OnControlJSDialog(object sender, JsDialogEventArgs e)
-        {
-            JSDialog.Raise(this, e);
-        }
-
-        private void OnControlBeforeUnloadDialog(object sender, UnloadDialogEventArgs e)
-        {
-            BeforeUnloadDialog.Raise(this, e);
-        }
-
-        private void OnWebDragEnter(object sender, DragEnterEventArgs e)
-        {
-            WebDragEnter.Raise(this, e);
-        }
-
-        private void ControlLostFocusEventHandler(object sender, TakeFocusEventArgs e)
-        {
-            BrowserLostFocus.Raise(this, e);
-        }
-
-        private void OnProtocolExecution(object sender, ProtocolExecutionEventArgs e)
-        {
-            ProtocolExecution.Raise(this, e);
-        }
-
-        private void OnControlKeyDown(object sender, KeyEventArgs e)
-        {
-            var source = PresentationSource.FromDependencyObject(this);
-            if (source == null)
+            try
             {
-                return;
-            }
-
-            var key = KeyInterop.KeyFromVirtualKey((int) e.KeyData);
-            var args = new System.Windows.Input.KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) {RoutedEvent = KeyDownEvent};
-            RaiseEvent(args);
-        }
-
-        private void OnControlPreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
-        {
-            var source = PresentationSource.FromDependencyObject(this);
-            if (source == null)
-            {
-                return;
-            }
-
-            var key = KeyInterop.KeyFromVirtualKey((int) e.KeyData);
-            var args = new System.Windows.Input.KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) {RoutedEvent = PreviewKeyDownEvent};
-            RaiseEvent(args);
-        }
-
-        private class DevToolsControl : ContentControl, IDisposable
-        {
-            private readonly WindowsFormsHost _wfHost;
-            private IDisposable _ctl;
-
-            public DevToolsControl(IDisposable ctl)
-            {
-                _ctl = ctl;
-                _wfHost = new WindowsFormsHost();
-                var control = (Control) _ctl;
-                _wfHost.Child = control;
-                Content = _wfHost;
-                SizeChanged += OnSizeChanged;
-            }
-
-            public void Dispose()
-            {
-                if (_ctl != null)
+                var beforePopup = BeforePopup;
+                if (!_disablePopups && beforePopup != null)
                 {
-                    if (_wfHost != null)
+                    // If no initial size specified, default to the parent window's size
+                    if (e.WindowInfo.Width <= 0 && ActualWidth != double.NaN)
                     {
-                        _wfHost.Child = null;
+                        e.WindowInfo.Width = (int)ActualWidth;
                     }
-                    _ctl.Dispose();
+                    if (e.WindowInfo.Height <= 0 && ActualHeight != double.NaN)
+                    {
+                        e.WindowInfo.Height = (int)ActualHeight;
+                    }
+
+                    beforePopup(this, e);
+
+                    if (!e.Cancel && e.NeedCustomPopupWindow)
+                    {
+                        var name = string.IsNullOrEmpty(e.TargetFrameName)
+                            ? Guid.NewGuid().ToString() : e.TargetFrameName;
+                        
+                        // The following code must be executed on the UI thread of the browser process
+                        DispatchIfRequired(() => 
+                        { 
+                            var newBrowser = CreatePopupBrowser(Identifier, _router); 
+                            if (newBrowser != null)
+                            {
+                                newBrowser.Source = e.TargetUrl;
+                                newBrowser._currentUrl = e.TargetUrl;
+                                newBrowser.Width = e.WindowInfo.Width;
+                                newBrowser.Height = e.WindowInfo.Height;
+                                newBrowser._name = name;
+                                // Force the creation of the control handle
+                                newBrowser.CreateControl();
+
+                                e.WindowInfo.SetAsChild(newBrowser.ParentHandle, new CefRectangle(0, 0, e.WindowInfo.Width, e.WindowInfo.Height));
+
+                                // Set the client to new browser's client so that the OnAfterBrowserCreated (and other notifications) go to that control
+                                e.Client = newBrowser._client;
+                            };
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                e.Cancel = true;
+                Logger.Error(fmt => fmt("Error in OnBeforePopup : {0}. Popup will not be allowed.", ex));
+            }
+            finally
+            {
+                if (!e.Cancel && _disablePopups)
+                {
+                    e.Cancel = true;
+                }
+            }
+        }
+
+        void ICefWebBrowserInternal.OnCertificateError()
+        {
+            _mainFrameCertificateError = true;
+        }
+
+        void ICefWebBrowserInternal.OnBeforeResourceLoad(ResourceLoadEventArgs ea)
+        {
+            // Invoke synchronously because the ResourceLoadEventArgs.Cancel property is read
+            // by callers to determine whether the resource should be loaded or not.
+            try
+            {
+                if (!IsResourceAccessible(ea.Url))
+                {
+                    // Give the container a chance to override
+                    if( BeforeResourceLoad != null )
+                        BeforeResourceLoad(this, ea);
+
+                    if (!ea.Cancel)
+                    {
+                        // The URL is whitelisted by the application which takes preference. OK to load.
+                        return;
+                    }
+
+                    // Requested resource is not accessible. It may not be sourced from one of the
+                    // whitelisted domains, for example. Log this info to the paragon and dev tools logs.
+                    ea.Cancel = true;
+                    var msg = "Resource not accessible: " + ea.Url;
+                    ExecuteJavaScript("window.console.error('" + msg + "');");
+                    Logger.Error(msg);
+
+                    // If the resource is the main frame, set a flag for later use.
+                    if (ea.ResourceType == CefResourceType.MainFrame)
+                    {
+                        _mainFrameResourceNotAccessible = true;
+                    }
+                }
+                else if (!_allowedProtocols.Contains(new Uri(ea.Url).Scheme))
+                {
+                    // The protocol scheme for the requested resource is not in the list
+                    // of allowed protocol schemes. Cancel the request and log the failure.
+                    ea.Cancel = true;
+                    var msg = "Resource not accessible due to unknown protocol scheme: " + ea.Url;
+                    ExecuteJavaScript("window.console.error('" + msg + "');");
+                    Logger.Error(msg);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(fmt => fmt("Error in OnBeforeResourceLoad : {0}. Resource loading will be aborted.", ex));
+                ea.Cancel = true;
+            }
+        }
+
+        void ICefWebBrowserInternal.OnBeforeUnloadDialog(UnloadDialogEventArgs ea)
+        {
+            // Raised on UI thread. Invoke is needed if multi-threaded-message-loop is used.
+            if( BeforeUnloadDialog != null )
+            {
+                DispatchIfRequired(() =>
+                {
+                    try
+                    {
+                        BeforeUnloadDialog(this, ea);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(fmt => fmt("Error in OnBeforeUnloadDialog : {0}. Dialog will be suppressed.", ex));
+                    }
+                });
+            }
+        }
+
+        void ICefWebBrowserInternal.OnBrowserAfterCreated(CefBrowser browser)
+        {
+            this.DispatchIfRequired(() =>
+            {
+                try
+                {
+                    if (_browser != null)
+                    {
+                        return;
+                    }
+
+                    _browser = browser;
+                    using (var browserHost = _browser.GetHost())
+                    {
+                        _browserWindowHandle = browserHost.GetWindowHandle();
+                        if (_browserWindowHandle != IntPtr.Zero)
+                        {
+                            OnHandleCreated();
+                            _widgetWindowZOrderHandler = new WidgetWindowZOrderHandler(_browserWindowHandle);
+                        }
+                    }
+                    if (!IsPopup)
+                    {
+                        if( BrowserAfterCreated != null )
+                            BrowserAfterCreated(this, EventArgs.Empty);
+                    }
+                    else
+                    {
+                        var parent = ParagonRuntime.FindBrowser<CefWebBrowser>(_parentBrowserId);
+                        if (parent == null)
+                        {
+                            Close();
+                        }
+                        else
+                        {
+                            var ea = parent.RaiseShowPopup(this);
+                            if (ea == null || !ea.Shown)
+                            {
+                                Close();
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(fmt => fmt("Error in OnBrowserAfterCreated : {0}", ex));
+                    throw;
+                }
+            }, true);
+        }
+
+        void ICefWebBrowserInternal.OnClosed(CefBrowser browser)
+        {
+            InvokeHandler(BrowserClosed, EventArgs.Empty, true);
+        }
+
+        void ICefWebBrowserInternal.OnContextMenuCommand(ContextMenuCommandEventArgs ea)
+        {
+            // Raised on the CEF UI thread
+            try
+            {
+                if (ContextMenuCommand != null)
+                {
+                    ContextMenuCommand(this, ea);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(fmt => fmt("Error in OnBeforeContextMenu : {0}", ex));
+            }
+        }
+
+        void ICefWebBrowserInternal.OnDownloadUpdated(DownloadUpdatedEventArgs e)
+        {
+            if (DownloadUpdated != null)
+            {
+                var di = e.DownloadedItem;
+                var ea = new DownloadProgressEventArgs(di.Url, di.IsValid, di.IsInProgress, di.IsComplete, di.IsCanceled,
+                    di.CurrentSpeed, di.PercentComplete, di.TotalBytes, di.ReceivedBytes,
+                    di.FullPath, di.Id, di.SuggestedFileName, di.ContentDisposition, di.MimeType);
+                InvokeHandler(DownloadUpdated, ea);
+                if (ea.Cancel)
+                {
+                    e.Callback.Cancel();
+                }
+            }
+        }
+
+        void ICefWebBrowserInternal.OnDragEnter(DragEnterEventArgs args)
+        {
+            InvokeHandler(WebDragEnter, args);
+        }
+
+        void ICefWebBrowserInternal.OnJSDialog(JsDialogEventArgs ea)
+        {
+            // Raised on UI thread. Invoke is needed if multi-threaded-message-loop is used.
+            this.DispatchIfRequired(() =>
+            {
+                try
+                {
+                    if( JSDialog != null )
+                        JSDialog(this, ea);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(fmt => fmt("Error in OnJSDialog : {0}. Dialog will be suppressed.", ex));
+                    ea.SuppressMessage = true;
+                }
+                finally
+                {
+                    // Tell CEF we handled the dialog
+                    ea.Handled = true;
+                }
+            });
+        }
+
+        void ICefWebBrowserInternal.OnLoadEnd(LoadEndEventArgs e)
+        {
+            // Reset the flags used to indicate that the resource associated 
+            // with the main frame is not acessible or has a cert error.
+            _mainFrameResourceNotAccessible = false;
+            _mainFrameCertificateError = false;
+
+            this.DispatchIfRequired(() =>
+            {
+                try
+                {
+                    // If the source URI has changed since navigation was started, initiate naviagation again.
+                    if (!_sourceUrl.Equals(_currentUrl))
+                    {
+                        NavigateTo(_sourceUrl);
+                    }
+
+                    ExecuteJavaScript(StaticWebContent.GetOnLoadEndScript());
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(fmt => fmt("Error in OnLoadEnd : {0}", ex));
+                }
+                finally
+                {
+                    if( LoadEnd != null )
+                        LoadEnd(this, e);
+                }
+            },
+            true);
+        }
+
+        void ICefWebBrowserInternal.OnLoadError(LoadErrorEventArgs e)
+        {
+            // OnLoadError is called when an error occurs while loading the main frame 
+            // resource (resource of type CefResourceType.MainFrame). OnLoadError is not
+            // called when child resources of the main frame (scripts, etc) fail to load.
+            this.DispatchIfRequired(() =>
+            {
+                try
+                {
+                    if (_mainFrameCertificateError)
+                    {
+                        var html = StaticWebContent.GetInvalidCertErrorPage(e.FailedUrl);
+                        e.Frame.LoadString(html, PackagedApplicationSchemeHandlerFactory.ErrorPage);
+                        Logger.Error("Unable to load the main frame due to an invalid certifiate: " + e.FailedUrl);
+                    }
+                    else if (_mainFrameResourceNotAccessible)
+                    {
+                        // The resource associated with the main frame is not accessible.
+                        // The domain may not be whitelisted, etc.
+                        var html = StaticWebContent.GetResourceNotAccessibleErrorPage(e.FailedUrl);
+                        e.Frame.LoadString(html, PackagedApplicationSchemeHandlerFactory.ErrorPage);
+                        Logger.Error("Main frame resource not accessible: " + e.FailedUrl);
+                    }
+                    else if (e.ErrorCode != CefErrorCode.Aborted)
+                    {
+                        // The main frame failed to load for some reason. Show the default error
+                        // page along with any error text that may have been provided.
+                        var html = StaticWebContent.GetLoadErrorPage(e.FailedUrl, e.ErrorText, ParagonLogManager.CurrentParagonLogFile);
+                        e.Frame.LoadString(html, PackagedApplicationSchemeHandlerFactory.ErrorPage);
+                        Logger.Error(fmt => fmt("Error loading the main frame: url = {0}, Error = {1} {2}", e.FailedUrl, e.ErrorCode, e.ErrorText));
+                    }
+                    else
+                    {
+                        // In various situations, OnLoadError is called with CefErrorCode.Aborted. Aside
+                        // from certificate errors or cases where the main frame resource is not available
+                        // (both of which are handled above and both of which are CefErrorCode.Aborted errors) 
+                        // OnLoadError may be called for cases where there it does not actually indicate
+                        // that a real problem has occurred. For example, it is called when the main frame
+                        // is refreshed. We log it here at INFO because in most cases it does not represent
+                        // a real error condition.
+                        Logger.Info("Main frame load aborted: " + e.FailedUrl);
+                    }
+                    if (LoadError != null)
+                        LoadError(this, e);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Exception encountered while handling a page load error", ex);
+                }
+            }, true);
+        }
+
+        void ICefWebBrowserInternal.OnLoadStart(LoadStartEventArgs e)
+        {
+            this.DispatchIfRequired(() =>
+            {
+                try
+                {
+                    ExecuteJavaScript(StaticWebContent.GetOnLoadStartScript());
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(fmt => fmt("Error in OnLoadStart : {0}", ex));
+                }
+            },
+            true);
+        }
+
+        void ICefWebBrowserInternal.OnPreviewKeyEvent(CefKeyEvent keyEvent)
+        {
+            this.DispatchIfRequired(() =>
+            {
+                if (keyEvent.EventType == CefKeyEventType.RawKeyDown)
+                {
+                    var keys = (Keys)keyEvent.WindowsKeyCode;
+                    if ((keyEvent.Modifiers & CefEventFlags.ControlDown) == CefEventFlags.ControlDown)
+                    {
+                        keys |= Keys.Control;
+                    }
+                    if ((keyEvent.Modifiers & CefEventFlags.ShiftDown) == CefEventFlags.ShiftDown)
+                    {
+                        keys |= Keys.Shift;
+                    }
+                    if ((keyEvent.Modifiers & CefEventFlags.AltDown) == CefEventFlags.AltDown)
+                    {
+                        keys |= Keys.Alt;
+                    }
+                    var source = PresentationSource.FromDependencyObject(this);
+                    var key = KeyInterop.KeyFromVirtualKey((int)keys);
+                    var args = new System.Windows.Input.KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) { RoutedEvent = PreviewKeyDownEvent };
+                    RaiseEvent(args);
+                }
+            }, true);
+        }
+
+        bool ICefWebBrowserInternal.OnProcessMessageReceived(CefBrowser browser, CefProcessMessage message)
+        {
+            return _router.ProcessCefMessage(browser, message);
+        }
+
+        void ICefWebBrowserInternal.OnRenderProcessTerminated(RenderProcessTerminatedEventArgs e)
+        {
+            InvokeHandler(RenderProcessTerminated, e, true);
+        }
+
+        void ICefWebBrowserInternal.OnTitleChanged(TitleChangedEventArgs e)
+        {
+            InvokeHandler(TitleChanged, e, true);
+        }
+
+        void ICefWebBrowserInternal.OnProtocolExecution(ProtocolExecutionEventArgs ea)
+        {
+            // Raised on CEF UI thread. 
+            try
+            {
+                if( ProtocolExecution != null )
+                    ProtocolExecution(this, ea);
+                if (ea.Allow)
+                {
+                    var scheme = new Uri(ea.Url).Scheme;
+                    if (!_allowedProtocols.Contains(scheme))
+                        _allowedProtocols.Add(scheme);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(fmt => fmt("Error in OnProtocolExecution : {0}. Protocol will not be allowed.", ex.Message));
+                ea.Allow = false;
+            }
+        }
+
+        bool ICefWebBrowserInternal.OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool isRedirect)
+        {
+            var scheme = new Uri(request.Url).Scheme;
+            return !string.IsNullOrEmpty(scheme) && !CefBrowserApplication.AllowedProtocols.Contains(scheme);
+        }
+
+        #endregion
+
+        private void InvokeHandler<T>(EventHandler<T> handler, T args, bool invokeAsync = false, string callingMethodName = null)
+            where T : EventArgs
+        {
+            // Raised on UI thread. Invoke is needed if multi-threaded-message-loop is used.
+            this.DispatchIfRequired(() =>
+            {
+                try
+                {
+                    if (handler != null)
+                    {
+                        handler(this, args);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(fmt => fmt("Error in {0} : {1}", callingMethodName ?? "Unknown", ex));
+                }
+            }, invokeAsync);
+        }
+
+        private void InvokeHandler(EventHandler handler, EventArgs args, bool invokeAsync = false, string callingMethodName = null)
+        {
+            // Raised on UI thread. Invoke is needed if multi-threaded-message-loop is used.
+            this.DispatchIfRequired(() =>
+            {
+                try
+                {
+                    if (handler != null)
+                    {
+                        handler(this, args);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(fmt => fmt("Error in {0} : {1}", callingMethodName ?? "Unknown", ex));
+                }
+            }, invokeAsync);
+        }
+
+        private bool IsResourceAccessible(string url)
+        {
+            if (!string.IsNullOrEmpty(url))
+            {
+                if (url.StartsWith(DevToolsUrlPrefix, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+                var uri = new Uri(url);
+                if (!uri.IsAbsoluteUri)
+                {
+                    return true;
+                }
+
+                var host = uri.DnsSafeHost;
+                if (string.IsNullOrEmpty(host)
+                    || host.Equals("localhost", StringComparison.InvariantCultureIgnoreCase)
+                    || host.EndsWith(PackagedApplicationSchemeHandlerFactory.Domain))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void NavigateTo(string url)
+        {
+            Logger.Info(string.Format("Current url = {0}, new url = {1}", _currentUrl, url ?? string.Empty));
+            if (!string.IsNullOrEmpty(url) && _browser != null && _controlCreated)
+            {
+                if (!url.Equals(_currentUrl))
+                {
+                    _currentUrl = url;
+                    try
+                    {
+                        if (_browser.IsLoading)
+                        {
+                            Logger.Info(fmt => fmt("Stopping the loading of {0}", _currentUrl));
+                            _browser.StopLoad();
+                        }
+                    }
+                    finally
+                    {
+                        Logger.Info(fmt => fmt("Loading url = {0}", _currentUrl));
+                        _browser.GetMainFrame().LoadUrl(_currentUrl);
+                    }
+                }
+            }
+        }
+
+        protected virtual CefWebBrowser CreatePopupBrowser(int parentId, IBrowserSideMessageRouter router)
+        {
+            return new CefWebBrowser(parentId, router);
+        }
+
+        private ShowPopupEventArgs RaiseShowPopup(CefWebBrowser browser)
+        {
+            if (ShowPopup != null)
+            {
+                var ea = new ShowPopupEventArgs(browser);
+                ShowPopup(this, ea);
+                return ea;
+            }
+            return null;
+        }
+
+        private class DevToolsWebBrowser : BrowserHwndHost, IDisposable
+        {
+            private CefBrowser _browser;
+            private DevToolsWebClient _client;
+            public event EventHandler Disposed;
+
+            public CefClient Client
+            {
+                get { return _client; }
+            }
+
+            public DevToolsWebBrowser()
+            {
+                _client = new DevToolsWebClient(this);
+            }
+
+            void IDisposable.Dispose()
+            {
+                Dispose(true);
+            }
+
+            protected override IntPtr BrowserWindowHandle
+            {
+                get
+                {
+                    return _browser != null ? _browser.GetHost().GetWindowHandle() : IntPtr.Zero;
+                }
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+                if (disposing)
+                {
+                    if (_client != null)
+                    {
+                        _client.Dispose();
+                        _client = null;
+                    }
+
+                    _browser = null;
+                    if (Disposed != null)
+                        Disposed(this, EventArgs.Empty);
+                }
+            }
+
+            private void OnAfterCreated(CefBrowser browser)
+            {
+                _browser = browser;
+                this.DispatchIfRequired(() => OnHandleCreated());
+            }
+
+            private void OnBeforeClose(CefBrowser browser)
+            {
+                this.DispatchIfRequired(Dispose, true);
+            }
+
+            private class DevToolsWebClient : CefClient, IDisposable
+            {
+                private readonly CefLifeSpanHandler _lifeSpanHandler;
+                private DevToolsWebBrowser _ctl;
+
+                public DevToolsWebClient(DevToolsWebBrowser ctl)
+                {
+                    _ctl = ctl;
+                    _lifeSpanHandler = new DefToolsLifeSpanHandler(ctl);
+                }
+
+                public void Dispose()
+                {
                     _ctl = null;
                 }
 
-                _wfHost.Dispose();
-            }
-
-            private void OnSizeChanged(object sender, SizeChangedEventArgs e)
-            {
-                if (_ctl != null)
+                protected override CefLifeSpanHandler GetLifeSpanHandler()
                 {
-                    ((Control) _ctl).Size = new System.Drawing.Size((int) e.NewSize.Width, (int) e.NewSize.Height);
+                    return _lifeSpanHandler;
+                }
+
+                private class DefToolsLifeSpanHandler : CefLifeSpanHandler, IDisposable
+                {
+                    private DevToolsWebBrowser _ctl;
+
+                    public DefToolsLifeSpanHandler(DevToolsWebBrowser ctl)
+                    {
+                        _ctl = ctl;
+                    }
+
+                    public void Dispose()
+                    {
+                        _ctl = null;
+                    }
+
+                    protected override bool DoClose(CefBrowser browser)
+                    {
+                        return false;
+                    }
+
+                    protected override void OnAfterCreated(CefBrowser browser)
+                    {
+                        _ctl.OnAfterCreated(browser);
+                    }
+
+                    protected override void OnBeforeClose(CefBrowser browser)
+                    {
+                        _ctl.OnBeforeClose(browser);
+                        _ctl = null;
+                    }
                 }
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
@@ -22,6 +23,8 @@ namespace Paragon.Runtime.PackagedApplication
         /// <exception cref="T:System.ArgumentOutOfRangeException">
         /// The folder specified by <paramref name="directoryPath"/> does not exist.
         /// </exception>
+        /// Excluding from code coverage as this is just a constructor;no point creating an object for code coverage purposes.
+        [ExcludeFromCodeCoverage]
         public DirectoryPackage(string directoryPath)
             : base(FileAccess.Read)
         {
@@ -45,6 +48,8 @@ namespace Paragon.Runtime.PackagedApplication
         /// <returns>
         /// The created part.
         /// </returns>
+        /// Excluding from code coverage as this function has no usages.
+        [ExcludeFromCodeCoverage]
         protected override PackagePart CreatePartCore(Uri partUri, string contentType, CompressionOption compressionOption)
         {
             throw new NotImplementedException();
@@ -59,10 +64,12 @@ namespace Paragon.Runtime.PackagedApplication
         /// <returns>
         /// The requested part; or null, if a part with the specified <paramref name="partUri"/> is not in the package.
         /// </returns>
+        /// Excluding from code coverage as this function has no usages.
+        [ExcludeFromCodeCoverage]
         protected override PackagePart GetPartCore(Uri partUri)
         {
             var partPath = partUri.ToString().Substring(1);
-
+           
             var fullPath = Path.Combine(_directoryPath, partPath);
             return !File.Exists(fullPath) ? null : new FilePackagePart(this, partUri, fullPath);
         }
@@ -73,6 +80,8 @@ namespace Paragon.Runtime.PackagedApplication
         /// <param name="partUri">
         /// The <see cref="P:System.IO.Packaging.PackagePart.Uri"/> of the <see cref="T:System.IO.Packaging.PackagePart"/> to delete.
         /// </param>
+        /// Excluding from code coverage as this function has no content
+        [ExcludeFromCodeCoverage]
         protected override void DeletePartCore(Uri partUri)
         {
             // Required method override.
@@ -84,6 +93,8 @@ namespace Paragon.Runtime.PackagedApplication
         /// <returns>
         /// An array of all the parts that are contained in the package.
         /// </returns>
+        /// Excluding from code coverage as this function has no usages.
+        [ExcludeFromCodeCoverage]
         protected override PackagePart[] GetPartsCore()
         {
 
@@ -96,11 +107,15 @@ namespace Paragon.Runtime.PackagedApplication
         /// <summary>
         /// When overridden in a derived class, saves the content of all parts and relationships to the derived class store.
         /// </summary>
+        /// Excluding from code coverage as this function has no usages.
+        [ExcludeFromCodeCoverage]
         protected override void FlushCore()
         {
             // Required method override.
         }
 
+        /// Excluding from code coverage as this function has no usages.
+        [ExcludeFromCodeCoverage]
         private FilePackagePart CreateFilePart(string filePath)
         {
             var path = filePath.Replace(_directoryPath, string.Empty);

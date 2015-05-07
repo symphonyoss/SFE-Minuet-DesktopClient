@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Paragon.Plugins.MessageBus.Annotations;
 using WebSocket4Net;
@@ -12,6 +13,7 @@ namespace Paragon.Plugins.MessageBus
         private long _connectedToBroker;
         private IMessageInterceptor _interceptor;
         private ILogger _logger;
+        private List<string> _subscriptions = new List<string>();
         
         public MessageBusPlugin()
             : this(null, null)
@@ -72,6 +74,8 @@ namespace Paragon.Plugins.MessageBus
         {
             if (_interceptor == null || !_interceptor.OnSubscribe(topic))
             {
+                if(!_subscriptions.Contains(topic))
+                    _subscriptions.Add(topic);
                 if (_broker != null)
                 {
                     _broker.Subscribe(topic, rid);
@@ -84,6 +88,9 @@ namespace Paragon.Plugins.MessageBus
         {
             if (_interceptor == null || !_interceptor.OnUnsubscribe(topic))
             {
+                if (_subscriptions.Contains(topic))
+                    _subscriptions.Remove(topic);
+
                 if (_broker != null)
                 {
                     _broker.Unsubscribe(topic, rid);
@@ -201,10 +208,14 @@ namespace Paragon.Plugins.MessageBus
 
         private void OnConnectedToBroker()
         {
+            _logger.Info("Connected to broker.");
+
             Interlocked.Exchange(ref _connectedToBroker, 1);
+
             _broker.Disconnected += OnDisconnectedFromBroker;
             _broker.Subscribe(MessageBusId, null);
-            _logger.Info("Connected to broker.");
+            foreach (string topic in _subscriptions)
+                _broker.Subscribe(topic, null);
 
             var evnt = OnConnected;
             if (evnt != null)

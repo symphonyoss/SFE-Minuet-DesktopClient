@@ -78,14 +78,6 @@
                                 </Style>
                             </Border.Style>
                             <Grid Background="{TemplateBinding Background}">
-                                <Grid.Resources>
-                                    <VisualBrush x:Key="DotFillBrush" TileMode="Tile" Viewport="0,0,3,3" ViewportUnits="Absolute"
-                                             Viewbox="0,0,12,12" ViewboxUnits="Absolute">
-                                        <VisualBrush.Visual>
-                                            <Ellipse Fill="White" Height="2" Width="2"/>
-                                        </VisualBrush.Visual>
-                                    </VisualBrush>
-                                </Grid.Resources>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
@@ -110,21 +102,24 @@
                                   Visibility="{Binding CustomChromeEnabled, RelativeSource={RelativeSource AncestorType=controls:ParagonWindow}, Converter={StaticResource VisibilityConverter}}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
                                     <!-- Window icon -->
                                     <Image Source="{TemplateBinding Icon}" RenderOptions.EdgeMode="Aliased" Panel.ZIndex="2"
-                                       Grid.Column="0" RenderOptions.BitmapScalingMode="HighQuality" Margin="4"
+                                       Grid.Column="0" Grid.Row="0" RenderOptions.BitmapScalingMode="HighQuality" Margin="4"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"
                                        Visibility="{Binding ShowIconInTitleBar, RelativeSource={RelativeSource AncestorType=controls:ParagonWindow}, Converter={StaticResource VisibilityConverter}}"/>
 
                                     <!-- Window title -->
                                     <TextBlock VerticalAlignment="Center" Panel.ZIndex="2"
                                            HorizontalAlignment="Left"
-                                           Grid.Column="1"
+                                           Grid.Column="1" Grid.Row="0"
                                            Visibility="{Binding WindowTitleVisible, RelativeSource={RelativeSource AncestorType=controls:ParagonWindow}, Converter={StaticResource VisibilityConverter}}"
                                            FontSize="{TemplateBinding TitlebarFontSize}" 
                                            FontFamily="Segoe UI Light, Lucida Sans Unicode, Verdana" 
@@ -134,21 +129,15 @@
                                            Background="Transparent" 
                                            Text="{TemplateBinding Title}"/>
 
-                                    <!-- Title bar texture rect -->
-                                    <Grid Grid.Column="2" Panel.ZIndex="1" Margin="0" 
-                                      Height="{TemplateBinding TitlebarHeight}">
-                                        <Rectangle Panel.ZIndex="1" Margin="3,3,0,2" Fill="{StaticResource DotFillBrush}"/>
-                                    </Grid>
-
                                     <!-- Reference point for showing popups in the top right corner below the title bar -->
                                     <Rectangle x:Name="PopupAlignmentPoint" 
-                                           Grid.Column="3"
+                                           Grid.Column="2" Grid.Row="0"
                                            Width="0" Height="0"
                                            VerticalAlignment="Bottom"
                                            HorizontalAlignment="Right"/>
 
                                     <!-- Buttons -->
-                                    <StackPanel Orientation="Horizontal" Panel.ZIndex="4" Grid.Column="3" 
+                                    <StackPanel Orientation="Horizontal" Panel.ZIndex="4" Grid.Column="2" Grid.Row="0"
                                             HorizontalAlignment="Right" Height="{TemplateBinding TitlebarHeight}">
                                         <ContentPresenter x:Name="PART_WindowCommands" Height="{TemplateBinding TitlebarHeight}"
                                                       Content="{Binding WindowCommands, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:ParagonWindow}}}" 
@@ -171,6 +160,7 @@
                                             MinWidth="30"
                                             Content="r"/>
                                     </StackPanel>
+                                    <Border BorderBrush="{DynamicResource WindowButtonForegroundBrush}" Grid.Column="0" Grid.ColumnSpan="3" BorderThickness="0,0,0,1" Grid.Row="1"/>
                                 </Grid>
 
                                 <!-- Window content -->

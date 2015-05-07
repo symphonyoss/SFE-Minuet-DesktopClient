@@ -84,11 +84,18 @@ namespace Paragon.Plugins.MessageBus
             {
                 if (string.IsNullOrEmpty(_brokerCommandLine))
                 {
-                    _brokerCommandLine = _brokerProcessCommandLinePrefix +
-                                          _brokerLibPath +
-                                          (_brokerPort != MessageBroker.DefaultPort ? string.Format(" -Dparagon.messagebroker.port={0}", _brokerPort) : string.Empty) +
+                    var tempPath = Path.GetTempPath();
+                    if( !tempPath.EndsWith("\\") )
+                        tempPath += "\\";
+
+                    var tempUri = new Uri(tempPath);
+                    
+                    _brokerCommandLine = string.Format("-Djava.io.tmpdir=\"{0}\" ", tempUri.PathAndQuery) + 
+                                          (_brokerPort != MessageBroker.DefaultPort ? string.Format("-Dparagon.messagebroker.port={0} ", _brokerPort) : string.Empty) +
                                           (!string.IsNullOrEmpty(_brokerLoggingConfig) && File.Exists(_brokerLoggingConfig) ? 
-                                                string.Format(" -Dlog4j.configuration=\"{0}\"", new Uri(_brokerLoggingConfig, UriKind.RelativeOrAbsolute).ToString()) : string.Empty);
+                                                string.Format("-Dlog4j.configuration=\"{0}\" ", new Uri(_brokerLoggingConfig, UriKind.RelativeOrAbsolute).ToString()) : string.Empty) + 
+                                          _brokerProcessCommandLinePrefix +
+                                          _brokerLibPath;
                 }
 
                 return _brokerCommandLine;
@@ -189,7 +196,7 @@ namespace Paragon.Plugins.MessageBus
             }
         }
 
-        private Process FindMessageBrokerProcess()
+        public Process FindMessageBrokerProcess()
         {
             var procs = Process.GetProcessesByName(_brokerExeName);
             return procs.FirstOrDefault(p => IsParagonMessageBrokerProcess(p.Id));

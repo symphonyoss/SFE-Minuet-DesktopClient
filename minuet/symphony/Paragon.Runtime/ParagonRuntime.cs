@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Windows;
+using System.Windows.Interop;
 using Paragon.Plugins;
 using Paragon.Runtime.Properties;
 using Xilium.CefGlue;
@@ -24,7 +26,10 @@ namespace Paragon.Runtime
         /// </summary>
         public static bool IsInitialized
         {
-            get { return Interlocked.Read(ref _cefInitialized) == 1; }
+            get 
+            { 
+                return Interlocked.Read(ref _cefInitialized) == 1; 
+            }
         }
 
         public static SynchronizationContext MainThreadContext { get; private set; }
@@ -190,6 +195,7 @@ namespace Paragon.Runtime
 
                     Logger.Info(fmt => fmt("Shutting down CEF."));
                     _cefApp = null;
+
                     CefRuntime.Shutdown();
                     ParagonLogManager.Shutdown();
                 }

@@ -28,8 +28,6 @@ namespace Paragon.Runtime
         /// <param name="args"></param>
         void OnDragEnter(DragEnterEventArgs args);
 
-        void OnTakeFocus(TakeFocusEventArgs ea);
-
         void OnProtocolExecution(ProtocolExecutionEventArgs ea);
 
         bool OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool isRedirect);

@@ -33,7 +33,6 @@ namespace Paragon.Runtime.Kernel.Windowing
     {
         private static readonly ILogger Logger = ParagonLogManager.GetLogger();
         private static int _idSeed;
-        private readonly Semaphore _timerSem = new Semaphore(1, 1);
         private ICefWebBrowser _browser;
         private HotKeyService _hotKeyService;
         private string _id;
@@ -42,7 +41,6 @@ namespace Paragon.Runtime.Kernel.Windowing
         private bool _minimizeOnClose;
         private bool _firstPageLoaded = false;
         private CreateWindowOptions _options;
-        private Timer _timer;
         private string _title;
         private DeveloperToolsWindow _tools;
         private IApplicationWindowManagerEx _windowManager;
@@ -127,7 +125,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         {
             _minimizeOnClose = false;
             // Dispatcher.Invoke(Action) uses a path that works out whether it is already on the right thread or not
-            Dispatcher.Invoke(new Action(Close));
+            DispatchIfRequired(Close, true); 
         }
 
         public bool ContainsBrowser(int browserId)
@@ -142,7 +140,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         public void DrawAttention(bool autoclear)
         {
-            Flash(false, autoclear);
+            DispatchIfRequired(() => Flash(false, autoclear), true);
         }
 
         /// <summary>
@@ -151,7 +149,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         [JavaScriptPluginMember(Name = "focus")]
         public void FocusWindow()
         {
-            Dispatcher.Invoke(new Action(() => Focus()));
+            DispatchIfRequired(() => Focus(), true);
         }
 
         /// <summary>
@@ -166,7 +164,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void FullScreenWindow()
         {
             // Dispatcher.Invoke(Action) uses a path that works out whether it is already on the right thread or not
-            Dispatcher.Invoke(new Action(() =>
+            DispatchIfRequired(() =>
             {
                 if (IsFullScreenEnabled)
                 {
@@ -175,7 +173,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
                 IsFullScreenEnabled = true;
                 WindowFullScreened.Raise();
-            }));
+            }, true);
         }
 
         /// <summary>
@@ -222,7 +220,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         [JavaScriptPluginMember]
         public BoundsSpecification GetInnerBounds()
         {
-            return Dispatcher.Invoke(new Func<BoundsSpecification>(() =>
+            return DispatchIfRequired(() =>
             {
                 var r = (FrameworkElement)Content;
                 return new BoundsSpecification
@@ -236,7 +234,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                     MinHeight = (int)(MinHeight - (Height - r.Height)),
                     MinWidth = (int)(MinWidth - (Width - r.Width)),
                 };
-            })) as BoundsSpecification;
+            }) as BoundsSpecification;
         }
 
         /// <summary>
@@ -247,7 +245,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         [JavaScriptPluginMember]
         public BoundsSpecification GetOuterBounds()
         {
-            return Dispatcher.Invoke(new Func<BoundsSpecification>(GetBounds)) as BoundsSpecification;
+            return DispatchIfRequired(GetBounds) as BoundsSpecification;
         }
 
         /// <summary>
@@ -257,7 +255,25 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void HideWindow()
         {
             // Dispatcher.Invoke(Action) uses a path that works out whether it is already on the right thread or not
-            Dispatcher.Invoke(new Action(Hide));
+            DispatchIfRequired(Hide, true);
+        }
+
+        [JavaScriptPluginMember(Name = "setZoomLevel")]
+        public void SetZoomLevel(double level)
+        {
+            DispatchIfRequired(() => { if( _browser != null ) _browser.SetZoomLevel(level); }, true);
+        }
+
+        [JavaScriptPluginMember(Name = "runFileDialog")]
+        public string[] RunFileDialog(FileDialogMode mode, string title, string defaultFileName, string[] acceptTypes)
+        {
+            return (string[]) DispatchIfRequired(new Func<string[]>(() => 
+            {
+                var cb = new FileDialogCallback();
+                CefFileDialogMode dialogMode = (CefFileDialogMode)Enum.Parse(typeof(CefFileDialogMode), mode.ToString(), true);
+                _browser.RunFileDialog(dialogMode, title, defaultFileName, acceptTypes, cb);
+                return cb.SelectedFiles;
+            }));
         }
 
         public void Initialize(IApplicationWindowManagerEx windowManager, ICefWebBrowser browser,
@@ -291,14 +307,14 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void Maximize()
         {
             // Dispatcher.Invoke(Action) uses a path that works out whether it is already on the right thread or not
-            Dispatcher.Invoke(new Action(() =>
+            DispatchIfRequired(() =>
             {
                 if (WindowState != WindowState.Maximized)
                 {
                     IsFullScreenEnabled = false;
                     WindowState = WindowState.Maximized;
                 }
-            }));
+            }, true);
         }
 
         /// <summary>
@@ -308,14 +324,14 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void Minimize()
         {
             // Dispatcher.Invoke(Action) uses a path that works out whether it is already on the right thread or not
-            Dispatcher.Invoke(new Action(() =>
+            DispatchIfRequired(() =>
             {
                 if (WindowState != WindowState.Minimized)
                 {
                     IsFullScreenEnabled = false;
                     WindowState = WindowState.Minimized;
                 }
-            }));
+            }, true);
         }
 
         /// <summary>
@@ -327,11 +343,11 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void MoveTo(int left, int top)
         {
             // Dispatcher.Invoke(Action) uses a path that works out whether it is already on the right thread or not
-            Dispatcher.Invoke(new Action(() =>
+            DispatchIfRequired(() =>
             {
                 Left = left;
                 Top = top;
-            }));
+            }, true);
         }
 
         /// <summary>
@@ -343,11 +359,11 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void ResizeTo(int width, int height)
         {
             // Dispatcher.Invoke(Action) uses a path that works out whether it is already on the right thread or not
-            Dispatcher.Invoke(new Action(() =>
+            DispatchIfRequired(() =>
             {
                 Width = width;
                 Height = height;
-            }));
+            }, true);
         }
 
         /// <summary>
@@ -357,7 +373,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void Restore()
         {
             // Dispatcher.Invoke(Action) uses a path that works out whether it is already on the right thread or not
-            Dispatcher.Invoke(new Action(() =>
+            DispatchIfRequired(() =>
             {
                 if (IsFullScreenEnabled)
                 {
@@ -367,13 +383,13 @@ namespace Paragon.Runtime.Kernel.Windowing
                 {
                     WindowState = WindowState.Normal;
                 }
-            }));
+            }, true);
         }
 
         [JavaScriptPluginMember]
         public void SetOuterBounds(BoundsSpecification bounds)
         {
-            Dispatcher.Invoke(new Action(() =>
+            DispatchIfRequired(() =>
             {
                 int top = (int)bounds.Top,
                     left = (int)bounds.Left,
@@ -398,7 +414,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                 {
                     MaxWidth = bounds.MaxWidth;
                 }
-            }));
+            }, true);
         }
 
         /// <summary>
@@ -408,7 +424,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void ShowWindow(bool focused = true)
         {
             // Dispatcher.Invoke(Action) uses a path that works out whether it is already on the right thread or not
-            Dispatcher.Invoke(new Action(() =>
+            DispatchIfRequired(() =>
             {
                 if (!IsVisible)
                 {
@@ -424,19 +440,19 @@ namespace Paragon.Runtime.Kernel.Windowing
                 {
                     Focus();
                 }
-            }));
+            }, true);
         }
 
         [JavaScriptPluginMember(Name = "refresh")]
         public void RefreshWindow(bool ignoreCache = true)
         {
-            Dispatcher.Invoke(new Action(() => _browser.Reload(ignoreCache)));
+            DispatchIfRequired(() => _browser.Reload(ignoreCache), true);
         }
 
         [JavaScriptPluginMember(Name = "executeJavaScript")]
         public void ExecuteJavaScript(string script)
         {
-            Dispatcher.Invoke(new Action(() => _browser.ExecuteJavaScript(script)));
+            DispatchIfRequired(() => _browser.ExecuteJavaScript(script), true);
         }
 
         public IntPtr Handle
@@ -451,24 +467,22 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         public void ShowDeveloperTools(Point element)
         {
-            if (!Dispatcher.CheckAccess())
+            DispatchIfRequired(() =>
             {
-                Dispatcher.BeginInvoke(new Action(() => ShowDeveloperTools(element)), null);
-                return;
-            }
-            if (_tools == null)
-            {
-                var c = _browser.GetDeveloperToolsControl(new CefPoint((int)element.X, (int)element.Y), null, null);
-                _tools = new DeveloperToolsWindow();
-                _tools.Initialize(c, Title, (_options == null || _options.Frame == null || _options.Frame.Type == FrameType.None) ? FrameType.Paragon : _options.Frame.Type);
-                _tools.Closed += ToolsClosed;
-                _tools.Owner = this;
-                _tools.Show();
-            }
-            else
-            {
-                _tools.Activate();
-            }
+                if (_tools == null)
+                {
+                    var c = _browser.GetDeveloperToolsControl(new CefPoint((int)element.X, (int)element.Y), null, null);
+                    _tools = new DeveloperToolsWindow();
+                    _tools.Initialize(c, Title, (_options == null || _options.Frame == null || _options.Frame.Type == FrameType.None) ? FrameType.Paragon : _options.Frame.Type);
+                    _tools.Closed += ToolsClosed;
+                    _tools.Owner = this;
+                    _tools.Show();
+                }
+                else
+                {
+                    _tools.Activate();
+                }
+            }, true);
         }
 
         /// <summary>
@@ -498,48 +512,11 @@ namespace Paragon.Runtime.Kernel.Windowing
             // TODO: Implement this.
         }
 
-        /// <summary>
-        /// If you think this function is a bit messy, you would be right. What it is doing
-        /// is detecting when the window receives focus and then deciding whether or not to 
-        /// pass that focus onto the CEF browser control.
-        /// 
-        /// Whilst we exist in a world which is a mix of WPF and Winforms, this will remain 
-        /// complex. Hopefully when the Winforms window is removed from the equation, this
-        /// function will be a lot simpler.
-        /// 
-        /// When the user clicks on a button on the title bar, we receive two messages;
-        /// one for the window receiving focus and one for the button receiving focus. If the
-        /// button receives focus, we want to execute the associated command (e.g. close or
-        /// minimize), but if something else on the window was clicked, we want to pass the
-        /// focus onto the CEF control. The problem is that we receive the window focus message
-        /// before the button focus event, so we don't know if a button focus event is going to
-        /// follow on or not. So to get round this, we start a timer and wait. If no button
-        /// focus message arrives, we pass focus to the CEF control. If one does arrive, we
-        /// prevent the focus from being passed on, so the button command is executed.
-        /// </summary>
-        /// <param name="e"></param>
         protected override void OnGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
         {
             if (_browser != null)
             {
-                // If the focus is not going to min/max/close buttons, pass the focus to the application.
-                if (!(e.NewFocus is Button) && _timer == null)
-                {
-                    _timer = new Timer(obj => Dispatcher.Invoke( new Action(() =>
-                    {
-                        if (_timerSem.WaitOne(0) && _browser != null)
-                        {
-                            _browser.FocusBrowser();
-                        }
-                        _timerSem.Release();
-                        _timer = null;
-                    })),
-                    null, 50, Timeout.Infinite);
-                }
-                else if (_timer != null)
-                {
-                    _timerSem.WaitOne(0);
-                }
+                _browser.FocusBrowser();
             }
             base.OnGotKeyboardFocus(e);
         }
@@ -1064,12 +1041,16 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private void OnLocationChanged(object sender, EventArgs e)
         {
+            if (_isClosing || _isClosed)
+                return;
             var bounds = GetBounds();
             WindowBoundsChanged.Raise(() => new object[] { bounds });
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
+            if (_isClosing || _isClosed)
+                return;
             var bounds = GetBounds();
             WindowBoundsChanged.Raise(() => new object[] { bounds });
         }
@@ -1142,15 +1123,6 @@ namespace Paragon.Runtime.Kernel.Windowing
             _tools = null;
         }
 
-        protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e)
-        {
-            base.OnLostKeyboardFocus(e);
-            if (_browser != null)
-            {
-                _browser.BlurBrowser();
-            }
-        }
-
         private void HandleKeyPress(Key key)
         {
             switch (key)
@@ -1202,29 +1174,78 @@ namespace Paragon.Runtime.Kernel.Windowing
         {
             if (disposing)
             {
-                _timerSem.Close();
-
                 if (_tools != null)
                 {
                     _tools.Dispose();
                     _tools = null;
                 }
+            }
+        }
 
-                if (_timer != null)
+        private void DispatchIfRequired(Action a, bool isAsync = false)
+        {
+            if (_browser != null)
+            {
+                if (!Dispatcher.CheckAccess())
                 {
-                    _timer.Dispose();
-                    _timer = null;
+                    if (isAsync)
+                    {
+                        Dispatcher.BeginInvoke(a);
+                    }
+                    else
+                    {
+                        Dispatcher.Invoke(a);
+                    }
+                }
+                else
+                {
+                    a();
                 }
             }
         }
 
+        private T DispatchIfRequired<T>(Func<T> a)
+        {
+            if (_browser != null)
+            {
+                if (!Dispatcher.CheckAccess())
+                {
+                    return (T)Dispatcher.Invoke(a);
+                }
+                return a();
+            }
+            return default(T);
+        }
+
         public class DeveloperToolsWindow : ApplicationWindow
         {
+            private BrowserHwndHost _control;
             public void Initialize(IDisposable control, string title, FrameType frameType)
             {
-                Content = control;
                 Title = "Paragon Developer Tools - " + title;
+                _control = control as BrowserHwndHost;
+                if (_control != null)
+                {
+                    _control.HandleCreated += OnControlHandleCreated;
+                }
+                Loaded += OnWindowLoaded;
                 ApplyFrameStyle(frameType);
+            }
+
+            void OnWindowLoaded(object sender, RoutedEventArgs e)
+            {
+                if (Handle != IntPtr.Zero)
+                {
+                    OnControlHandleCreated(this, EventArgs.Empty);
+                }
+            }
+
+            void OnControlHandleCreated(object sender, EventArgs e)
+            {
+                _control.Width = double.NaN;
+                _control.Height = double.NaN;
+                Content = _control;
+                InvalidateArrange();
             }
 
             protected override void OnClosed(EventArgs e)
@@ -1234,7 +1255,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                 {
                     control.Dispose();
                 }
-
+                Loaded -= OnWindowLoaded;
                 base.OnClosed(e);
             }
 

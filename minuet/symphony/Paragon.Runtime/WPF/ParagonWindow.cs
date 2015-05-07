@@ -145,8 +145,10 @@ namespace Paragon.Runtime.WPF
                 _glowBehavior.Attach(this);
             }
 
-            var snapBehavior = new WindowSnapBehavior();
-            snapBehavior.Attach(this);
+            // VSADDA - Window Snap Behavior is not taking into account maximize and minimize when processing WM_MOVE events
+            //          Disabling it until this is fixed correctly. This is a fix for PARAGONDP-830
+            // var snapBehavior = new WindowSnapBehavior();
+            // snapBehavior.Attach(this);
 
             base.OnApplyTemplate();
         }

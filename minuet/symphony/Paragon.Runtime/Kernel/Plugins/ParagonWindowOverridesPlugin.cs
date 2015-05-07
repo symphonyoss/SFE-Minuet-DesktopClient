@@ -19,12 +19,5 @@ namespace Paragon.Runtime.Kernel.Plugins
             var window = Application.FindWindow(PluginExecutionContext.BrowserIdentifier);
             window.MoveTo(x, y);
         }
-
-        [JavaScriptPluginMember, UsedImplicitly]
-        public void Focus(int x, int y)
-        {
-            var window = Application.FindWindow(PluginExecutionContext.BrowserIdentifier);
-            window.FocusWindow();
-        }
     }
 }

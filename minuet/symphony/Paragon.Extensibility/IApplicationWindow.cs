@@ -78,5 +78,9 @@ namespace Paragon.Plugins
         bool ContainsBrowser(int browserId);
 
         void ExecuteJavaScript(string script);
+
+        void SetZoomLevel(double level);
+
+        string[] RunFileDialog(FileDialogMode mode, string title, string defaultFileName, string[] acceptTypes);
     }
 }

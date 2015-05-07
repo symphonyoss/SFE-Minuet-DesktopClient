@@ -6,6 +6,9 @@ using Paragon.Runtime.Win32;
 
 namespace Paragon.Runtime.WinForms
 {
+    /// <summary>
+    /// This class provides a short-term fix for a CEF bug that causes the drop downs to appear at the wrong locations.
+    /// </summary>
     internal class ContainerWindowMoveListener : NativeWindow, IDisposable
     {
         private readonly Action _onMove;

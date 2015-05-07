@@ -11,7 +11,6 @@ namespace Paragon.Runtime
         private CefDisplayHandler _displayHandler;
         private CefDownloadHandler _downloadHandler;
         private CefDragHandler _dragHandler;
-        private CefFocusHandler _focusHandler;
         private CefJSDialogHandler _jsDialogHandler;
         private CefKeyboardHandler _keyboardHandler;
         private CefLifeSpanHandler _lifeSpanHandler;
@@ -29,7 +28,6 @@ namespace Paragon.Runtime
             _downloadHandler = new CefWebDownloadHandler(_core);
             _dragHandler = new CefWebDragHandler(_core);
             _jsDialogHandler = new CefWebJSDialogHandler(_core);
-            _focusHandler = new CefWebFocusHandler(_core);
             _keyboardHandler = new CefWebKeyboardHandler(_core);
         }
 
@@ -69,9 +67,6 @@ namespace Paragon.Runtime
 
             dispose(_jsDialogHandler);
             _jsDialogHandler = null;
-
-            dispose(_focusHandler);
-            _focusHandler = null;
 
             dispose(_keyboardHandler);
             _keyboardHandler = null;
@@ -115,11 +110,6 @@ namespace Paragon.Runtime
         protected override CefJSDialogHandler GetJSDialogHandler()
         {
             return _jsDialogHandler;
-        }
-
-        protected override CefFocusHandler GetFocusHandler()
-        {
-            return _focusHandler;
         }
 
         protected override CefKeyboardHandler GetKeyboardHandler()
