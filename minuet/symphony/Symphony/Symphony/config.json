@@ -1,3 +1,5 @@
 ﻿{
-  "url" : "https://beta.symphony.com"
+  "url" : "https://beta.symphony.com",
+  "url2" : "https://local-dev.symphony.com:3000",
+  "url3" : "https://qa.symphony.com"
 }

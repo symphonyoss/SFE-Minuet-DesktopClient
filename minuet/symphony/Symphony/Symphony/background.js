@@ -78,10 +78,10 @@ paragon.app.runtime.onLaunched.addListener(function() {
                 var config = JSON.parse( xmlhttp.responseText );
                 paragon.app.window.create(config.url, createParams, function(createdWindow) {
                     createdWindow.onPageLoaded.addListener(function (url) {
-                        
-                        if (url == "https://dev6.symphony.com/client/index.html") {
-                            createdWindow.executeJavaScript('Symphony.Interop.init();');
-                        }
+
+                  // if (url == "https://local-ony.com/client/index.html") {
+                          createdWindow.executeJavaScript('symphony.interop.createChannel();');
+                  //  }
 
                     });
 
@@ -154,7 +154,7 @@ paragon.app.runtime.onLaunched.addListener(function() {
 function getAppSettings() {
     return getLocalAppSettings().then(function (settings) {
         console.log("settings.migrated:", settings.migrated);
-        
+
         if (!settings.migrated) {
             return migrateLegacySettings(settings);
         } else {
@@ -164,7 +164,7 @@ function getAppSettings() {
 }
 
 function getLocalAppSettings() {
-    var settings = {        
+    var settings = {
         hotkeys: [{
             name: 'bringToFocus',
             isEnabled: false,
@@ -224,7 +224,7 @@ function migrateLegacySettings(settings) {
                 var windowPlacement = legacySettings.windowPlacement;
                 settings.outerBounds = toOuterBounds(windowPlacement);
                 settings.isMinimizeOnCloseChecked = legacySettings.isMinimiseOnCloseChecked;
-                
+
                 if (legacySettings.hotKeys) {
                     var hk = settings.hotkeys[0];
                     hk.modifier = legacySettings.hotKeys.modifierKeys;
@@ -264,11 +264,11 @@ function toOuterBounds(windowPlacement) {
         minHeight: 300,
         minWidth: 560,
     };
-    
+
     if (top) {
         bounds.top = top;
     }
-    
+
     if (left) {
         bounds.left = left;
     }

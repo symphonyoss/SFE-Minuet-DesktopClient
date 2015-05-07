@@ -24,6 +24,11 @@
             "Path": ""
         },
         {
+      		"name": "Meow",
+              "assembly": "meow.js",
+      		"Path": "",
+        },
+        {
             "name": "SymphonyInterop",
             "assembly": "SymphonyInterop.js",
             "Path": ""

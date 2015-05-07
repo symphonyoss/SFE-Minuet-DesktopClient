@@ -1,23 +1,19 @@
-﻿var Symphony = Symphony || {};
-Symphony.Interop = new Object();
-Symphony.Interop.init = function () {
-    
-    paragon.messagebus.onMessage.addListener(function (topic, message) {
-        
-        window.postMessage({
-            "version": 1,
-            "event": "open:im",
-            "payload": {
-                "userName": message.message.userName,
-                "sendMessage": message.message.content
-            }
-        }, "*");
+var symphony = symphony || {};
+symphony.interop = {createChannel: function(){
+    var mb = meow.messagebroker();
+    mb.subscribe("api.symphony.com", function (envelope) {
+        console.log("api.symphony.com/incoming envelope: " + envelope.message.content);
+        //var content = JSON.parse(envelope.message.content);
+        //console.log("api.symphony.com/message content: " + content);
+        //window.postMessage(content, "*");
     });
-   
-    /*
-    window.onMessage.addListener(function (message) {
-        paragon.messagebus.publish("out.symphony.com", message);
-    });
-    */
-    paragon.messagebus.subscribe("client.symphony.com");
-}
+
+    symphony.interop.outboundChannel = {
+        post: function (message) {
+          if (message != null && message.callbackTopic != null)
+          {
+                mb.send(message.callbackTopic, message);
+          }
+       }
+    }
+}};
