@@ -102,10 +102,8 @@ meow.messagebroker = function () {
             delete handlerMap[address];
 
             // {type:"unregister", address:"whatever" [, rid:"newGuid"]}
-            //var payload = { type: "unregister", address: address };
             if (responseHandler) {
                 var rid = newGUID();
-                //payload.rid = rid;
                 handlerMap[rid] = responseHandler;
 
                 paragon.messagebus.unsubscribe(address, rid);
@@ -113,8 +111,6 @@ meow.messagebroker = function () {
             else {
                 paragon.messagebus.unsubscribe(address);
             }
-            //var str = JSON.stringify(payload);
-            //socket.send(str);
         }
     }
 
