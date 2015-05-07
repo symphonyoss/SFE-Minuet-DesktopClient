@@ -2,18 +2,20 @@ var symphony = symphony || {};
 symphony.interop = {createChannel: function(){
     var mb = meow.messagebroker();
     mb.subscribe("api.symphony.com", function (envelope) {
-        console.log("api.symphony.com/incoming envelope: " + envelope.message.content);
-        //var content = JSON.parse(envelope.message.content);
-        //console.log("api.symphony.com/message content: " + content);
-        //window.postMessage(content, "*");
-    });
+  		var strEnvelope =  JSON.stringify(envelope);
+		console.log('symphonyInterop is working on:', strEnvelope)
 
+		var msg = envelope.message
+        window.postMessage(msg, "*")
+    });
+  
     symphony.interop.outboundChannel = {
         post: function (message) {
-          if (message != null && message.callbackTopic != null)
-          {
+			console.log("Posting out : " + message);
+            if (message != null && message.callbackTop != null)
+            {
                 mb.send(message.callbackTopic, message);
-          }
-       }
+            }
+        }
     }
 }};
