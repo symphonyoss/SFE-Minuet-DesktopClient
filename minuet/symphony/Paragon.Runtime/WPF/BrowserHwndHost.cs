@@ -1,0 +1,127 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Paragon.Runtime.Win32;
+using System.Text;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
+using System.Windows;
+using Xilium.CefGlue;
+
+namespace Paragon.Runtime.WPF
+{
+    /// <summary>
+    /// This class is the base class for the CefWebBrowser control.
+    /// </summary>
+    public abstract class BrowserHwndHost : HwndHost
+    {
+        public static IntPtr HWND_MESSAGE = new IntPtr(-3);
+        private IntPtr _hWndParent = IntPtr.Zero;
+        public event EventHandler HandleCreated;
+
+        /// <summary>
+        /// The window handle of the browser
+        /// </summary>
+        protected abstract IntPtr BrowserWindowHandle { get; }
+
+        public IntPtr ParentHandle
+        {
+            get
+            {
+                return _hWndParent != IntPtr.Zero ? _hWndParent : HWND_MESSAGE;
+            }
+        }
+
+        /// <summary>
+        /// Noop. Kept for backward compatibility.
+        /// </summary>
+        public virtual void CreateControl()
+        {
+        }
+
+        /// <summary>
+        /// This method re-parents the browser window to the permanent parent window.
+        /// </summary>
+        /// <param name="hWnd">permanent parent window</param>
+        /// <returns>browser window handle ref</returns>
+        protected override HandleRef BuildWindowCore(HandleRef hWnd)
+        {
+            _hWndParent = hWnd.Handle;
+            if (BrowserWindowHandle != IntPtr.Zero)
+            {
+                ReparentControl();
+                return new HandleRef(this, BrowserWindowHandle);
+            }
+            return new HandleRef(this, HWND_MESSAGE);
+        }
+
+        /// <summary>
+        /// This method re-parents the browser to the current parent window
+        /// </summary>
+        private void ReparentControl()
+        {
+            if (_hWndParent != IntPtr.Zero && BrowserWindowHandle != IntPtr.Zero)
+            {
+                RECT rect = new RECT();
+                Win32Api.GetClientRect(_hWndParent, ref rect);
+                Win32Api.SetParent(BrowserWindowHandle, _hWndParent);
+                ResizeWindow(rect.Width, rect.Height);
+            }
+        }
+
+        /// <summary>
+        /// Noop. The child window is destroyed by CEF.
+        /// </summary>
+        /// <param name="hwnd"></param>
+        protected override void DestroyWindowCore(HandleRef hwnd)
+        {
+        }
+
+        protected virtual void OnHandleCreated()
+        {
+            ReparentControl();
+            if (HandleCreated != null)
+                HandleCreated(this, EventArgs.Empty);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _hWndParent = IntPtr.Zero;
+            }
+            base.Dispose(disposing);
+        }
+
+        protected void ResizeWindow(int width, int height)
+        {
+            // Ignore size changes when form are minimized.
+            if( BrowserWindowHandle != IntPtr.Zero)
+                Win32Api.SetWindowPosition(BrowserWindowHandle, IntPtr.Zero, 0, 0, width, height, SWP.NOZORDER | SWP.NOACTIVATE);
+        }
+
+        protected override void OnWindowPositionChanged(Rect rcBoundingBox)
+        {
+            base.OnWindowPositionChanged(rcBoundingBox);
+        }
+
+        protected void DispatchIfRequired(Action a, bool isAsync = false)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                if (isAsync)
+                {
+                    Dispatcher.BeginInvoke(a);
+                }
+                else
+                {
+                    Dispatcher.Invoke(a);
+                }
+            }
+            else
+            {
+                a();
+            }
+        }
+    }
+}
