@@ -14,9 +14,9 @@ symphony.interop = {createChannel: function(){
     symphony.interop.outboundChannel = {
         post: function (message) {
 			console.log("Posting out : ", message);
-            if (message != null && message.callbackTop != null)
+            if (message != null && message.responseAddress != null)
             {
-                mb.send(message.callbackTopic, message);
+                mb.send(message.responseAddress, message);
             }
         }
     }
