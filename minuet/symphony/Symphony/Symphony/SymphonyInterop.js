@@ -5,13 +5,15 @@ symphony.interop = {createChannel: function(){
   		var strEnvelope =  JSON.stringify(envelope);
 		console.log('symphonyInterop is working on:', strEnvelope)
 
-		var msg = envelope.message
+		console.log(envelope)
+
+		var msg = JSON.parse(envelope.message.content)
         window.postMessage(msg, "*")
     });
   
     symphony.interop.outboundChannel = {
         post: function (message) {
-			console.log("Posting out : " + message);
+			console.log("Posting out : ", message);
             if (message != null && message.callbackTop != null)
             {
                 mb.send(message.callbackTopic, message);
