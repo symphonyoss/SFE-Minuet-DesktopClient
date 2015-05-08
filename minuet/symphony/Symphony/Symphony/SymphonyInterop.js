@@ -3,11 +3,17 @@ symphony.interop = {createChannel: function(){
     var mb = meow.messagebroker();
     mb.subscribe("api.symphony.com", function (envelope) {
   		var strEnvelope =  JSON.stringify(envelope);
-		console.log('symphonyInterop is working on:', strEnvelope)
+		console.log('symphonyInterop is working on:', strEnvelope);
+		console.log("envelope", envelope);
 
-		console.log(envelope)
+		var msg;
+		if (envelope.message.hasOwnProperty('content')){
+			msg = JSON.parse(envelope.message.content);
+		} else {
+			msg = envelope.message;
+		}
 
-		var msg = JSON.parse(envelope.message.content)
+		console.log("msg", msg);
         window.postMessage(msg, "*")
     });
   
