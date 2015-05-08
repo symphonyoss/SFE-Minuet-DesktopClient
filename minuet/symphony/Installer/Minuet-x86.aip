@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DOCUMENT Type="Advanced Installer" CreateVersion="11.7.1" version="11.7.1" Modules="enterprise" RootPath="." Language="en" Id="{B6EC4BDE-C578-4A57-A3D2-C9B0154B042C}">
+  <COMPONENT cid="caphyon.advinst.msicomp.ProjectOptionsComponent">
+    <ROW Name="HiddenItems" Value="SccmComponent;ActSyncAppComponent"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
+    <ROW Property="AI_APP_ARGS" Value="/start-app=&quot;[#Symphony.pgx]&quot;"/>
+    <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
+    <ROW Property="AI_MINDOTNETVERSION" MultiBuildValue="DefaultBuild:3.5" ValueLocId="-"/>
+    <ROW Property="AI_PRODUCTNAME_ARP" Value="Minuet"/>
+    <ROW Property="AI_ThemeStyle" Value="default" MsiKey="AI_ThemeStyle"/>
+    <ROW Property="AI_UNINSTALLER" Value="msiexec.exe"/>
+    <ROW Property="ALLUSERS" Value="1" MultiBuildValue="DefaultBuild:"/>
+    <ROW Property="ARPCOMMENTS" Value="This installer database contains the logic and data required to install [|ProductName]." ValueLocId="*"/>
+    <ROW Property="ARPHELPLINK" Value="http://www.symphony.com"/>
+    <ROW Property="ARPNOREPAIR" Value="1"/>
+    <ROW Property="ARPPRODUCTICON" Value="symphonylogo.exe" Type="8"/>
+    <ROW Property="ARPSYSTEMCOMPONENT" Value="1"/>
+    <ROW Property="ARPURLINFOABOUT" Value="http://www.symphony.com"/>
+    <ROW Property="BannerBitmap" Value="banner" MultiBuildValue="DefaultBuild:Banner.jpg" Type="1" MsiKey="BannerBitmap"/>
+    <ROW Property="CTRLS" Value="2"/>
+    <ROW Property="DialogBitmap" Value="dialog" MultiBuildValue="DefaultBuild:Tabloid.jpg" Type="1" MsiKey="DialogBitmap"/>
+    <ROW Property="Manufacturer" Value="Symphony"/>
+    <ROW Property="ProductCode" Value="1033:{CECA3220-932C-4FC3-876C-CA37D3548239} " Type="16"/>
+    <ROW Property="ProductLanguage" Value="1033"/>
+    <ROW Property="ProductName" Value="Minuet"/>
+    <ROW Property="ProductVersion" Value="1.0.0" Type="32"/>
+    <ROW Property="REBOOT" MultiBuildValue="DefaultBuild:ReallySuppress"/>
+    <ROW Property="RUNAPPLICATION" Value="1" Type="4"/>
+    <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
+    <ROW Property="UpgradeCode" Value="{C073617B-17A3-41FC-A371-07CD26181900}"/>
+    <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
+    <ROW Property="WindowsType9XDisplay" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT" MultiBuildValue="DefaultBuild:Windows 2000, Windows 2000 Service Pack 1, Windows 2000 Service Pack 2, Windows 2000 Service Pack 3, Windows 2000 Service Pack 4, Windows XP x86, Windows XP x86 Service Pack 1, Windows XP x86 Service Pack 2, Windows XP x86 Service Pack 3, Windows Server 2003 x86, Windows Server 2003 x86 Service Pack 1, Windows Server 2003 x86 Service Pack 2, Windows Vista x86, Windows Vista x86 Service Pack 1, Windows Vista x86 Service Pack 2, Windows Server 2008 x86" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT40" MultiBuildValue="DefaultBuild:Windows NT 4.0" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT40Display" MultiBuildValue="DefaultBuild:Windows NT 4.0" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT64" MultiBuildValue="DefaultBuild:Windows XP x64, Windows XP x64 Service Pack 1, Windows XP x64 Service Pack 2, Windows Server 2003 x64, Windows Server 2003 x64 Service Pack 1, Windows Server 2003 x64 Service Pack 2, Windows Vista x64, Windows Vista x64 Service Pack 1, Windows Vista x64 Service Pack 2, Windows Server 2008 x64, Windows Server 2008 R2 x64, Windows Server 2008 R2 x64 Service Pack 1, Windows Server 2012 x64, Windows Server 2012 R2 x64" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNT64Display" MultiBuildValue="DefaultBuild:Windows XP x64, Windows Server 2003 x64, Windows Vista x64, Windows Server 2008 x64, Windows Server 2008 R2 x64, Windows Server 2012 x64, Windows Server 2012 R2 x64" ValueLocId="-"/>
+    <ROW Property="WindowsTypeNTDisplay" MultiBuildValue="DefaultBuild:Windows 2000, Windows XP x86, Windows Server 2003 x86, Windows Vista x86, Windows Server 2008 x86" ValueLocId="-"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
+    <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
+    <ROW Directory="DesktopFolder" Directory_Parent="TARGETDIR" DefaultDir="DESKTO~1|DesktopFolder" IsPseudoRoot="1"/>
+    <ROW Directory="ProgramMenuFolder" Directory_Parent="TARGETDIR" DefaultDir="PROGRA~1|ProgramMenuFolder" IsPseudoRoot="1"/>
+    <ROW Directory="Symphony_Dir" Directory_Parent="ProgramMenuFolder" DefaultDir="Symphony"/>
+    <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
+    <ROW Directory="apps_Dir" Directory_Parent="APPDIR" DefaultDir="apps"/>
+    <ROW Directory="paragon_Dir" Directory_Parent="APPDIR" DefaultDir="paragon"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
+    <ROW Component="AI_CustomARPName" ComponentId="{2817ACD9-F494-4729-9830-111EF3311CFA}" Directory_="APPDIR" Attributes="4" KeyPath="DisplayName" Options="1"/>
+    <ROW Component="D564007E3BBE4F85950A09B470A7CA65" ComponentId="{A39DE5D7-A3C7-43A5-821D-FA45624EC630}" Directory_="APPDIR" Attributes="4" KeyPath="D564007E3BBE4F85950A09B470A7CA65" Options="2"/>
+    <ROW Component="Interop.Shell32.dll" ComponentId="{087BE0B6-A3AE-424B-928E-B7BA8F551E41}" Directory_="paragon_Dir" Attributes="0" KeyPath="Interop.Shell32.dll"/>
+    <ROW Component="Microsoft.Windows.Shell.dll" ComponentId="{E8F139BF-B38B-4DA8-B641-189EE82570E6}" Directory_="paragon_Dir" Attributes="0" KeyPath="Microsoft.Windows.Shell.dll"/>
+    <ROW Component="Newtonsoft.Json.dll" ComponentId="{8CBC2280-7FC2-4EC0-B87C-FD99017391CE}" Directory_="paragon_Dir" Attributes="0" KeyPath="Newtonsoft.Json.dll"/>
+    <ROW Component="Paragon.AppPackager.exe" ComponentId="{329A9EAA-CC9F-4AE7-897A-61D9C5D7CECD}" Directory_="paragon_Dir" Attributes="0" KeyPath="Paragon.AppPackager.exe"/>
+    <ROW Component="Paragon.Plugins.LocalStorage.dll" ComponentId="{14119403-197D-4548-BAC4-6270F60B5C59}" Directory_="paragon_Dir" Attributes="0" KeyPath="Paragon.Plugins.LocalStorage.dll"/>
+    <ROW Component="Paragon.Plugins.MessageBus.dll" ComponentId="{C5D8592B-6CC5-43FB-95A2-934A65275D9E}" Directory_="paragon_Dir" Attributes="0" KeyPath="Paragon.Plugins.MessageBus.dll"/>
+    <ROW Component="Paragon.Plugins.Notifications.dll" ComponentId="{BD508910-6A9C-4FC8-B7AE-CFE41ECEA33B}" Directory_="paragon_Dir" Attributes="0" KeyPath="Paragon.Plugins.Notifications.dll"/>
+    <ROW Component="Paragon.Plugins.ScreenCapture.dll" ComponentId="{42175C19-AC49-4144-BFAC-AF9EE33BD33A}" Directory_="paragon_Dir" Attributes="0" KeyPath="Paragon.Plugins.ScreenCapture.dll"/>
+    <ROW Component="Paragon.Plugins.dll" ComponentId="{D3132AB7-1BEA-4305-A50B-77F57E1CD87A}" Directory_="paragon_Dir" Attributes="0" KeyPath="Paragon.Plugins.dll"/>
+    <ROW Component="Paragon.Renderer.exe" ComponentId="{182C7DA0-4344-4872-B71A-72B3208BAE49}" Directory_="paragon_Dir" Attributes="0" KeyPath="Paragon.Renderer.exe"/>
+    <ROW Component="Paragon.Runtime.dll" ComponentId="{646CB796-DF2D-41B4-906F-ACA84CE3411F}" Directory_="paragon_Dir" Attributes="0" KeyPath="Paragon.Runtime.dll"/>
+    <ROW Component="ProductInformation" ComponentId="{8B92B687-8AE0-4A5C-B6AB-5D1854009CEA}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
+    <ROW Component="Symphony" ComponentId="{A6B4BA2F-2403-4B8E-9303-BF8400A9B1C4}" Directory_="Symphony_Dir" Attributes="0"/>
+    <ROW Component="Symphony.pgx" ComponentId="{61654034-174F-4732-9DFB-D17297EF90CE}" Directory_="apps_Dir" Attributes="0" KeyPath="Symphony.pgx" Type="0"/>
+    <ROW Component="System.Threading.dll" ComponentId="{D262E3DA-4803-4E9B-970E-BBD343B79BF2}" Directory_="paragon_Dir" Attributes="0" KeyPath="System.Threading.dll"/>
+    <ROW Component="System.Windows.Interactivity.dll" ComponentId="{E7DB0713-5832-4913-AB0F-F3FAF6F52DE8}" Directory_="paragon_Dir" Attributes="0" KeyPath="System.Windows.Interactivity.dll"/>
+    <ROW Component="WebSocket4Net.dll" ComponentId="{1F742699-1FC3-4E69-9F69-BD1B0076185D}" Directory_="paragon_Dir" Attributes="0" KeyPath="WebSocket4Net.dll"/>
+    <ROW Component="Xilium.CefGlue.dll" ComponentId="{7AF6ECFF-DB30-4477-A911-D0AC5A364353}" Directory_="paragon_Dir" Attributes="0" KeyPath="Xilium.CefGlue.dll"/>
+    <ROW Component="cef.pak" ComponentId="{FB98B6E8-8CF7-485B-A6EA-2E94C66059B7}" Directory_="paragon_Dir" Attributes="0" KeyPath="cef.pak" Type="0"/>
+    <ROW Component="d3dcompiler_43.dll" ComponentId="{B64ED7A6-244E-4A1E-A9A4-80CC414DBAD7}" Directory_="paragon_Dir" Attributes="0" KeyPath="d3dcompiler_43.dll"/>
+    <ROW Component="d3dcompiler_46.dll" ComponentId="{2179715A-44A4-4730-9154-08AF5242F9BC}" Directory_="paragon_Dir" Attributes="0" KeyPath="d3dcompiler_46.dll"/>
+    <ROW Component="ffmpegsumo.dll" ComponentId="{AF502476-39EC-486D-B84F-E965B1690CB8}" Directory_="paragon_Dir" Attributes="0" KeyPath="ffmpegsumo.dll"/>
+    <ROW Component="libEGL.dll" ComponentId="{C9AC1B8B-356A-430B-8D22-091BAEE5A5D2}" Directory_="paragon_Dir" Attributes="0" KeyPath="libEGL.dll"/>
+    <ROW Component="libGLESv2.dll" ComponentId="{8DF98B94-90B3-4265-A65E-E57018B0EF51}" Directory_="paragon_Dir" Attributes="0" KeyPath="libGLESv2.dll"/>
+    <ROW Component="libcef.dll" ComponentId="{32C206ED-45E2-498E-9F03-F9ADD16A2D4A}" Directory_="paragon_Dir" Attributes="0" KeyPath="libcef.dll"/>
+    <ROW Component="paragon.exe" ComponentId="{A1F22E74-4393-46BC-BE6D-D342EC1651FF}" Directory_="paragon_Dir" Attributes="0" KeyPath="paragon.exe"/>
+    <ROW Component="pdf.dll" ComponentId="{2B4E371D-4963-4BD2-961B-4DF1F18AA04F}" Directory_="paragon_Dir" Attributes="0" KeyPath="pdf.dll"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
+    <ROW Feature="D564007E3BBE4F85950A09B470A7CA65" Title="Visual C++ Redistributable for Visual Studio 2013 x86" Description="Visual C++ Redistributable for Visual Studio 2013 x86" Display="3" Level="1" Attributes="0" Components="AI_CustomARPName D564007E3BBE4F85950A09B470A7CA65"/>
+    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="AI_CustomARPName Interop.Shell32.dll Microsoft.Windows.Shell.dll Newtonsoft.Json.dll Paragon.AppPackager.exe Paragon.Plugins.LocalStorage.dll Paragon.Plugins.MessageBus.dll Paragon.Plugins.Notifications.dll Paragon.Plugins.ScreenCapture.dll Paragon.Plugins.dll Paragon.Renderer.exe Paragon.Runtime.dll ProductInformation Symphony Symphony.pgx System.Threading.dll System.Windows.Interactivity.dll WebSocket4Net.dll Xilium.CefGlue.dll cef.pak d3dcompiler_43.dll d3dcompiler_46.dll ffmpegsumo.dll libEGL.dll libGLESv2.dll libcef.dll paragon.exe pdf.dll"/>
+    <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
+    <ROW File="Interop.Shell32.dll" Component_="Interop.Shell32.dll" FileName="INTERO~1.DLL|Interop.Shell32.dll" Attributes="0" SourcePath="..\bin\paragon\Interop.Shell32.dll" SelfReg="false" NextFile="libcef.dll"/>
+    <ROW File="Microsoft.Windows.Shell.dll" Component_="Microsoft.Windows.Shell.dll" FileName="MICROS~1.DLL|Microsoft.Windows.Shell.dll" Attributes="0" SourcePath="..\bin\paragon\Microsoft.Windows.Shell.dll" SelfReg="false" NextFile="Newtonsoft.Json.dll"/>
+    <ROW File="Newtonsoft.Json.dll" Component_="Newtonsoft.Json.dll" FileName="NEWTON~1.DLL|Newtonsoft.Json.dll" Attributes="0" SourcePath="..\bin\paragon\Newtonsoft.Json.dll" SelfReg="false" NextFile="Paragon.AppPackager.exe"/>
+    <ROW File="Paragon.AppPackager.exe" Component_="Paragon.AppPackager.exe" FileName="PARAGO~1.EXE|Paragon.AppPackager.exe" Attributes="0" SourcePath="..\bin\paragon\Paragon.AppPackager.exe" SelfReg="false" NextFile="paragon.exe" DigSign="true"/>
+    <ROW File="Paragon.Plugins.LocalStorage.dll" Component_="Paragon.Plugins.LocalStorage.dll" FileName="PARAGO~2.DLL|Paragon.Plugins.LocalStorage.dll" Attributes="0" SourcePath="..\bin\paragon\Paragon.Plugins.LocalStorage.dll" SelfReg="false" NextFile="Paragon.Plugins.MessageBus.dll"/>
+    <ROW File="Paragon.Plugins.MessageBus.dll" Component_="Paragon.Plugins.MessageBus.dll" FileName="PARAGO~3.DLL|Paragon.Plugins.MessageBus.dll" Attributes="0" SourcePath="..\bin\paragon\Paragon.Plugins.MessageBus.dll" SelfReg="false" NextFile="Paragon.Plugins.Notifications.dll"/>
+    <ROW File="Paragon.Plugins.MessageBus.dll.config" Component_="cef.pak" FileName="PARAGO~2.CON|Paragon.Plugins.MessageBus.dll.config" Attributes="0" SourcePath="..\bin\paragon\Paragon.Plugins.MessageBus.dll.config" SelfReg="false" NextFile="Paragon.Renderer.exe.config"/>
+    <ROW File="Paragon.Plugins.Notifications.dll" Component_="Paragon.Plugins.Notifications.dll" FileName="PARAGO~4.DLL|Paragon.Plugins.Notifications.dll" Attributes="0" SourcePath="..\bin\paragon\Paragon.Plugins.Notifications.dll" SelfReg="false" NextFile="Paragon.Plugins.ScreenCapture.dll"/>
+    <ROW File="Paragon.Plugins.ScreenCapture.dll" Component_="Paragon.Plugins.ScreenCapture.dll" FileName="PARAGO~5.DLL|Paragon.Plugins.ScreenCapture.dll" Attributes="0" SourcePath="..\bin\paragon\Paragon.Plugins.ScreenCapture.dll" SelfReg="false" NextFile="Paragon.Renderer.exe"/>
+    <ROW File="Paragon.Plugins.dll" Component_="Paragon.Plugins.dll" FileName="PARAGO~1.DLL|Paragon.Plugins.dll" Attributes="0" SourcePath="..\bin\paragon\Paragon.Plugins.dll" SelfReg="false" NextFile="Paragon.Plugins.LocalStorage.dll"/>
+    <ROW File="Paragon.Renderer.exe" Component_="Paragon.Renderer.exe" FileName="PARAGO~2.EXE|Paragon.Renderer.exe" Attributes="0" SourcePath="..\bin\paragon\Paragon.Renderer.exe" SelfReg="false" NextFile="Paragon.Runtime.dll" DigSign="true"/>
+    <ROW File="Paragon.Renderer.exe.config" Component_="cef.pak" FileName="PARAGO~3.CON|Paragon.Renderer.exe.config" Attributes="0" SourcePath="..\bin\paragon\Paragon.Renderer.exe.config" SelfReg="false" NextFile="Paragon.Runtime.dll.config"/>
+    <ROW File="Paragon.Runtime.dll" Component_="Paragon.Runtime.dll" FileName="PARAGO~6.DLL|Paragon.Runtime.dll" Attributes="0" SourcePath="..\bin\paragon\Paragon.Runtime.dll" SelfReg="false" NextFile="pdf.dll"/>
+    <ROW File="Paragon.Runtime.dll.config" Component_="cef.pak" FileName="PARAGO~4.CON|Paragon.Runtime.dll.config" Attributes="0" SourcePath="..\bin\paragon\Paragon.Runtime.dll.config" SelfReg="false"/>
+    <ROW File="Symphony.pgx" Component_="Symphony.pgx" FileName="Symphony.pgx" Attributes="0" SourcePath="..\bin\apps\Symphony.pgx" SelfReg="false" NextFile="cef.pak"/>
+    <ROW File="System.Threading.dll" Component_="System.Threading.dll" FileName="SYSTEM~1.DLL|System.Threading.dll" Attributes="0" SourcePath="..\bin\paragon\System.Threading.dll" SelfReg="false" NextFile="System.Windows.Interactivity.dll"/>
+    <ROW File="System.Windows.Interactivity.dll" Component_="System.Windows.Interactivity.dll" FileName="SYSTEM~2.DLL|System.Windows.Interactivity.dll" Attributes="0" SourcePath="..\bin\paragon\System.Windows.Interactivity.dll" SelfReg="false" NextFile="WebSocket4Net.dll"/>
+    <ROW File="WebSocket4Net.dll" Component_="WebSocket4Net.dll" FileName="WEBSOC~1.DLL|WebSocket4Net.dll" Attributes="0" SourcePath="..\bin\paragon\WebSocket4Net.dll" SelfReg="false" NextFile="window.ico"/>
+    <ROW File="Xilium.CefGlue.dll" Component_="Xilium.CefGlue.dll" FileName="XILIUM~1.DLL|Xilium.CefGlue.dll" Attributes="0" SourcePath="..\bin\paragon\Xilium.CefGlue.dll" SelfReg="false" NextFile="paragon.exe.config"/>
+    <ROW File="cef.pak" Component_="cef.pak" FileName="cef.pak" Attributes="0" SourcePath="..\bin\paragon\cef.pak" SelfReg="false" NextFile="cef_100_percent.pak"/>
+    <ROW File="cef_100_percent.pak" Component_="cef.pak" FileName="CEF_10~1.PAK|cef_100_percent.pak" Attributes="0" SourcePath="..\bin\paragon\cef_100_percent.pak" SelfReg="false" NextFile="cef_200_percent.pak"/>
+    <ROW File="cef_200_percent.pak" Component_="cef.pak" FileName="CEF_20~1.PAK|cef_200_percent.pak" Attributes="0" SourcePath="..\bin\paragon\cef_200_percent.pak" SelfReg="false" NextFile="d3dcompiler_43.dll"/>
+    <ROW File="d3dcompiler_43.dll" Component_="d3dcompiler_43.dll" FileName="D3DCOM~1.DLL|d3dcompiler_43.dll" Attributes="0" SourcePath="..\bin\paragon\d3dcompiler_43.dll" SelfReg="false" NextFile="d3dcompiler_46.dll"/>
+    <ROW File="d3dcompiler_46.dll" Component_="d3dcompiler_46.dll" FileName="D3DCOM~2.DLL|d3dcompiler_46.dll" Attributes="0" SourcePath="..\bin\paragon\d3dcompiler_46.dll" SelfReg="false" NextFile="devtools_resources.pak"/>
+    <ROW File="devtools_resources.pak" Component_="cef.pak" FileName="DEVTOO~1.PAK|devtools_resources.pak" Attributes="0" SourcePath="..\bin\paragon\devtools_resources.pak" SelfReg="false" NextFile="enUS.pak"/>
+    <ROW File="enUS.pak" Component_="cef.pak" FileName="en-US.pak" Attributes="0" SourcePath="..\bin\paragon\en-US.pak" SelfReg="false" NextFile="ffmpegsumo.dll"/>
+    <ROW File="ffmpegsumo.dll" Component_="ffmpegsumo.dll" FileName="FFMPEG~1.DLL|ffmpegsumo.dll" Attributes="0" SourcePath="..\bin\paragon\ffmpegsumo.dll" SelfReg="false" NextFile="icudtl.dat"/>
+    <ROW File="icudtl.dat" Component_="cef.pak" FileName="icudtl.dat" Attributes="0" SourcePath="..\bin\paragon\icudtl.dat" SelfReg="false" NextFile="Interop.Shell32.dll"/>
+    <ROW File="libEGL.dll" Component_="libEGL.dll" FileName="libEGL.dll" Attributes="0" SourcePath="..\bin\paragon\libEGL.dll" SelfReg="false" NextFile="libGLESv2.dll"/>
+    <ROW File="libGLESv2.dll" Component_="libGLESv2.dll" FileName="LIBGLE~1.DLL|libGLESv2.dll" Attributes="0" SourcePath="..\bin\paragon\libGLESv2.dll" SelfReg="false" NextFile="messagebus.jar"/>
+    <ROW File="libcef.dll" Component_="libcef.dll" FileName="libcef.dll" Attributes="0" SourcePath="..\bin\paragon\libcef.dll" SelfReg="false" NextFile="libEGL.dll"/>
+    <ROW File="messagebus.jar" Component_="cef.pak" FileName="MESSAG~1.JAR|messagebus.jar" Attributes="0" SourcePath="..\bin\paragon\messagebus.jar" SelfReg="false" NextFile="Microsoft.Windows.Shell.dll"/>
+    <ROW File="paragon.exe" Component_="paragon.exe" FileName="paragon.exe" Attributes="0" SourcePath="..\bin\paragon\paragon.exe" SelfReg="false" NextFile="Paragon.Plugins.dll" DigSign="true"/>
+    <ROW File="paragon.exe.config" Component_="cef.pak" FileName="PARAGO~1.CON|paragon.exe.config" Attributes="0" SourcePath="..\bin\paragon\paragon.exe.config" SelfReg="false" NextFile="Paragon.Plugins.MessageBus.dll.config"/>
+    <ROW File="pdf.dll" Component_="pdf.dll" FileName="pdf.dll" Attributes="0" SourcePath="..\bin\paragon\pdf.dll" SelfReg="false" NextFile="shell.ico"/>
+    <ROW File="shell.ico" Component_="cef.pak" FileName="shell.ico" Attributes="0" SourcePath="..\bin\paragon\shell.ico" SelfReg="false" NextFile="System.Threading.dll"/>
+    <ROW File="window.ico" Component_="cef.pak" FileName="window.ico" Attributes="0" SourcePath="..\bin\paragon\window.ico" SelfReg="false" NextFile="Xilium.CefGlue.dll"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" Languages="en" InstallationType="4" UseLargeSchema="true"/>
+    <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
+    <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
+    <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
+    <ROW TimeStampUrl="http://timestamp.comodoca.com/authenticode" SignerDescription="[|ProductName]" DescriptionUrl="https://www.symphony.com" SignOptions="7" SignTool="0" UseSha256="1"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
+    <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
+    <ROW Fragment="FolderDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\FolderDlg.aip"/>
+    <ROW Fragment="MaintenanceTypeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\MaintenanceTypeDlg.aip"/>
+    <ROW Fragment="MaintenanceWelcomeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\MaintenanceWelcomeDlg.aip"/>
+    <ROW Fragment="SequenceDialogs.aip" Path="&lt;AI_THEMES&gt;classic\fragments\SequenceDialogs.aip"/>
+    <ROW Fragment="Sequences.aip" Path="&lt;AI_FRAGS&gt;Sequences.aip"/>
+    <ROW Fragment="StaticUIStrings.aip" Path="&lt;AI_FRAGS&gt;StaticUIStrings.aip"/>
+    <ROW Fragment="UI.aip" Path="&lt;AI_THEMES&gt;classic\fragments\UI.aip"/>
+    <ROW Fragment="Validation.aip" Path="&lt;AI_FRAGS&gt;Validation.aip"/>
+    <ROW Fragment="VerifyRemoveDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\VerifyRemoveDlg.aip"/>
+    <ROW Fragment="VerifyRepairDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\VerifyRepairDlg.aip"/>
+    <ROW Fragment="WelcomeDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\WelcomeDlg.aip"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiActionTextComponent">
+    <ROW Action="AI_ConfigureChainer" Description="Configuring prerequisites launcher" Template="Configure Launcher" DescriptionLocId="ActionText.Description.AI_ConfigureChainer" TemplateLocId="ActionText.Template.AI_ConfigureChainer"/>
+    <ROW Action="AI_DownloadPrereq" Description="Downloading prerequisite software" Template="Downloading [1]{[2] completed}" DescriptionLocId="ActionText.Description.AI_DownloadPrereq" TemplateLocId="ActionText.Template.AI_DownloadPrereq"/>
+    <ROW Action="AI_ExtractPrereq" Description="Extracting prerequisite software" Template="Extracting [1]{[2] completed}" DescriptionLocId="ActionText.Description.AI_ExtractPrereq" TemplateLocId="ActionText.Template.AI_ExtractPrereq"/>
+    <ROW Action="AI_InstallPostPrerequisite" Description="Installing prerequisite software" Template="Installing [1]{[2] completed}" DescriptionLocId="ActionText.Description.AI_InstallPrerequisite" TemplateLocId="ActionText.Template.AI_InstallPrerequisite"/>
+    <ROW Action="AI_InstallPrerequisite" Description="Installing prerequisite software" Template="Installing [1]{[2] completed}" DescriptionLocId="ActionText.Description.AI_InstallPrerequisite" TemplateLocId="ActionText.Template.AI_InstallPrerequisite"/>
+    <ROW Action="AI_VerifyPrereq" Description="Verifying prerequisites" Template="[1] was not installed correctly." DescriptionLocId="ActionText.Description.AI_VerifyPrereq" TemplateLocId="ActionText.Template.AI_VerifyPrereq"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiAppSearchComponent">
+    <ROW Property="AI_DOTNET35_CLIENTPROFILE_SEARCH" Signature_="AI_DotNet35ClientProfileSearchSgn" Builds="DefaultBuild"/>
+    <ROW Property="AI_DOTNET35_SEARCH" Signature_="AI_DotNet35SearchSgn" Builds="DefaultBuild"/>
+    <ROW Property="AI_DOTNET40_CLIENTPROFILE_SEARCH" Signature_="AI_DotNet40ClientProfileSearchSgn" Builds="DefaultBuild"/>
+    <ROW Property="AI_DOTNET40_SEARCH" Signature_="AI_DotNet40SearchSgn" Builds="DefaultBuild"/>
+    <ROW Property="AI_DOTNET451_SEARCH" Signature_="AI_DotNet451SearchSgn" Builds="DefaultBuild"/>
+    <ROW Property="AI_DOTNET452_SEARCH" Signature_="AI_DotNet452SearchSgn" Builds="DefaultBuild"/>
+    <ROW Property="AI_DOTNET45_SEARCH" Signature_="AI_DotNet45SearchSgn" Builds="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiBinaryComponent">
+    <ROW Name="Banner.jpg" SourcePath="Assets\Banner.jpg"/>
+    <ROW Name="Prereq.dll" SourcePath="&lt;AI_CUSTACTS&gt;Prereq.dll"/>
+    <ROW Name="Tabloid.jpg" SourcePath="Assets\Tabloid.jpg"/>
+    <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
+    <ROW Name="aipackagechainer.exe" SourcePath="&lt;AI_CUSTACTS&gt;aipackagechainer.exe"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
+    <ROW Dialog_="AdminWelcomeDlg" Control="Title" Type="Text" X="132" Y="10" Width="220" Height="36" Attributes="196611" Text="Welcome to the [ProductName] [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.AdminWelcomeDlg#Title" MsiKey="AdminWelcomeDlg#Title"/>
+    <ROW Dialog_="AdminWelcomeDlg" Control="Description" Type="Text" X="132" Y="49" Width="220" Height="40" Attributes="196611" Text="The [Wizard] will create a server image of [ProductName], at a specified network location.  Click &quot;[Text_Next]&quot; to continue or &quot;Cancel&quot; to exit the [Wizard]." Order="600" TextLocId="Control.Text.AdminWelcomeDlg#Description" MsiKey="AdminWelcomeDlg#Description"/>
+    <ROW Dialog_="ExitDialog" Control="ViewReadmeCheckBox" Type="CheckBox" X="135" Y="140" Width="10" Height="10" Attributes="2" Property="VIEWREADME" Order="500" MsiKey="ExitDialog#ViewReadmeCheckBox" Options="1"/>
+    <ROW Dialog_="ExitDialog" Control="Title" Type="Text" X="132" Y="10" Width="220" Height="36" Attributes="196611" Text="Installation of [ProductName] is complete" TextStyle="VerdanaBold13" Order="600" TextLocId="Control.Text.ExitDialog#Title" MsiKey="ExitDialog#Title"/>
+    <ROW Dialog_="ExitDialog" Control="LaunchProdText" Type="Text" X="148" Y="170" Width="220" Height="20" Attributes="196611" Text="Launch [ProductName]" Order="700" TextLocId="Control.Text.ExitDialog#LaunchProdText" MsiKey="ExitDialog#LaunchProdText"/>
+    <ROW Dialog_="ExitDialog" Control="LaunchProdCheckBox" Type="CheckBox" X="135" Y="170" Width="10" Height="10" Attributes="3" Property="RUNAPPLICATION" Order="800" MsiKey="ExitDialog#LaunchProdCheckBox" Options="1"/>
+    <ROW Dialog_="ExitDialog" Control="Description" Type="Text" X="132" Y="49" Width="220" Height="20" Attributes="196611" Text="Click &quot;Finish&quot;to get started!" Order="900" TextLocId="Control.Text.ExitDialog#Description" MsiKey="ExitDialog#Description"/>
+    <ROW Dialog_="ExitDialog" Control="BottomLine" Type="Line" X="0" Y="234" Width="372" Height="0" Attributes="1" Order="1000" MsiKey="ExitDialog#BottomLine"/>
+    <ROW Dialog_="FatalError" Control="Title" Type="Text" X="132" Y="10" Width="220" Height="36" Attributes="196611" Text="The [ProductName] [Wizard] ended prematurely" TextStyle="VerdanaBold13" Order="800" TextLocId="Control.Text.FatalError#Title" MsiKey="FatalError#Title"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="ChangeLabel" Type="Text" X="105" Y="65" Width="100" Height="10" Attributes="2" Text="&amp;Modify" TextStyle="[DlgTitleFont]" Order="100" TextLocId="Control.Text.MaintenanceTypeDlg#ChangeLabel" MsiKey="MaintenanceTypeDlg#ChangeLabel"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="ChangeButton" Type="PushButton" X="50" Y="65" Width="38" Height="38" Attributes="5767170" Text="[CustomSetupIcon]" Help="Modify Installation|" Order="200" HelpLocId="Control.Help.MaintenanceTypeDlg#ChangeButton" MsiKey="MaintenanceTypeDlg#ChangeButton"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RepairLabel" Type="Text" X="105" Y="92" Width="100" Height="10" Attributes="3" Text="Re&amp;pair" TextStyle="[DlgTitleFont]" Order="300" TextLocId="Control.Text.MaintenanceTypeDlg#RepairLabel" MsiKey="MaintenanceTypeDlg#RepairLabel"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RepairButton" Type="PushButton" X="50" Y="92" Width="38" Height="38" Attributes="5767171" Text="[RepairIcon]" Help="Repair Installation|" Order="400" HelpLocId="Control.Help.MaintenanceTypeDlg#RepairButton" MsiKey="MaintenanceTypeDlg#RepairButton"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RemoveLabel" Type="Text" X="105" Y="141" Width="100" Height="10" Attributes="3" Text="&amp;Remove" TextStyle="[DlgTitleFont]" Order="500" TextLocId="Control.Text.MaintenanceTypeDlg#RemoveLabel" MsiKey="MaintenanceTypeDlg#RemoveLabel"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RemoveButton" Type="PushButton" X="50" Y="141" Width="38" Height="38" Attributes="5767171" Text="[RemoveIcon]" Help="Remove Installation|" Order="600" HelpLocId="Control.Help.MaintenanceTypeDlg#RemoveButton" MsiKey="MaintenanceTypeDlg#RemoveButton"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="ChangeText" Type="Text" X="105" Y="78" Width="230" Height="20" Attributes="2" Text="Allows users to change the way features are installed." Order="1400" TextLocId="Control.Text.MaintenanceTypeDlg#ChangeText" MsiKey="MaintenanceTypeDlg#ChangeText"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RepairText" Type="Text" X="105" Y="105" Width="230" Height="30" Attributes="3" Text="Repairs errors in the most recent installation state - fixes missing or corrupt files, shortcuts and registry entries." Order="1700" TextLocId="Control.Text.MaintenanceTypeDlg#RepairText" MsiKey="MaintenanceTypeDlg#RepairText"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control="RemoveText" Type="Text" X="105" Y="154" Width="230" Height="20" Attributes="3" Text="Removes [ProductName] from your computer." Order="1800" TextLocId="Control.Text.MaintenanceTypeDlg#RemoveText" MsiKey="MaintenanceTypeDlg#RemoveText"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control="Title" Type="Text" X="132" Y="10" Width="220" Height="36" Attributes="196611" Text="Welcome to the [ProductName] [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.MaintenanceWelcomeDlg#Title" MsiKey="MaintenanceWelcomeDlg#Title"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control="Description" Type="Text" X="132" Y="49" Width="220" Height="40" Attributes="196611" Text="The [Wizard] will allow you to change the way [ProductName] features are installed on your computer or even to remove [ProductName] from your computer.  Click &quot;[Text_Next]&quot; to continue or &quot;Cancel&quot; to exit the [Wizard]." Order="600" TextLocId="Control.Text.MaintenanceWelcomeDlg#Description" MsiKey="MaintenanceWelcomeDlg#Description"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control="Title" Type="Text" X="132" Y="10" Width="220" Height="36" Attributes="196611" Text="Welcome to the [ProductName] Patch [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.PatchWelcomeDlg#Title" MsiKey="PatchWelcomeDlg#Title"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control="Description" Type="Text" X="132" Y="49" Width="220" Height="40" Attributes="196611" Text="The [Wizard] will install the Patch for [ProductName] on your computer. Click &quot;[Text_Next]&quot; to continue or &quot;Cancel&quot; to exit the Patch [Wizard]." Order="600" TextLocId="Control.Text.PatchWelcomeDlg#Description" MsiKey="PatchWelcomeDlg#Description"/>
+    <ROW Dialog_="PrepareDlg" Control="Title" Type="Text" X="132" Y="10" Width="220" Height="36" Attributes="196611" Text="Thanks for downloading [ProductName]" TextStyle="VerdanaBold13" Order="300" TextLocId="Control.Text.PrepareDlg#Title" MsiKey="PrepareDlg#Title"/>
+    <ROW Dialog_="PrepareDlg" Control="Description" Type="Text" X="132" Y="49" Width="220" Height="20" Attributes="196611" Text="Please wait while the [Wizard] prepares to guide you through the installation." Order="500" TextLocId="Control.Text.PrepareDlg#Description" MsiKey="PrepareDlg#Description"/>
+    <ROW Dialog_="ResumeDlg" Control="Title" Type="Text" X="132" Y="10" Width="220" Height="36" Attributes="196611" Text="Resuming the [ProductName] [Wizard]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.ResumeDlg#Title" MsiKey="ResumeDlg#Title"/>
+    <ROW Dialog_="ResumeDlg" Control="Description" Type="Text" X="132" Y="49" Width="220" Height="40" Attributes="196611" Text="The [Wizard] will complete the installation of [ProductName] on your computer.  Click &quot;Install&quot; to continue or &quot;Cancel&quot; to exit the [Wizard]." Order="600" TextLocId="Control.Text.ResumeDlg#Description" MsiKey="ResumeDlg#Description"/>
+    <ROW Dialog_="UserExit" Control="Title" Type="Text" X="132" Y="10" Width="220" Height="36" Attributes="196611" Text="The [ProductName] [Wizard] was interrupted" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.UserExit#Title" MsiKey="UserExit#Title"/>
+    <ROW Dialog_="WelcomeDlg" Control="Title" Type="Text" X="132" Y="10" Width="220" Height="36" Attributes="196611" Text="Thanks for downloading [ProductName]" TextStyle="VerdanaBold13" Order="500" TextLocId="Control.Text.WelcomeDlg#Title" MsiKey="WelcomeDlg#Title"/>
+    <ROW Dialog_="WelcomeDlg" Control="Description" Type="Text" X="132" Y="49" Width="220" Height="40" Attributes="196611" Text="With [ProductName] on your desktop" Order="600" TextLocId="Control.Text.WelcomeDlg#Description" MsiKey="WelcomeDlg#Description"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_1" Type="Text" X="135" Y="60" Width="203" Height="12" Attributes="196611" Text="- Don&apos;t miss any notificaitons" Order="800" TextLocId="Control.Text.WelcomeDlg#Description"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_2" Type="Text" X="135" Y="72" Width="198" Height="12" Attributes="196611" Text="- Easily capture and share screenshots" Order="900" TextLocId="Control.Text.WelcomeDlg#Description"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_3" Type="Text" X="135" Y="84" Width="204" Height="19" Attributes="196611" Text="- Organize how your alerts are positioned" Order="1000" TextLocId="Control.Text.WelcomeDlg#Description"/>
+    <ROW Dialog_="WelcomeDlg" Control="Text_4" Type="Text" X="132" Y="126" Width="235" Height="23" Attributes="196611" Text="To install to a different folder, enter it below or click &quot;Browse&quot;." Order="1100" TextLocId="Control.Text.WelcomeDlg#Description"/>
+    <ROW Dialog_="WelcomeDlg" Control="FolderEdit" Type="PathEdit" X="132" Y="142" Width="220" Height="15" Attributes="7" Property="APPDIR" Text="{260}" Order="1200"/>
+    <ROW Dialog_="WelcomeDlg" Control="Browse" Type="PushButton" X="132" Y="162" Width="62" Height="18" Attributes="3" Text="[ButtonText_Browse]" Order="1300"/>
+    <ATTRIBUTE name="DeletedRows" value="ExitDialog#ViewReadmeText"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlConditionComponent">
+    <ATTRIBUTE name="DeletedRows" value="ExitDialog#ViewReadmeText#Hide#((NOT AI_INSTALL) AND (NOT AI_PATCH)) OR ((CTRLS &lt;&gt; 1) AND (CTRLS &lt;&gt; 3))"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiControlEventComponent">
+    <ROW Dialog_="WelcomeDlg" Control_="Next" Event="NewDialog" Argument="FolderDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="FolderDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_INSTALL" Ordering="201"/>
+    <ROW Dialog_="FolderDlg" Control_="Back" Event="NewDialog" Argument="WelcomeDlg" Condition="AI_INSTALL" Ordering="1"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_INSTALL" Ordering="197"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="FolderDlg" Condition="AI_INSTALL" Ordering="201"/>
+    <ROW Dialog_="MaintenanceWelcomeDlg" Control_="Next" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT" Ordering="99"/>
+    <ROW Dialog_="CustomizeDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_MAINT" Ordering="101"/>
+    <ROW Dialog_="CustomizeDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT" Ordering="1"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_MAINT" Ordering="198"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="CustomizeDlg" Condition="AI_MAINT" Ordering="202"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="ChangeButton" Event="NewDialog" Argument="CustomizeDlg" Condition="AI_MAINT" Ordering="501"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceWelcomeDlg" Condition="AI_MAINT" Ordering="1"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="RemoveButton" Event="NewDialog" Argument="VerifyRemoveDlg" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="601"/>
+    <ROW Dialog_="VerifyRemoveDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="1"/>
+    <ROW Dialog_="MaintenanceTypeDlg" Control_="RepairButton" Event="NewDialog" Argument="VerifyRepairDlg" Condition="AI_MAINT AND InstallMode=&quot;Repair&quot;" Ordering="601"/>
+    <ROW Dialog_="VerifyRepairDlg" Control_="Back" Event="NewDialog" Argument="MaintenanceTypeDlg" Condition="AI_MAINT AND InstallMode=&quot;Repair&quot;" Ordering="1"/>
+    <ROW Dialog_="VerifyRepairDlg" Control_="Repair" Event="EndDialog" Argument="Return" Condition="AI_MAINT AND InstallMode=&quot;Repair&quot;" Ordering="399" Options="1"/>
+    <ROW Dialog_="VerifyRemoveDlg" Control_="Remove" Event="EndDialog" Argument="Return" Condition="AI_MAINT AND InstallMode=&quot;Remove&quot;" Ordering="299" Options="1"/>
+    <ROW Dialog_="PatchWelcomeDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_PATCH" Ordering="201"/>
+    <ROW Dialog_="ResumeDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_RESUME" Ordering="299"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Install" Event="EndDialog" Argument="Return" Condition="AI_PATCH" Ordering="199"/>
+    <ROW Dialog_="VerifyReadyDlg" Control_="Back" Event="NewDialog" Argument="PatchWelcomeDlg" Condition="AI_PATCH" Ordering="203"/>
+    <ROW Dialog_="ExitDialog" Control_="Finish" Event="DoAction" Argument="AI_CleanPrereq" Condition="1" Ordering="301"/>
+    <ROW Dialog_="FatalError" Control_="Finish" Event="DoAction" Argument="AI_CleanPrereq" Condition="1" Ordering="102"/>
+    <ROW Dialog_="UserExit" Control_="Finish" Event="DoAction" Argument="AI_CleanPrereq" Condition="1" Ordering="101"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCreateFolderComponent">
+    <ROW Directory_="Symphony_Dir" Component_="Symphony" ManualDelete="false"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
+    <ROW Action="AI_AppSearchEx" Type="1" Source="Prereq.dll" Target="DoAppSearchEx"/>
+    <ROW Action="AI_CleanPrereq" Type="65" Source="Prereq.dll" Target="CleanPrereq" WithoutSeq="true"/>
+    <ROW Action="AI_ConfigureChainer" Type="1" Source="Prereq.dll" Target="ConfigurePrereqLauncher"/>
+    <ROW Action="AI_DOWNGRADE" Type="19" Target="4010"/>
+    <ROW Action="AI_DownloadPrereq" Type="1" Source="Prereq.dll" Target="DownloadPrereq"/>
+    <ROW Action="AI_DpiContentScale" Type="1" Source="aicustact.dll" Target="DpiContentScale"/>
+    <ROW Action="AI_ExtractPrereq" Type="65" Source="Prereq.dll" Target="ExtractPrereq"/>
+    <ROW Action="AI_GetArpIconPath" Type="1" Source="aicustact.dll" Target="GetArpIconPath"/>
+    <ROW Action="AI_InstallModeCheck" Type="1" Source="aicustact.dll" Target="UpdateInstallMode" WithoutSeq="true"/>
+    <ROW Action="AI_InstallPostPrerequisite" Type="1" Source="Prereq.dll" Target="InstallPostPrereq"/>
+    <ROW Action="AI_InstallPrerequisite" Type="65" Source="Prereq.dll" Target="InstallPrereq"/>
+    <ROW Action="AI_LaunchApp" Type="1" Source="aicustact.dll" Target="[#paragon.exe]"/>
+    <ROW Action="AI_LaunchChainer" Type="3314" Source="AI_PREREQ_CHAINER"/>
+    <ROW Action="AI_PREPARE_UPGRADE" Type="65" Source="aicustact.dll" Target="PrepareUpgrade"/>
+    <ROW Action="AI_ResolveKnownFolders" Type="1" Source="aicustact.dll" Target="AI_ResolveKnownFolders"/>
+    <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
+    <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
+    <ROW Action="AI_VerifyPrereq" Type="1" Source="Prereq.dll" Target="VerifyPrereq"/>
+    <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[AppDataFolder][Manufacturer]\[ProductName]"/>
+    <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
+    <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
+    <ROW Name="symphonylogo.exe" SourcePath="..\Paragon\symphony-logo.ico" Index="0"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
+    <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
+    <ROW Action="AI_STORE_LOCATION" Condition="(Not Installed) OR REINSTALL" Sequence="1501"/>
+    <ROW Action="AI_PREPARE_UPGRADE" Condition="AI_UPGRADE=&quot;No&quot; AND (Not Installed)" Sequence="1399"/>
+    <ROW Action="AI_ResolveKnownFolders" Sequence="51"/>
+    <ROW Action="AI_GetArpIconPath" Sequence="1401"/>
+    <ROW Action="AI_ConfigureChainer" Condition="((UILevel = 2) OR (UILevel = 3)) AND (NOT UPGRADINGPRODUCTCODE)" Sequence="6598"/>
+    <ROW Action="AI_LaunchChainer" Condition="AI_PREREQ_CHAINER AND (NOT UPGRADINGPRODUCTCODE)" Sequence="6599"/>
+    <ROW Action="AI_VerifyPrereq" Sequence="1101"/>
+    <ROW Action="AI_AppSearchEx" Sequence="101"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
+    <ROW Action="AI_ResolveKnownFolders" Sequence="52"/>
+    <ROW Action="AI_DpiContentScale" Sequence="51"/>
+    <ROW Action="ExecuteAction" Sequence="1299" SeqType="0" MsiKey="ExecuteAction"/>
+    <ROW Action="AI_DownloadPrereq" Sequence="1296"/>
+    <ROW Action="AI_ExtractPrereq" Sequence="1297"/>
+    <ROW Action="AI_InstallPrerequisite" Sequence="1298"/>
+    <ROW Action="AI_InstallPostPrerequisite" Sequence="1300"/>
+    <ROW Action="AI_AppSearchEx" Sequence="101"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiLaunchConditionsComponent">
+    <ROW Condition="( Version9X OR ( NOT VersionNT64 ) OR ( VersionNT64 AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR (((VersionNT64 = 502) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 502) OR ((VersionNT64 = 502) AND ((MsiNTProductType = 1) OR (ServicePackLevel &gt;= 1)))) AND ((VersionNT64 &lt;&gt; 502) OR ((VersionNT64 = 502) AND ((MsiNTProductType = 1) OR (ServicePackLevel &lt;&gt; 1)))) AND ((VersionNT64 &lt;&gt; 502) OR ((VersionNT64 = 502) AND ((MsiNTProductType = 1) OR (ServicePackLevel &lt;&gt; 2)))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR (((VersionNT64 = 600) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) AND ((VersionNT64 &lt;&gt; 600) OR ((VersionNT64 = 600) AND (MsiNTProductType = 1))) AND ((VersionNT64 &lt;&gt; 601) OR ((VersionNT64 = 601) AND ((ServicePackLevel &gt;= 1) OR (MsiNTProductType = 1)))) AND ((VersionNT64 &lt;&gt; 601) OR (((VersionNT64 = 601) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType = 1))) AND ((VersionNT64 &lt;&gt; 602) OR ((VersionNT64 = 602) AND ((ServicePackLevel &gt;= 1) OR (MsiNTProductType = 1)))) AND ((VersionNT64 &lt;&gt; 603) OR ((VersionNT64 = 603) AND ((ServicePackLevel &gt;= 1) OR (MsiNTProductType = 1)))) ) )" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNT64Display]" DescriptionLocId="AI.LaunchCondition.NoSpecificNT64" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="( Version9X OR VersionNT64 OR ( VersionNT AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &gt;= 1))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 1))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 2))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 3))) AND ((VersionNT &lt;&gt; 500) OR ((VersionNT = 500) AND (ServicePackLevel &lt;&gt; 4))) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &gt;= 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &lt;&gt; 2))) OR VersionNT64) AND (((VersionNT &lt;&gt; 501) OR ((VersionNT = 501) AND (ServicePackLevel &lt;&gt; 3))) OR VersionNT64) AND (((VersionNT &lt;&gt; 502) OR ((VersionNT = 502) AND (ServicePackLevel &gt;= 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 502) OR ((VersionNT = 502) AND (ServicePackLevel &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 502) OR ((VersionNT = 502) AND (ServicePackLevel &lt;&gt; 2))) OR VersionNT64) AND (((VersionNT &lt;&gt; 600) OR (((VersionNT = 600) AND (ServicePackLevel &gt;= 1)) OR (MsiNTProductType &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 600) OR (((VersionNT = 600) AND (ServicePackLevel &lt;&gt; 1)) OR (MsiNTProductType &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 600) OR (((VersionNT = 600) AND (ServicePackLevel &lt;&gt; 2)) OR (MsiNTProductType &lt;&gt; 1))) OR VersionNT64) AND (((VersionNT &lt;&gt; 600) OR ((VersionNT = 600) AND ((MsiNTProductType = 1) OR ((WindowsBuild &lt;&gt; 6001) AND (WindowsBuild &lt;&gt; 6002))))) OR VersionNT64) ) )" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNTDisplay]" DescriptionLocId="AI.LaunchCondition.NoSpecificNT" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="(AI_DOTNET35_SEARCH = &quot;#1&quot;) OR (AI_DOTNET35_CLIENTPROFILE_SEARCH = &quot;#1&quot;) OR (AI_DOTNET40_CLIENTPROFILE_SEARCH = &quot;#1&quot;) OR (AI_DOTNET45_SEARCH &gt;= &quot;4.5&quot;) OR (AI_DOTNET451_SEARCH &gt;= &quot;#378675&quot;)" Description="[ProductName] cannot be installed on systems with .NET Framework version lower than [AI_MINDOTNETVERSION]" DescriptionLocId="AI.LaunchCondition.DotNET" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="(VersionNT &lt;&gt; 400)" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNT40Display]" DescriptionLocId="AI.LaunchCondition.NoNT40" IsPredefined="true" Builds="DefaultBuild"/>
+    <ROW Condition="VersionNT" Description="[ProductName] cannot be installed on [WindowsType9XDisplay]" DescriptionLocId="AI.LaunchCondition.No9X" IsPredefined="true" Builds="DefaultBuild"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiRegLocatorComponent">
+    <ROW Signature_="AI_DotNet35ClientProfileSearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\DotNetClient\v3.5" Name="Install" Type="2"/>
+    <ROW Signature_="AI_DotNet35SearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5" Name="Install" Type="2"/>
+    <ROW Signature_="AI_DotNet40ClientProfileSearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Client" Name="Install" Type="2"/>
+    <ROW Signature_="AI_DotNet40SearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Install" Type="2"/>
+    <ROW Signature_="AI_DotNet451SearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Release" Type="2"/>
+    <ROW Signature_="AI_DotNet452SearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Release" Type="2"/>
+    <ROW Signature_="AI_DotNet45SearchSgn" Root="2" Key="SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Name="Version" Type="2"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiRegsComponent">
+    <ROW Registry="Comments" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Comments" Value="[ARPCOMMENTS]" Component_="AI_CustomARPName"/>
+    <ROW Registry="Contact" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Contact" Value="[ARPCONTACT]" Component_="AI_CustomARPName"/>
+    <ROW Registry="D564007E3BBE4F85950A09B470A7CA65" Root="-1" Key="Software\Caphyon\Advanced Installer\Prereqs\[ProductCode]\[ProductVersion]" Name="D564007E3BBE4F85950A09B470A7CA65" Value="1" Component_="D564007E3BBE4F85950A09B470A7CA65"/>
+    <ROW Registry="DisplayIcon" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="DisplayIcon" Value="[ARP_ICON_PATH]" Component_="AI_CustomARPName"/>
+    <ROW Registry="DisplayName" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="DisplayName" Value="[AI_PRODUCTNAME_ARP]" Component_="AI_CustomARPName"/>
+    <ROW Registry="DisplayVersion" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="DisplayVersion" Value="[ProductVersion]" Component_="AI_CustomARPName"/>
+    <ROW Registry="EstimatedSize" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="EstimatedSize" Value="#[AI_ARP_SIZE]" Component_="AI_CustomARPName"/>
+    <ROW Registry="HelpLink" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpLink" Value="[ARPHELPLINK]" Component_="AI_CustomARPName"/>
+    <ROW Registry="HelpTelephone" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpTelephone" Value="[ARPHELPTELEPHONE]" Component_="AI_CustomARPName"/>
+    <ROW Registry="InstallLocation" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="InstallLocation" Value="[APPDIR]" Component_="AI_CustomARPName"/>
+    <ROW Registry="ModifyPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="ModifyPath" Value="[AI_UNINSTALLER] /I [ProductCode]" Component_="AI_CustomARPName"/>
+    <ROW Registry="NoRepair" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="NoRepair" Value="#1" Component_="AI_CustomARPName"/>
+    <ROW Registry="Path" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Path" Value="[APPDIR]" Component_="ProductInformation"/>
+    <ROW Registry="Publisher" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Publisher" Value="[Manufacturer]" Component_="AI_CustomARPName"/>
+    <ROW Registry="URLInfoAbout" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLInfoAbout" Value="[ARPURLINFOABOUT]" Component_="AI_CustomARPName"/>
+    <ROW Registry="URLUpdateInfo" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLUpdateInfo" Value="[ARPURLUPDATEINFO]" Component_="AI_CustomARPName"/>
+    <ROW Registry="UninstallPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallPath" Value="[AI_UNINSTALLER] /x [ProductCode]" Component_="AI_CustomARPName"/>
+    <ROW Registry="UninstallString" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallString" Value="[AI_UNINSTALLER] /x [ProductCode]" Component_="AI_CustomARPName"/>
+    <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
+    <ROW Registry="VersionMajor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMajor" Value="#1" Component_="AI_CustomARPName"/>
+    <ROW Registry="VersionMinor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMinor" Value="#0" Component_="AI_CustomARPName"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
+    <ROW Shortcut="MinuetShortcut" Directory_="DesktopFolder" Name="MINUET~1|Minuet Shortcut" Component_="paragon.exe" Target="[#paragon.exe]" Arguments="/start-app=&quot;[#Symphony.pgx]&quot;" Description="Shortcut to Minuet Application" Hotkey="0" Icon_="symphonylogo.exe" IconIndex="0" ShowCmd="1" WkDir="paragon_Dir"/>
+    <ROW Shortcut="MinuetShortcut_1" Directory_="Symphony_Dir" Name="Minuet" Component_="paragon.exe" Target="[#paragon.exe]" Arguments="/start-app=&quot;[#Symphony.pgx]&quot;" Description="Shortcut to Minuet Application" Hotkey="0" Icon_="symphonylogo.exe" IconIndex="0" ShowCmd="1" WkDir="paragon_Dir"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
+    <ATTRIBUTE name="UsedTheme" value="classic"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiUpgradeComponent">
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMin="0.0.1" VersionMax="[|ProductVersion]" Attributes="257" ActionProperty="OLDPRODUCTS"/>
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.PreReqComponent">
+    <ROW PrereqKey="D564007E3BBE4F85950A09B470A7CA65" DisplayName="Visual C++ Redistributable for Visual Studio 2013 x86" VersionMin="12.0" SetupFileUrl="Prerequisites\Visual C++ Redistributable for Visual Studio 2013\vcredist_x86.exe" Location="0" ExactSize="6498200" WinNTVersions="Windows 2000, Windows 2000 Service Pack 1, Windows 2000 Service Pack 2, Windows 2000 Service Pack 3, Windows 2000 Service Pack 4" Operator="1" NoUiComLine="/q /norestart" MD5="99e3d99d8ed70ac88f59e31757ed3d62" TargetName="Visual C++ Redistributable for Visual Studio 2013\vcredist_x86.exe" Type="1" Feature="D564007E3BBE4F85950A09B470A7CA65"/>
+    <ATTRIBUTE name="PrereqsOrder" value="D564007E3BBE4F85950A09B470A7CA65"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.PreReqSearchComponent">
+    <ROW SearchKey="D564007E3BBE4F85950A09B470A7CA65Version" Prereq="D564007E3BBE4F85950A09B470A7CA65" SearchType="2" SearchString="HKLM\SOFTWARE\Microsoft\DevDiv\VC\Servicing\12.0\RuntimeMinimum\Version" VerMin="12.0.21005" Order="1" Property="PreReqSearch_D564007E3BBE4F85950A09B470A7CA65"/>
+  </COMPONENT>
+</DOCUMENT>
