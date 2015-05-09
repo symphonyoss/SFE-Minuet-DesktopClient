@@ -97,7 +97,7 @@
     <ROW File="Paragon.Renderer.exe" Component_="Paragon.Renderer.exe" FileName="PARAGO~2.EXE|Paragon.Renderer.exe" Attributes="0" SourcePath="..\bin\paragon\Paragon.Renderer.exe" SelfReg="false" NextFile="Paragon.Runtime.dll" DigSign="true"/>
     <ROW File="Paragon.Renderer.exe.config" Component_="cef.pak" FileName="PARAGO~3.CON|Paragon.Renderer.exe.config" Attributes="0" SourcePath="..\bin\paragon\Paragon.Renderer.exe.config" SelfReg="false" NextFile="Paragon.Runtime.dll.config"/>
     <ROW File="Paragon.Runtime.dll" Component_="Paragon.Runtime.dll" FileName="PARAGO~6.DLL|Paragon.Runtime.dll" Attributes="0" SourcePath="..\bin\paragon\Paragon.Runtime.dll" SelfReg="false" NextFile="pdf.dll"/>
-    <ROW File="Paragon.Runtime.dll.config" Component_="cef.pak" FileName="PARAGO~4.CON|Paragon.Runtime.dll.config" Attributes="0" SourcePath="..\bin\paragon\Paragon.Runtime.dll.config" SelfReg="false"/>
+    <ROW File="Paragon.Runtime.dll.config" Component_="cef.pak" FileName="PARAGO~4.CON|Paragon.Runtime.dll.config" Attributes="0" SourcePath="..\bin\paragon\Paragon.Runtime.dll.config" SelfReg="false" NextFile="symphonylogo.png"/>
     <ROW File="Symphony.pgx" Component_="Symphony.pgx" FileName="Symphony.pgx" Attributes="0" SourcePath="..\bin\apps\Symphony.pgx" SelfReg="false" NextFile="cef.pak"/>
     <ROW File="System.Threading.dll" Component_="System.Threading.dll" FileName="SYSTEM~1.DLL|System.Threading.dll" Attributes="0" SourcePath="..\bin\paragon\System.Threading.dll" SelfReg="false" NextFile="System.Windows.Interactivity.dll"/>
     <ROW File="System.Windows.Interactivity.dll" Component_="System.Windows.Interactivity.dll" FileName="SYSTEM~2.DLL|System.Windows.Interactivity.dll" Attributes="0" SourcePath="..\bin\paragon\System.Windows.Interactivity.dll" SelfReg="false" NextFile="WebSocket4Net.dll"/>
@@ -120,6 +120,7 @@
     <ROW File="paragon.exe.config" Component_="cef.pak" FileName="PARAGO~1.CON|paragon.exe.config" Attributes="0" SourcePath="..\bin\paragon\paragon.exe.config" SelfReg="false" NextFile="Paragon.Plugins.MessageBus.dll.config"/>
     <ROW File="pdf.dll" Component_="pdf.dll" FileName="pdf.dll" Attributes="0" SourcePath="..\bin\paragon\pdf.dll" SelfReg="false" NextFile="shell.ico"/>
     <ROW File="shell.ico" Component_="cef.pak" FileName="shell.ico" Attributes="0" SourcePath="..\bin\paragon\shell.ico" SelfReg="false" NextFile="System.Threading.dll"/>
+    <ROW File="symphonylogo.png" Component_="cef.pak" FileName="SYMPHO~1.PNG|symphony-logo.png" Attributes="0" SourcePath="..\bin\paragon\symphony-logo.png" SelfReg="false"/>
     <ROW File="window.ico" Component_="cef.pak" FileName="window.ico" Attributes="0" SourcePath="..\bin\paragon\window.ico" SelfReg="false" NextFile="Xilium.CefGlue.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
