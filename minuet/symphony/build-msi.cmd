@@ -17,11 +17,13 @@ set targetsDir="%CD%\targets\"
 rem tools dependencies, must be in your path
 set zip=7z.exe
 
+set archiveName=Minuet-x86-Release-%WRAPPER_VER%
+
 echo "create exec zip"
 cd minuet\symphony\bin
-set relArchive=minuet-x86-release-%WRAPPER_VER%.zip
-%zip% a -x!*.pdb -x!*app.publish -tZip %relArchive%
-xcopy %relArchive% %targetsDir%
+set zipArchive=%archiveName%.zip
+%zip% a -x!*.pdb -x!*app.publish -tZip %zipArchive%
+xcopy %zipArchive% %targetsDir%
 cd ..\..\..
 
 echo "creating msi %proc%"
@@ -68,7 +70,5 @@ if NOT EXIST %AIP%-SetupFiles/%AIP%.msi (
 	exit /b -1
 )
 
-echo "copy result to target dir"
-xcopy "%AIP%-SetupFiles\%AIP%.msi" %targetsDir% /i
-set msiRelArchive=minuet-x86-release-%WRAPPER_VER%.msi
-move "%targetDir%\%AIP%.msi" "%targetDir%\%msiRelArchive%"
+echo "copy msi result to target dir"
+copy "%AIP%-SetupFiles\%AIP%.msi" "%targetsDir%\%archiveName%.msi"
