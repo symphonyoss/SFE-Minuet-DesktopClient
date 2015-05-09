@@ -104,6 +104,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="symphony-logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="window.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

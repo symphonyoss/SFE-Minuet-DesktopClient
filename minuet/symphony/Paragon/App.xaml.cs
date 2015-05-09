@@ -37,12 +37,12 @@ namespace Paragon
 
             try
             {
-                Logger.Info("Paragon starting");
+                Logger.Info("Minuet starting");
 
                 // Create splash screen, if it is not explicitly disabled
                 if (!_suppressSplashScreen)
                 {
-                    var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "window.ico");
+                    var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "symphony-logo.png");
                     _splash = new ParagonSplashScreen(_appPackage.Manifest.Name, iconPath, _appPackage.Manifest.Version);
                     _splash.Show();
 
@@ -126,12 +126,12 @@ namespace Paragon
                         _splash = null;
                     }
 
-                    ParagonRuntime.Shutdown("Paragon is shutting down");
+                    ParagonRuntime.Shutdown("Minuet is shutting down");
                     Shutdown();
                 }
                 catch (Exception ex)
                 {
-                    Logger.Info(fmt => fmt("Error shutting down paragon : {0}", ex));
+                    Logger.Info(fmt => fmt("Error shutting down Minuet : {0}", ex));
                 }
             })));
         }

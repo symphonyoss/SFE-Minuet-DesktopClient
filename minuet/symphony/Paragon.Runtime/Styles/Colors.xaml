@@ -7,7 +7,7 @@
     <Color x:Key="WindowButtonForegroundColor">#FF9D9D9D</Color>
     <Color x:Key="WindowTitleColor">#FF475B72</Color>
     <Color x:Key="WindowTitleTextColor">#FFFFFFFF</Color>
-    <Color x:Key="GlowColor">#FF7399C6</Color>
+    <Color x:Key="GlowColor">Black</Color>
     <Color x:Key="InactiveGlowColor">#CC424245</Color>
 
     <!-- Brushes- -->
@@ -17,7 +17,7 @@
     <SolidColorBrush x:Key="InactiveGlowBrush" Color="{DynamicResource InactiveGlowColor}"/>
     <SolidColorBrush x:Key="TransparentWhiteBrush" Color="#00FFFFFF"/>
     <SolidColorBrush x:Key="SemiTransparentWhiteBrush" Color="#55FFFFFF"/>
-    <SolidColorBrush x:Key="SplashScreenBackgroundBrush" Color="#FF465B72"/>
+    <SolidColorBrush x:Key="SplashScreenBackgroundBrush" Color="#FFF3F3F3"/>
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{DynamicResource WhiteColor}"/>
     <SolidColorBrush x:Key="WindowButtonForegroundBrush" Color="{DynamicResource WindowButtonForegroundColor}"/>
     <SolidColorBrush x:Key="WindowTitleBrush" Color="{DynamicResource WindowTitleColor}"/>
