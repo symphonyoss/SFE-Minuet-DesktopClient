@@ -26,6 +26,8 @@ cd ..\..\..
 
 echo "creating msi %proc%"
 
+set installerDir=%CD%\minuet\symphony\Installer
+
 set pfxFile=Wrapper.Windows.Product.RSA.pkcs12.pfx
 if NOT EXIST "%CEFDIR%\%pfxFile%" (
 echo "can not find .pfx file" "%CEFDIR%\%pfxFile%"
@@ -34,7 +36,7 @@ exit /b -1
 
 copy /y "%CEFDIR%\%pfxFile%" "%installerDir%\%pfxFile%"
 
-cd minuet\symphony\Installer
+cd %installerDir%
 
 set AIP=Minuet-x86
 
