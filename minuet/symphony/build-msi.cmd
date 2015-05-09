@@ -1,4 +1,4 @@
-cd Installer
+cd minuet\symphony\Installer
 set AIP=Minuet-x86
 
 set pfx=Wrapper.Windows.Product.RSA.pkcs12.pfx
