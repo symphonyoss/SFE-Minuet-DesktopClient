@@ -39,3 +39,13 @@ Thumbs.db
 minuet/symphony/Paragon.Extensibility/obj/
 minuet/symphony/Symphony/Symphony.Crypto/obj/
 minuet/symphony/Symphony/Symphony/obj/
+
+minuet/symphony/CefGlue/obj/
+minuet/symphony/Paragon.AppPackager/obj/
+minuet/symphony/Paragon.Plugins.LocalStorage/obj/
+minuet/symphony/Paragon.Plugins.MessagBus/obj/
+minuet/symphony/Paragon.Plugins.Notifications/obj/
+minuet/symphony/Paragon.Plugins.ScreenCapture/obj/
+minuet/symphony/Paragon.Renderer/obj/
+minuet/symphony/Paragon.Runtime/obj/
+minuet/symphony/Paragon/obj/
