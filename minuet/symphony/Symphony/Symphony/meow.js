@@ -42,14 +42,13 @@ meow.messagebroker = function () {
 
     that.send = function (address, message, responseHandler) {
         checkParam('address', address, 'string');
+        checkParam('message', message, 'object');
         checkParam('responseHandler', responseHandler, 'function', true);
 
-        // {type:"send", address:"whatever", message:{content:...}[, rid:"newGuid"]}
+        // {type:"send", address:"whatever", message:{...}[, rid:"newGuid"]}
         if (responseHandler) {
             var rid = newGUID();
-            payload.rid = rid;
             handlerMap[rid] = responseHandler;
-
             paragon.messagebus.sendMessage(address, message, rid);
         }
         else {
@@ -61,7 +60,7 @@ meow.messagebroker = function () {
     that.publish = function (address, message) {
         checkParam('address', address, 'string');
            
-        // {type:"publish", address:"whatever", message:{content:...}}
+        // {type:"publish", address:"whatever", message:{...}}
         paragon.messagebus.publishMessage(address, message);
     }
 
