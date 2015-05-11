@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace Paragon.Plugins.MessageBus
 {
@@ -11,6 +11,8 @@ namespace Paragon.Plugins.MessageBus
         public object Data { get; set; }
         [JsonProperty("rid")]
         public string Rid { get; set; }
+        [JsonProperty("replyAddress")]
+        public string ReplyAddress { get; set; }
         [JsonProperty("type")]
         public string Type { get; set; }
         [JsonProperty("registered")]
