@@ -116,6 +116,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\dependencies\msvcp120.dll">
+      <Link>msvcp120.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\dependencies\msvcr120.dll">
+      <Link>msvcr120.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="background.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
