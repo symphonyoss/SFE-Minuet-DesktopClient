@@ -7,6 +7,9 @@ using Paragon.Runtime.Kernel.Applications;
 using Paragon.Properties;
 using Paragon.Runtime;
 using Paragon.Runtime.Win32;
+using System.Windows.Media;
+using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 
 namespace Paragon
 {
@@ -42,8 +45,22 @@ namespace Paragon
                 // Create splash screen, if it is not explicitly disabled
                 if (!_suppressSplashScreen)
                 {
-                    var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "symphony-logo.png");
-                    _splash = new ParagonSplashScreen(_appPackage.Manifest.Name, iconPath, _appPackage.Manifest.Version);
+                    var icon = new System.Drawing.Icon(_appPackage.GetIcon128(), 128, 128);
+                    ImageSource imageSource = null;
+                    using (var bmp = icon.ToBitmap())
+                    {
+                        var hbmp = bmp.GetHbitmap();
+                        try
+                        {
+                            imageSource = Imaging.CreateBitmapSourceFromHBitmap(hbmp, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                        }
+                        finally
+                        {
+                            Win32Api.DeleteObject(hbmp);
+                        }
+                    }
+
+                    _splash = new ParagonSplashScreen(_appPackage.Manifest.Name, imageSource, _appPackage.Manifest.Version);
                     _splash.Show();
 
                     _appMetadata.UpdateLaunchStatus = s =>

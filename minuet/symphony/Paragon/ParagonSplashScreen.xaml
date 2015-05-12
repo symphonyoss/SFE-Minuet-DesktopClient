@@ -62,21 +62,23 @@
                     </Grid.RowDefinitions>
                     <Viewbox Grid.Row="0" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Left">
                         <TextBlock Margin="0" FontSize="26" VerticalAlignment="Top"
-                                  Text="{Binding ShellName, FallbackValue='Minuet'}"
-                                  Foreground="{DynamicResource BlackBrush}" FontWeight="Bold" />
+                                  Text="{Binding ShellName, FallbackValue='Paragon'}"
+                                  Foreground="{DynamicResource WhiteBrush}" FontWeight="Bold" />
                     </Viewbox>
 
-                    <TextBlock Visibility="Hidden" Foreground="{DynamicResource BlackBrush}" Grid.Row="2">
+                    <TextBlock Visibility="Hidden" Foreground="{DynamicResource WhiteBrush}" Grid.Row="2">
                        <Run Text="Version"/>
+                        <!--		
+-                       <Run Text="{Binding Version, FallbackValue='1.0.0.0'}"/>		
+-                        -->
                     </TextBlock>
 
-                    <TextBlock Foreground="{DynamicResource BlackBrush}" Grid.Row="1"
-                               FontSize="16"
-                              Text="by Symphony" />
+                    <TextBlock Foreground="{DynamicResource WhiteBrush}" Grid.Row="1"
+                              Text="Powered by Minuet" />
                 </Grid>
 
                 <controls:ProgressRing IsActive="True" Width="45" Height="45"
-                                      Foreground="{DynamicResource BlackBrush}" Grid.Row="0" Grid.Column="2"/>
+                                      Foreground="{DynamicResource WhiteBrush}" Grid.Row="0" Grid.Column="2"/>
 
                 <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
                       Background="Transparent">
@@ -89,11 +91,11 @@
                         </LinearGradientBrush>
                     </Grid.OpacityMask>
                     <TextBlock x:Name="StatusText" TextAlignment="Left" FontSize="16" FontWeight="Normal"
-                          Foreground="{DynamicResource BlackBrush}"  Text="{Binding Text, FallbackValue='Initializing...'}"  
+                          Foreground="{DynamicResource WhiteBrush}"  Text="{Binding Text, FallbackValue='Initializing...'}"  
                           TextWrapping="Wrap" VerticalAlignment="Bottom" Margin="0,0,0,35"
                           HorizontalAlignment="Stretch"/>
                     <TextBlock x:Name="PreviousStatusText" TextAlignment="Left" FontSize="16" FontWeight="Normal"
-                          Foreground="{DynamicResource BlackBrush}"  Text="{Binding PreviousText}"  
+                          Foreground="{DynamicResource WhiteBrush}"  Text="{Binding PreviousText}"  
                           TextWrapping="Wrap" VerticalAlignment="Bottom" Margin="0,0,0,35"
                           HorizontalAlignment="Stretch"/>
                 </Grid>
