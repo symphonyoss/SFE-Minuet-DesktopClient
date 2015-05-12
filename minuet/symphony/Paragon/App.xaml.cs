@@ -45,18 +45,22 @@ namespace Paragon
                 // Create splash screen, if it is not explicitly disabled
                 if (!_suppressSplashScreen)
                 {
-                    var icon = new System.Drawing.Icon(_appPackage.GetIcon128(), 128, 128);
                     ImageSource imageSource = null;
-                    using (var bmp = icon.ToBitmap())
+                    Stream iconStream = _appPackage.GetIcon128();
+                    if (iconStream != null)
                     {
-                        var hbmp = bmp.GetHbitmap();
-                        try
+                        var icon = new System.Drawing.Icon(iconStream, 128, 128);
+                        using (var bmp = icon.ToBitmap())
                         {
-                            imageSource = Imaging.CreateBitmapSourceFromHBitmap(hbmp, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-                        }
-                        finally
-                        {
-                            Win32Api.DeleteObject(hbmp);
+                            var hbmp = bmp.GetHbitmap();
+                            try
+                            {
+                                imageSource = Imaging.CreateBitmapSourceFromHBitmap(hbmp, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                            }
+                            finally
+                            {
+                                Win32Api.DeleteObject(hbmp);
+                            }
                         }
                     }
 
