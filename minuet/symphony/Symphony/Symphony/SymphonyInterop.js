@@ -8,8 +8,22 @@ symphony.interop = {createChannel: function(){
     });
 
     mb.subscribe("system.symphony.com", function (envelope) {
-        if (envelope.replyAddress != null && envelope.message.action == "Query_System_Status") {
-            mb.send(envelope.replyAddress, {type: "System_Status", status: sysstatus});
+        if (envelope.replyAddress != null) {
+            switch(envelope.message.action) {
+                case 'Query_System_Status':
+                    mb.send(envelope.replyAddress, { type: 'System_Response', action: 'Query_System_Status', status: sysstatus });
+                    break;
+                case 'Bring_Symphony_To_Front':
+                    paragon.app.window.getCurrent(function (win) {
+                        win.restore(function () {
+                            win.setAlwaysOnTop(true, function () {
+                                win.setAlwaysOnTop(false);
+                                mb.send(envelope.replyAddress, { type: 'System_Response', action: 'Bring_Symphony_To_Front', result: true });
+                            });
+                        });
+                    });
+                    break;
+            }
         }
     });
    
