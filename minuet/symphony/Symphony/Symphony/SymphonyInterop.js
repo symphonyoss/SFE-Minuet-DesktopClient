@@ -3,7 +3,7 @@ symphony.interop = {createChannel: function(){
     var mb = meow.messagebroker();
     var sysstatus = "Ready";
 
-    mb.subscribe("api.symphony.com", function (envelope) {
+    mb.subscribe("com.symphony.api", function (envelope) {
         console.log("api.symphony.com/incoming envelope: ", envelope);
 
         window.postMessage(envelope.message, "*");
