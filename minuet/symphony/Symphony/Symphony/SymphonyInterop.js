@@ -4,7 +4,7 @@ symphony.interop = {createChannel: function(){
     var sysstatus = "Ready";
 
     mb.subscribe("com.symphony.api", function (envelope) {
-        console.log("api.symphony.com/incoming envelope: ", envelope);
+        console.log("com.symphony.api/incoming envelope: ", envelope);
 
         window.postMessage(envelope.message, "*");
 
