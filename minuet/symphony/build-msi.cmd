@@ -17,7 +17,7 @@ set targetsDir="%CD%\targets\"
 rem tools dependencies, must be in your path
 set zip=7z.exe
 
-set archiveName=Minuet-x86-Release-%WRAPPER_VER%
+set archiveName=Symphony-x86-Release-%WRAPPER_VER%
 
 echo "create exec zip"
 cd minuet\symphony\bin
@@ -40,7 +40,7 @@ copy /y "%CEFDIR%\%pfxFile%" "%installerDir%\%pfxFile%"
 
 cd %installerDir%
 
-set AIP=Minuet-x86
+set AIP=Symphony-x86
 
 if EXIST %AIP%-cache (
 	echo "remove old msi cache file"

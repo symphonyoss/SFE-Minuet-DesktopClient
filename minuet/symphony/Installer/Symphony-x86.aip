@@ -7,7 +7,7 @@
     <ROW Property="AI_APP_ARGS" Value="/start-app=&quot;[#Symphony.pgx]&quot;"/>
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="AI_MINDOTNETVERSION" MultiBuildValue="DefaultBuild:3.5" ValueLocId="-"/>
-    <ROW Property="AI_PRODUCTNAME_ARP" Value="Minuet"/>
+    <ROW Property="AI_PRODUCTNAME_ARP" Value="[|ProductName]"/>
     <ROW Property="AI_ThemeStyle" Value="default" MsiKey="AI_ThemeStyle"/>
     <ROW Property="AI_UNINSTALLER" Value="msiexec.exe"/>
     <ROW Property="ALLUSERS" Value="1" MultiBuildValue="DefaultBuild:"/>
@@ -23,7 +23,7 @@
     <ROW Property="Manufacturer" Value="Symphony"/>
     <ROW Property="ProductCode" Value="1033:{CECA3220-932C-4FC3-876C-CA37D3548239} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
-    <ROW Property="ProductName" Value="Minuet"/>
+    <ROW Property="ProductName" Value="Symphony"/>
     <ROW Property="ProductVersion" Value="1.0.0" Type="32"/>
     <ROW Property="REBOOT" MultiBuildValue="DefaultBuild:ReallySuppress"/>
     <ROW Property="RUNAPPLICATION" Value="1" Type="4"/>
@@ -96,7 +96,7 @@
     <ROW File="Paragon.Renderer.exe" Component_="Paragon.Renderer.exe" FileName="PARAGO~2.EXE|Paragon.Renderer.exe" Attributes="0" SourcePath="..\bin\paragon\Paragon.Renderer.exe" SelfReg="false" NextFile="Paragon.Runtime.dll" DigSign="true"/>
     <ROW File="Paragon.Renderer.exe.config" Component_="cef.pak" FileName="PARAGO~3.CON|Paragon.Renderer.exe.config" Attributes="0" SourcePath="..\bin\paragon\Paragon.Renderer.exe.config" SelfReg="false" NextFile="Paragon.Runtime.dll.config"/>
     <ROW File="Paragon.Runtime.dll" Component_="Paragon.Runtime.dll" FileName="PARAGO~6.DLL|Paragon.Runtime.dll" Attributes="0" SourcePath="..\bin\paragon\Paragon.Runtime.dll" SelfReg="false" NextFile="pdf.dll"/>
-    <ROW File="Paragon.Runtime.dll.config" Component_="cef.pak" FileName="PARAGO~4.CON|Paragon.Runtime.dll.config" Attributes="0" SourcePath="..\bin\paragon\Paragon.Runtime.dll.config" SelfReg="false" NextFile="symphonylogo.png"/>
+    <ROW File="Paragon.Runtime.dll.config" Component_="cef.pak" FileName="PARAGO~4.CON|Paragon.Runtime.dll.config" Attributes="0" SourcePath="..\bin\paragon\Paragon.Runtime.dll.config" SelfReg="false"/>
     <ROW File="Symphony.pgx" Component_="Symphony.pgx" FileName="Symphony.pgx" Attributes="0" SourcePath="..\bin\apps\Symphony.pgx" SelfReg="false" NextFile="cef.pak"/>
     <ROW File="System.Threading.dll" Component_="System.Threading.dll" FileName="SYSTEM~1.DLL|System.Threading.dll" Attributes="0" SourcePath="..\bin\paragon\System.Threading.dll" SelfReg="false" NextFile="System.Windows.Interactivity.dll"/>
     <ROW File="System.Windows.Interactivity.dll" Component_="System.Windows.Interactivity.dll" FileName="SYSTEM~2.DLL|System.Windows.Interactivity.dll" Attributes="0" SourcePath="..\bin\paragon\System.Windows.Interactivity.dll" SelfReg="false" NextFile="WebSocket4Net.dll"/>
@@ -119,7 +119,6 @@
     <ROW File="paragon.exe.config" Component_="cef.pak" FileName="PARAGO~1.CON|paragon.exe.config" Attributes="0" SourcePath="..\bin\paragon\paragon.exe.config" SelfReg="false" NextFile="Paragon.Plugins.MessageBus.dll.config"/>
     <ROW File="pdf.dll" Component_="pdf.dll" FileName="pdf.dll" Attributes="0" SourcePath="..\bin\paragon\pdf.dll" SelfReg="false" NextFile="shell.ico"/>
     <ROW File="shell.ico" Component_="cef.pak" FileName="shell.ico" Attributes="0" SourcePath="..\bin\paragon\shell.ico" SelfReg="false" NextFile="System.Threading.dll"/>
-    <ROW File="symphonylogo.png" Component_="cef.pak" FileName="SYMPHO~1.PNG|symphony-logo.png" Attributes="0" SourcePath="..\bin\paragon\symphony-logo.png" SelfReg="false"/>
     <ROW File="window.ico" Component_="cef.pak" FileName="window.ico" Attributes="0" SourcePath="..\bin\paragon\window.ico" SelfReg="false" NextFile="Xilium.CefGlue.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
@@ -322,8 +321,8 @@
     <ROW Registry="VersionMinor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMinor" Value="#0" Component_="AI_CustomARPName"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
-    <ROW Shortcut="MinuetShortcut" Directory_="DesktopFolder" Name="MINUET~1|Minuet Shortcut" Component_="paragon.exe" Target="[#paragon.exe]" Arguments="/start-app=&quot;[#Symphony.pgx]&quot;" Description="Shortcut to Minuet Application" Hotkey="0" Icon_="symphonylogo.exe" IconIndex="0" ShowCmd="1" WkDir="paragon_Dir"/>
-    <ROW Shortcut="MinuetShortcut_1" Directory_="Symphony_Dir" Name="Minuet" Component_="paragon.exe" Target="[#paragon.exe]" Arguments="/start-app=&quot;[#Symphony.pgx]&quot;" Description="Shortcut to Minuet Application" Hotkey="0" Icon_="symphonylogo.exe" IconIndex="0" ShowCmd="1" WkDir="paragon_Dir"/>
+    <ROW Shortcut="MinuetShortcut" Directory_="DesktopFolder" Name="SYMPHO~1|Symphony Shortcut" Component_="paragon.exe" Target="[#paragon.exe]" Arguments="/start-app=&quot;[#Symphony.pgx]&quot;" Description="Shortcut to Symphony Application" Hotkey="0" Icon_="symphonylogo.exe" IconIndex="0" ShowCmd="1" WkDir="paragon_Dir"/>
+    <ROW Shortcut="MinuetShortcut_1" Directory_="Symphony_Dir" Name="Symphony" Component_="paragon.exe" Target="[#paragon.exe]" Arguments="/start-app=&quot;[#Symphony.pgx]&quot;" Description="Shortcut to Symphony Application" Hotkey="0" Icon_="symphonylogo.exe" IconIndex="0" ShowCmd="1" WkDir="paragon_Dir"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
     <ATTRIBUTE name="UsedTheme" value="classic"/>

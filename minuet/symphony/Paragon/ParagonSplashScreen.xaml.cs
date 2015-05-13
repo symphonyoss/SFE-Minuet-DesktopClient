@@ -24,11 +24,11 @@ namespace Paragon
         private readonly Storyboard _showboard;
         private readonly Storyboard _hideboard;
 
-        public ParagonSplashScreen(string shellName, string shellIcon, string version)
+        public ParagonSplashScreen(string shellName, ImageSource shellIcon, string version)
         {
             InitializeComponent();
             ShellName = shellName;
-            ShellIcon = new IconImage(shellIcon).ImageSource;
+            ShellIcon = shellIcon;
             Version = version;
             Text = "Initializing...";
             DataContext = this;
