@@ -10,7 +10,7 @@ symphony.interop = {createChannel: function(){
 
     });
 
-    mb.subscribe("com.symphony.system", function (envelope) {
+    mb.subscribe("com.symphony.system.interop", function (envelope) {
         console.log("system.symphony.com/message: ", envelope);
         console.log("system.symphony.com/envelope.replyAddress/ ", envelope.replyAddress);
         console.log("system.symphony.com/envelope.message.action/ ", envelope.message.action);
@@ -35,7 +35,7 @@ symphony.interop = {createChannel: function(){
 
     });
    
-    mb.publish("com.symphony.system.events", { type: "System_Status", status: sysstatus });
+    mb.publish("com.symphony.system.interop.events", { type: "System_Status", status: sysstatus });
 
     symphony.interop.outboundChannel = {
         post: function (message) {
