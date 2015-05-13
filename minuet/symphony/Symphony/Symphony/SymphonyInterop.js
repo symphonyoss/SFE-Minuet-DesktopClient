@@ -4,10 +4,17 @@ symphony.interop = {createChannel: function(){
     var sysstatus = "Ready";
 
     mb.subscribe("api.symphony.com", function (envelope) {
+        console.log("api.symphony.com/incoming envelope: ", envelope);
+
         window.postMessage(envelope.message, "*");
+
     });
 
-    mb.subscribe("system.symphony.com", function (envelope) {
+    mb.subscribe("com.symphony.system", function (envelope) {
+        console.log("system.symphony.com/message: ", envelope);
+        console.log("system.symphony.com/envelope.replyAddress/ ", envelope.replyAddress);
+        console.log("system.symphony.com/envelope.message.action/ ", envelope.message.action);
+
         if (envelope.replyAddress != null) {
             switch(envelope.message.action) {
                 case 'Query_System_Status':
@@ -25,14 +32,10 @@ symphony.interop = {createChannel: function(){
                     break;
             }
         }
+
     });
    
-    mb.onDisconnected.addListener(function () {
-        sysstatus = "offline";
-        mb.publish("system.events.symphony.com", { type: "System_Status", status: sysstatus });
-    });
-
-    mb.publish("system.events.symphony.com", { type: "System_Status", status: sysstatus});
+    mb.publish("com.symphony.system.events", { type: "System_Status", status: sysstatus });
 
     symphony.interop.outboundChannel = {
         post: function (message) {
