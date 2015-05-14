@@ -56,6 +56,8 @@ namespace Paragon.Plugins
         INativeServiceInfo[] NativeServices { get; }
 
         IPluginInfo[] ApplicationPlugins { get; }
+
+        string SplashScreenStyle { get; set; }
     }
 
     public interface INativeServiceInfo

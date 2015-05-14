@@ -6,6 +6,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Paragon.Runtime;component/Themes/Generic.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/ParagonSplashScreenStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
