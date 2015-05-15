@@ -8,7 +8,7 @@ namespace Paragon.Runtime.Desktop
     /// <summary>
     /// Provides cross-process access to key metadata on running apps.
     /// </summary>
-    internal sealed class AppInfo : IDisposable, IEquatable<AppInfo>, IParagonAppInfo
+    public sealed class AppInfo : IDisposable, IEquatable<AppInfo>, IParagonAppInfo
     {
         private readonly IntPtr _hwnd;
         private bool _disposed;
@@ -17,7 +17,7 @@ namespace Paragon.Runtime.Desktop
         internal AppInfo(IntPtr hwnd)
         {
             _hwnd = hwnd;
-            BrowserPid = (int) Win32Api.GetWindowProcessId(_hwnd);
+            BrowserPid = (int)Win32Api.GetWindowProcessId(_hwnd);
 
             string comment;
             if (WindowPropertyStore.GetComment(hwnd, out comment))
@@ -41,12 +41,12 @@ namespace Paragon.Runtime.Desktop
         internal AppInfo(IntPtr hwnd, string appId, string instanceId, string workspaceId = null)
         {
             _hwnd = hwnd;
-            BrowserPid = (int) Win32Api.GetWindowProcessId(_hwnd);
+            BrowserPid = (int)Win32Api.GetWindowProcessId(_hwnd);
             WindowPropertyStore.SetAppId(hwnd, appId);
 
             AppInstanceId = instanceId;
             _workspaceId = workspaceId;
-            var props = new AppWindowProperties {AppInstanceId = instanceId, WorkspaceId = workspaceId};
+            var props = new AppWindowProperties { AppInstanceId = instanceId, WorkspaceId = workspaceId };
             WindowPropertyStore.SetComment(hwnd, props.ToString());
         }
 
@@ -145,7 +145,7 @@ namespace Paragon.Runtime.Desktop
                 return true;
             }
 
-            return obj is AppInfo && Equals((AppInfo) obj);
+            return obj is AppInfo && Equals((AppInfo)obj);
         }
 
         public static bool operator ==(AppInfo left, AppInfo right)
@@ -164,7 +164,7 @@ namespace Paragon.Runtime.Desktop
             RenderInfo = new ProcessPerfInfo(renderPid);
         }
 
-        internal void UpdatePerfInfo(DateTime now)
+        public void UpdatePerfInfo(DateTime now)
         {
             if (BrowserInfo != null)
             {

@@ -26,9 +26,9 @@ namespace Paragon.Runtime
         /// </summary>
         public static bool IsInitialized
         {
-            get 
-            { 
-                return Interlocked.Read(ref _cefInitialized) == 1; 
+            get
+            {
+                return Interlocked.Read(ref _cefInitialized) == 1;
             }
         }
 
@@ -43,6 +43,7 @@ namespace Paragon.Runtime
         public static event EventHandler<RenderProcessInitEventArgs> RenderProcessInitialize;
 
         public static void Initialize(string cachePath = null,
+                                      string paragonPath = null,
                                       string spellCheckLanguage = null,
                                       bool disableSpellChecking = false,
                                       bool ignoreCertificateErrors = false,
@@ -79,7 +80,7 @@ namespace Paragon.Runtime
                         cachePath = Path.Combine(cachePath, "cache");
                     }
 
-                    var rendererPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "paragon.renderer.exe");
+                    var rendererPath = paragonPath ?? Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "paragon.renderer.exe");
                     if (!File.Exists(rendererPath))
                     {
                         rendererPath = Path.Combine(Environment.CurrentDirectory, "paragon.renderer.exe");
@@ -110,11 +111,11 @@ namespace Paragon.Runtime
                         PersistSessionCookies = persistSessionCookies
                     };
 
-                    var args = new CefMainArgs(new[] {"--process-per-tab"});
+                    var args = new CefMainArgs(new[] { "--process-per-tab" });
 
                     _cefApp = new CefBrowserApplication(disableSpellChecking, spellCheckLanguage);
                     _cefApp.RenderProcessInitialize += OnRenderProcessInitialize;
-                    
+
                     if (BeforeCefInitialize != null)
                     {
                         var ea = new CefInitializationEventArgs();

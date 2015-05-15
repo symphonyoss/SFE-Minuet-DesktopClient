@@ -1,4 +1,6 @@
-﻿namespace Paragon.Runtime
+﻿using System.Diagnostics;
+
+namespace Paragon.Runtime
 {
     internal static class StaticWebContent
     {
@@ -157,15 +159,21 @@
 
     console.log = function() {
         log.apply(this, arguments);
-        paragon.log.debug(convertArgs(arguments));
+        if ({DEBUG_ENABLED}) {
+            paragon.log.debug(convertArgs(arguments));
+        }
     };
     console.debug = function() {
         debug.apply(this, arguments);
-        paragon.log.debug(convertArgs(arguments));
+        if ({DEBUG_ENABLED}) {
+            paragon.log.debug(convertArgs(arguments));
+        }
     };
     console.info = function() {
         info.apply(this, arguments);
-        paragon.log.info(convertArgs(arguments));
+        if ({INFO_ENABLED}) {
+            paragon.log.info(convertArgs(arguments));
+        }
     };
     console.warn = function() {
         warn.apply(this, arguments);
@@ -204,7 +212,12 @@
     }
 })();";
 
-            return script;
+            var debugEnabled = (ParagonTraceSources.App.Switch.Level & SourceLevels.All) == SourceLevels.All;
+            var infoEnabled = (ParagonTraceSources.App.Switch.Level & SourceLevels.Information) == SourceLevels.Information;
+
+            return script
+                .Replace("{DEBUG_ENABLED}", debugEnabled.ToString().ToLower())
+                .Replace("{INFO_ENABLED}", infoEnabled.ToString().ToLower());
         }
     }
 }

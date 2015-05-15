@@ -776,7 +776,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
                 if (frameOptions.Icon)
                 {
-                    using (var stream = _windowManager.Application.Package.GetIcon128())
+                    using (var stream = _windowManager.Application.Package.GetIcon())
                     {
                         if (stream != null)
                         {

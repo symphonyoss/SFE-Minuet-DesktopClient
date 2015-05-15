@@ -42,7 +42,7 @@ namespace Paragon.Runtime.Plugins
                 GetParagonMembers(pluginType.GetMethods));
 
             _events = new ConcurrentDictionary<string, JavaScriptEvent>(GetParagonMembers(pluginType.GetEvents)
-                .Where(m => m.Value.EventHandlerType == typeof (JavaScriptPluginCallback))
+                .Where(m => m.Value.EventHandlerType == typeof(JavaScriptPluginCallback))
                 .ToDictionary(m => m.Key, m => new JavaScriptEvent(NativeObject, m.Value)));
 
             _properties = new ConcurrentDictionary<string, PropertyInfo>(GetParagonMembers(pluginType.GetProperties));
@@ -53,12 +53,12 @@ namespace Paragon.Runtime.Plugins
                     .GetEvents(BindingFlags.Instance | BindingFlags.Public)
                     .FirstOrDefault(e =>
                     {
-                        var a = e.GetCustomAttributes(typeof (JavaScriptDisposeAttribute), true);
+                        var a = e.GetCustomAttributes(typeof(JavaScriptDisposeAttribute), true);
                         return a.Length > 0;
                     });
 
                 if (disposedEvent != null
-                    && disposedEvent.EventHandlerType == typeof (JavaScriptPluginCallback))
+                    && disposedEvent.EventHandlerType == typeof(JavaScriptPluginCallback))
                 {
                     _disposedEvent = disposedEvent;
                     _disposedHandler = OnNativeObjectDisposed;
@@ -77,7 +77,8 @@ namespace Paragon.Runtime.Plugins
                 Methods = _methods.Select(method => new MethodDescriptor
                 {
                     MethodName = method.Key,
-                    HasCallbackParameter = HasCallbackParameter(method.Value)
+                    HasCallbackParameter = HasCallbackParameter(method.Value),
+                    IsVoid = method.Value.ReturnType == typeof(void)
                 }).ToList(),
                 Events = _events.Keys.ToList()
             };
@@ -131,14 +132,13 @@ namespace Paragon.Runtime.Plugins
             }
 
             var type = plugin.GetType();
-            var pluginAttr = type.GetCustomAttributes(typeof (JavaScriptPluginAttribute), true);
+            var pluginAttr = type.GetCustomAttributes(typeof(JavaScriptPluginAttribute), true);
             if (pluginAttr.Length == 0)
             {
                 return null;
             }
 
-            var p = new JavaScriptPlugin(pluginProcess, plugin, pluginAttr[0] as JavaScriptPluginAttribute);
-            return p.IsValid ? p : null;
+            return new JavaScriptPlugin(pluginProcess, plugin, pluginAttr[0] as JavaScriptPluginAttribute);
         }
 
         public static JavaScriptPlugin CreateFromType(PluginProcess pluginProcess, Type type, bool isKernel)
@@ -148,7 +148,7 @@ namespace Paragon.Runtime.Plugins
                 return null;
             }
 
-            var pluginAttr = type.GetCustomAttributes(typeof (JavaScriptPluginAttribute), true);
+            var pluginAttr = type.GetCustomAttributes(typeof(JavaScriptPluginAttribute), true);
             if (pluginAttr.Length == 0)
             {
                 return null;
@@ -183,8 +183,8 @@ namespace Paragon.Runtime.Plugins
                 return false;
             }
 
-            var pluginAttribute = type.GetCustomAttributes(typeof (JavaScriptPluginAttribute), true);
-            return pluginAttribute.Length > 0 && string.IsNullOrEmpty(((JavaScriptPluginAttribute) pluginAttribute[0]).Name);
+            var pluginAttribute = type.GetCustomAttributes(typeof(JavaScriptPluginAttribute), true);
+            return pluginAttribute.Length > 0 && string.IsNullOrEmpty(((JavaScriptPluginAttribute)pluginAttribute[0]).Name);
         }
 
         public event Action<JavaScriptPlugin> DynamicPluginDisposed;
@@ -211,7 +211,7 @@ namespace Paragon.Runtime.Plugins
             }
         }
 
-        private Action CreateInvoker( IPluginManager pluginManager, int browserId, long frameId, int contextId,
+        private Action CreateInvoker(IPluginManager pluginManager, int browserId, long frameId, int contextId,
                                        string methodName, IJavaScriptParameters parameters, IJavaScriptPluginCallback callback)
         {
             ThrowIfDisposed();
@@ -373,7 +373,7 @@ namespace Paragon.Runtime.Plugins
         private static bool HasCallbackParameter(MethodInfo method)
         {
             var lastParameter = method.GetParameters().LastOrDefault();
-            return lastParameter != null && lastParameter.ParameterType == typeof (JavaScriptPluginCallback);
+            return lastParameter != null && lastParameter.ParameterType == typeof(JavaScriptPluginCallback);
         }
 
         private static IEnumerable<KeyValuePair<string, TMemberInfo>> GetParagonMembers<TMemberInfo>(
@@ -382,12 +382,12 @@ namespace Paragon.Runtime.Plugins
         {
             Func<MemberInfo, JavaScriptPluginMemberAttribute> getMetadata = mem =>
             {
-                var attr = mem.GetCustomAttributes(typeof (JavaScriptPluginMemberAttribute), true);
+                var attr = mem.GetCustomAttributes(typeof(JavaScriptPluginMemberAttribute), true);
                 return attr.Length > 0 ? attr[0] as JavaScriptPluginMemberAttribute : null;
             };
 
             return getMembers(BindingFlags.Public | BindingFlags.Instance)
-                .Select(member => new {Member = member, Metadata = getMetadata(member)})
+                .Select(member => new { Member = member, Metadata = getMetadata(member) })
                 .Where(m => m.Metadata != null)
                 .Select(member => new KeyValuePair<string, TMemberInfo>(
                     !string.IsNullOrEmpty(member.Metadata.Name) ? member.Metadata.Name : ToCamelCase(member.Member.Name),

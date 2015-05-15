@@ -48,9 +48,14 @@ namespace Paragon.Runtime
             // that is currently running.
             _logDirectory = Environment.ExpandEnvironmentVariables(logsDir);
 
+            // Max file size for log files is 10MB (the default is 5MB if not explicitly set).
+            const int maxFileSize = 10 * 1024 * 1024;
+
             switch (context)
             {
                 case LogContext.Browser:
+                    CleanupCefLog(_logDirectory);
+
                     // Write default trace source messages to a paragon log file.
                     _paragonTraceListener = new FileLogTraceListener
                     {
@@ -59,7 +64,8 @@ namespace Paragon.Runtime
                         CustomLocation = _logDirectory,
                         LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
                         BaseFileName = "paragon",
-                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages
+                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
+                        MaxFileSize = maxFileSize
                     };
 
                     ParagonTraceSources.Default.Listeners.Add(_paragonTraceListener);
@@ -71,7 +77,8 @@ namespace Paragon.Runtime
                         CustomLocation = _logDirectory,
                         LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
                         BaseFileName = "application",
-                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages
+                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
+                        MaxFileSize = 10 * 1024 * 1024
                     };
 
                     // Write app trace source messages to an application log file.
@@ -88,7 +95,8 @@ namespace Paragon.Runtime
                         CustomLocation = _logDirectory,
                         LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
                         BaseFileName = "renderer",
-                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages
+                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
+                        MaxFileSize = maxFileSize
                     };
 
                     // Write default trace source messages to a renderer log file.
@@ -143,6 +151,39 @@ namespace Paragon.Runtime
             if (_rendererTraceListener != null)
             {
                 _rendererTraceListener.Dispose();
+            }
+        }
+
+        private static void CleanupCefLog(string logDir)
+        {
+            var logger = GetLogger();
+
+            try
+            {
+                var cefLogPath = Path.Combine(_logDirectory, "cef.log");
+                var cefLogFile = new FileInfo(cefLogPath);
+                if (!cefLogFile.Exists)
+                {
+                    return;
+                }
+
+                // Max allowed file size of 20MB.
+                const int maxFileSize = 20 * 1024 * 1024;
+                if (cefLogFile.Length > maxFileSize)
+                {
+                    try
+                    {
+                        cefLogFile.Delete();
+                    }
+                    catch (IOException)
+                    {
+                        logger.Warn("Unable to delete cef.log file as the file is in use");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                logger.Error("Error cleaningup CEF log", e);
             }
         }
 

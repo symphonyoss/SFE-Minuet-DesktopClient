@@ -5,7 +5,7 @@ namespace Paragon.Runtime.Desktop
     /// <summary>
     /// Provides access to app related events.
     /// </summary>
-    internal static class AppEvents
+    public static class AppEvents
     {
         /// <summary>
         /// Event fired when an app has exited.

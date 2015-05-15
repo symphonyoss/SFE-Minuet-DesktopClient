@@ -8,7 +8,7 @@ using System.Security.Permissions;
 
 namespace Paragon.Runtime.Win32
 {
-    internal sealed class ProcessPerfInfo : IDisposable
+    public sealed class ProcessPerfInfo : IDisposable
     {
         private bool _disposed;
         private DateTime _lastCpuCheck;

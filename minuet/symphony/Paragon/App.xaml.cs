@@ -46,7 +46,7 @@ namespace Paragon
                 if (!_suppressSplashScreen)
                 {
                     ImageSource imageSource = null;
-                    Stream iconStream = _appPackage.GetIcon128();
+                    Stream iconStream = _appPackage.GetIcon();
                     if (iconStream != null)
                     {
                         var icon = new System.Drawing.Icon(iconStream, 128, 128);
@@ -80,7 +80,7 @@ namespace Paragon
                 using (AutoStopwatch.TimeIt("CEF initialization"))
                 {
                     var cachePath = Path.Combine(Environment.ExpandEnvironmentVariables(Settings.Default.CacheDirectory), _appPackage.Manifest.Id);
-                    ParagonRuntime.Initialize(cachePath, _appPackage.Manifest.SpellCheckLanguage, _appPackage.Manifest.DisableSpellChecking, _appMetadata.Environment == ApplicationEnvironment.Development);
+                    ParagonRuntime.Initialize(cachePath, null, _appPackage.Manifest.SpellCheckLanguage, _appPackage.Manifest.DisableSpellChecking, _appMetadata.Environment == ApplicationEnvironment.Development);
                 }
 
                 using (AutoStopwatch.TimeIt("Bootstrapping"))

@@ -162,7 +162,7 @@ namespace Paragon.Runtime.Plugins
             JArray parameters,
             IV8Callback callback)
         {
-            Logger.Info(fmt => fmt("InvokeFunction Remote Plugin {0} Method {1}", targetPlugin.PluginId, methodDescriptor.MethodName));
+            Logger.Debug(fmt => fmt("InvokeFunction Remote Plugin {0} Method {1}", targetPlugin.PluginId, methodDescriptor.MethodName));
 
             if (!EnsureOnRendererThread())
             {
@@ -176,8 +176,12 @@ namespace Paragon.Runtime.Plugins
             functionInvokeMessage.MessageType = PluginMessageType.FunctionInvoke;
             functionInvokeMessage.Data = parameters != null ? parameters.ToString() : string.Empty;
 
-            // Add the call info into the pending calls for the browser
-            AddRemoteCallback(functionInvokeMessage, methodDescriptor.HasCallbackParameter ? null : callback);
+            // Add the call info into the pending calls for the browser if the return type
+            // is not void or the method has a callback arg.
+            if (!methodDescriptor.IsVoid || methodDescriptor.HasCallbackParameter)
+            {
+                AddRemoteCallback(functionInvokeMessage, methodDescriptor.HasCallbackParameter ? null : callback);
+            }
 
             try
             {
@@ -190,7 +194,7 @@ namespace Paragon.Runtime.Plugins
             catch (Exception ex)
             {
                 // If the request could not be sent, remove the call from the list
-                var error = new ResultData {ErrorCode = -1, Error = ex.Message};
+                var error = new ResultData { ErrorCode = -1, Error = ex.Message };
                 OnBrowserCallbackInvokeReceived(functionInvokeMessage, error);
                 Logger.Error(fmt => fmt("InvokeFunction Failed Remote Plugin {0} Method {1}: {2}",
                     targetPlugin.PluginId,
@@ -438,7 +442,7 @@ namespace Paragon.Runtime.Plugins
 
             try
             {
-                var info = (LocalRenderCallInfo) _pendingCallbacks.Remove(callback.Identifier);
+                var info = (LocalRenderCallInfo)_pendingCallbacks.Remove(callback.Identifier);
                 info.Dispose();
 
                 targetPlugin.RemoveEventListener(eventName, info);
@@ -554,7 +558,7 @@ namespace Paragon.Runtime.Plugins
 
         private void AddRenderSidePlugins(IApplicationPackage package, List<IPluginInfo> renderSidePlugins, IPluginContext pluginContext)
         {
-            if (renderSidePlugins != null && pluginContext != null )
+            if (renderSidePlugins != null && pluginContext != null)
             {
                 foreach (var pluginInfo in renderSidePlugins)
                 {
@@ -577,7 +581,7 @@ namespace Paragon.Runtime.Plugins
                     }
                     catch (Exception ex)
                     {
-                        Logger.Error("Could not create render-side plugin : " + pluginInfo.Name, ex); 
+                        Logger.Error("Could not create render-side plugin : " + pluginInfo.Name, ex);
                     }
                 }
             }
@@ -726,7 +730,7 @@ namespace Paragon.Runtime.Plugins
                 // Create a second stored callback info which represents the V8 callback function itself
                 // rather than the method that is being invoked now. This allows the callback function
                 // to be passed to and invoked by multiple native methods that accept a callback parameter.
-                parameterCallbackInfo = (LocalRenderCallInfo) _pendingCallbacks.Get(callback.Identifier);
+                parameterCallbackInfo = (LocalRenderCallInfo)_pendingCallbacks.Get(callback.Identifier);
                 if (parameterCallbackInfo == null)
                 {
                     var parameterCallbackMessage = new PluginMessage
@@ -736,7 +740,7 @@ namespace Paragon.Runtime.Plugins
                         PluginId = string.Empty,
                         MemberName = string.Empty,
                         BrowserId = context.GetBrowserId(),
-                        ContextId = GetIdForContext(context, false), 
+                        ContextId = GetIdForContext(context, false),
                         FrameId = context.GetFrame().Identifier,
                         V8CallbackId = Guid.Empty
                     };

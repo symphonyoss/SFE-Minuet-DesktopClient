@@ -103,18 +103,7 @@ namespace Paragon.Runtime.PackagedApplication
         public Package Package { get; private set; }
         public IApplicationManifest Manifest { get; private set; }
 
-        public Stream GetIcon16()
-        {
-            if (Manifest.Icons != null)
-            {
-                return GetStream(!string.IsNullOrEmpty(Manifest.Icons.Icon16)
-                    ? Manifest.Icons.Icon16
-                    : Manifest.Icons.Icon128);
-            }
-            return null;
-        }
-
-        public Stream GetIcon128()
+        public Stream GetIcon()
         {
             if (Manifest.Icons != null)
             {

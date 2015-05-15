@@ -195,8 +195,8 @@ namespace Paragon.Runtime.Plugins
         public void ExecuteFunction(CefV8Context context, string functionName,
             CefV8Value[] parameters, CefV8Value callback, out CefV8Value returnValue, out string exception)
         {
-            Logger.Info(fmt => fmt("ExecuteFunction Plugin {0} Method {1}", Descriptor.PluginId, functionName));
-            
+            Logger.Debug(fmt => fmt("ExecuteFunction Plugin {0} Method {1}", Descriptor.PluginId, functionName));
+
             MethodDescriptor methodDescriptor;
             if (string.IsNullOrEmpty(functionName)
                 || (methodDescriptor = Descriptor.Methods.Find(descriptor => descriptor.MethodName == functionName)) == null)
