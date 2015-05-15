@@ -77,14 +77,6 @@ paragon.app.runtime.onLaunched.addListener(function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {
                 var config = JSON.parse( xmlhttp.responseText );
                 paragon.app.window.create(config.url, createParams, function(createdWindow) {
-                    createdWindow.onPageLoaded.addListener(function (url) {
-
-                  // if (url == "https://local-ony.com/client/index.html") {
-                          createdWindow.executeJavaScript('symphony.interop.createChannel();');
-                  //  }
-
-                    });
-
                     paragon.notifications.setSettings(settings.notifications);
 
                     paragon.notifications.onSettingsChanged.addListener(function (notificationSettings) {
