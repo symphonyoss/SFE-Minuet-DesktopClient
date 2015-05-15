@@ -45,26 +45,11 @@ namespace Paragon
                 // Create splash screen, if it is not explicitly disabled
                 if (!_suppressSplashScreen)
                 {
-                    ImageSource imageSource = null;
-                    Stream iconStream = _appPackage.GetIcon128();
-                    if (iconStream != null)
-                    {
-                        var icon = new System.Drawing.Icon(iconStream, 128, 128);
-                        using (var bmp = icon.ToBitmap())
-                        {
-                            var hbmp = bmp.GetHbitmap();
-                            try
-                            {
-                                imageSource = Imaging.CreateBitmapSourceFromHBitmap(hbmp, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-                            }
-                            finally
-                            {
-                                Win32Api.DeleteObject(hbmp);
-                            }
-                        }
-                    }
 
-                    _splash = new ParagonSplashScreen(_appPackage.Manifest.Name, imageSource, _appPackage.Manifest.Version);
+                    var stylePart = !string.IsNullOrEmpty(_appPackage.Manifest.SplashScreenStyle) ? _appPackage.GetPart(_appPackage.Manifest.SplashScreenStyle) : null;
+                    var styleStream = stylePart != null ? stylePart.GetStream() : null;
+
+                    _splash = new ParagonSplashScreen(_appPackage.Manifest.Name, _appPackage.Manifest.Version, _appPackage.GetIcon128(), styleStream);
                     _splash.Show();
 
                     _appMetadata.UpdateLaunchStatus = s =>

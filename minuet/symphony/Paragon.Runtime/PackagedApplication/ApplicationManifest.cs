@@ -131,6 +131,8 @@ namespace Paragon.Runtime.PackagedApplication
 
             return applicationType;
         }
+
+        public string SplashScreenStyle { get; set; }
     }
 
     public class IconInfo : IIconInfo
