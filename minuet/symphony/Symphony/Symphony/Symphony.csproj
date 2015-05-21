@@ -130,6 +130,9 @@
     <Content Include="appbridge.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="meow.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="SymphonyInterop.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
