@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Goldman Sachs.
+ *
  * Created by William Stamatakis.
  * meow.js
  * Description: [M]essaging [E]xtended [O]ver [W]ebsockets
@@ -53,10 +53,13 @@ Paragon.MessageBus = function(url) {
 
     that.send = function(address, message, responseHandler){
         checkParam('address', address, 'string');
+        checkParam('message', message, 'object');
         checkParam('responseHandler', responseHandler, 'function', true);
 
-        // {type:"send", address:"whatever", message:{content:...}[, rid:"newGuid"]}
-        var payload = {type:"send", address:address, message:{content:message}};
+        //// {type:"send", address:"whatever", message:{content:...}[, rid:"newGuid"]}
+        //var payload = {type:"send", address:address, message:{content:message}};
+        // {type:"send", address:"whatever", message:{...}[, rid:"newGuid"]}
+        var payload = {type:"send", address:address, message:message};
         if (responseHandler){
             var rid = newGUID();
             payload.rid = rid;
@@ -68,10 +71,12 @@ Paragon.MessageBus = function(url) {
 
     that.publish = function(address, message){
         checkParam('address', address, 'string');
-        //checkParam('message', message, 'object');
+        checkParam('message', message, 'object');
 
-        // {type:"publish", address:"whatever", message:{content:...}}
-        var payload = {type:"publish", address:address, message:{content:message}};
+        //// {type:"publish", address:"whatever", message:{content:...}}
+        //var payload = {type:"publish", address:address, message:{content:message}};
+        // {type:"publish", address:"whatever", message:{...}}
+        var payload = {type:"publish", address:address, message:message};
         var str = JSON.stringify(payload);
         socket.send(str);
     }

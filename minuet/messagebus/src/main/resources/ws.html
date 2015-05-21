@@ -1,5 +1,5 @@
 /**
-* Created by stamaw on 2/20/2015.
+* Created by stamaw on 05/11/2015.
 */
 <!DOCTYPE html>
 <!--
@@ -15,16 +15,17 @@
     var mb = Paragon.MessageBus("ws://localhost:{BROKER_PORT_NUMBER}/paragon/messagebus" + queryString);
 
     function send(address, message) {
+        var msg = JSON.parse(message);
 
-        mb.send(address, message, function(responseMessage){
+        mb.send(address, msg, function(responseMessage){
             alert("Response message: " + JSON.stringify(responseMessage));
         });
 
     }
 
     function publish(address, message) {
-
-        mb.publish(address, message);
+        var msg = JSON.parse(message);
+        mb.publish(address, msg);
 
     }
 
@@ -35,7 +36,7 @@
             var replyAddress = envelope.replyaddress;
             alert("Incoming message: " + strMsg);
             if (replyAddress){
-                var reply = "Got your message(" + envelope.message.content + ").  Thx!";
+                var reply = {answer:"Got your message!", yourmessage:envelope.message};
                 mb.send(replyAddress, reply);
             }
         }, function(responseMessage){
