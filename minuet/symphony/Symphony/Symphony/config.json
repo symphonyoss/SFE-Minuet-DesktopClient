@@ -1,3 +1,4 @@
 ﻿{
-  "url" : "https://beta.symphony.com"
+  "url" : "http://127.0.0.1:45200/",
+  "isMinimizeOnCloseChecked" : "true"
 }
