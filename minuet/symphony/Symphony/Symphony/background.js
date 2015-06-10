@@ -45,11 +45,9 @@ paragon.app.runtime.onLaunched.addListener(function() {
                         resolve({});
                     } else {
                         isMinimizeOnCloseChecked = value.isMinimizeOnCloseChecked;
-                        console.log("WWWWWWWWWWWWWWWWWWW Data from Local Storage: " + isMinimizeOnCloseChecked);
 
                         if (typeof isMinimizeOnCloseChecked === 'undefined') {
                             isMinimizeOnCloseChecked = Boolean(config.isMinimizeOnCloseChecked);
-                            console.log("WWWWWWWWWWWWWWWWWWW Data from Config: " + isMinimizeOnCloseChecked);
                         }
                         
                         var systemMenu = {
