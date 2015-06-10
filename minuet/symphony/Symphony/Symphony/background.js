@@ -30,112 +30,130 @@ paragon.app.runtime.onLaunched.addListener(function() {
     .then(function () {
         return getAppSettings();
     }).then(function (settings) {
-        var systemMenu = {
-            refresh: 1011,
-            minimizeOnClose: 1021,
-            editShortcuts: 1031,
-            exit: 1041,
-            about: 1051
-        };
-
-        var createParams = {
-            id: "main",
-            autoSaveLocation: true,
-            outerBounds: settings.outerBounds,
-            minimizeOnClose: settings.isMinimizeOnCloseChecked,
-            hotKeysEnabled: settings.hotkeys[0].isEnabled,
-            frame: {
-                systemMenu: {
-                    items: [{
-                        header: 'Refresh',
-                        id: systemMenu.refresh,
-                        enabled: true
-                    }, {
-                        header: 'Minimize on Close',
-                        id: systemMenu.minimizeOnClose,
-                        enabled: true,
-                        checkable: true,
-                        isChecked: settings.isMinimizeOnCloseChecked
-                    }, {
-                        header: 'Edit Shortcuts',
-                        id: systemMenu.editShortcuts,
-                        enabled: true
-                    }, {
-                        header: 'Exit',
-                        id: systemMenu.exit,
-                        enabled: true
-                    }, {
-                        header: 'Version ' + appVersion,
-                        id: systemMenu.about,
-                        enabled: false
-                    }]
-                },
-            }
-        };
+        
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {
                 var config = JSON.parse( xmlhttp.responseText );
-                paragon.app.window.create(config.url, createParams, function(createdWindow) {
-                    paragon.notifications.setSettings(settings.notifications);
 
-                    paragon.notifications.onSettingsChanged.addListener(function (notificationSettings) {
-                        settings.notifications = notificationSettings;
-                        paragon.storage.local.set({ notifications: notificationSettings });
-                    });
+                // read from local storage
+                var isMinimizeOnCloseChecked;
 
-                    createdWindow.onSystemMenuItemClicked.addListener(function (id, checked) {
-                        switch (id) {
-                            case systemMenu.refresh:
-                                createdWindow.refresh();
-                                break;
-                            case systemMenu.minimizeOnClose:
-                                createdWindow.setMinimizeOnClose(checked);
-                                settings.isMinimizeOnCloseChecked = checked;
-                                paragon.storage.local.set({ isMinimizeOnCloseChecked: checked });
-                                break;
-                            case systemMenu.editShortcuts:
-                                symphony.settings.showEditHotKeysDialog(settings.hotkeys[0]);
-                                break;
-                            case systemMenu.exit:
-                                createdWindow.close();
-                                break;
-                            case systemMenu.about:
-                                break;
-                            default:
+                paragon.storage.local.get('isMinimizeOnCloseChecked', function (value, err, errMsg) {
+                    if (err) {
+                        console.error('Error loading settings from local storage.', errMsg);
+                        resolve({});
+                    } else {
+                        isMinimizeOnCloseChecked = value.isMinimizeOnCloseChecked;
+
+                        if (typeof isMinimizeOnCloseChecked === 'undefined') {
+                            isMinimizeOnCloseChecked = Boolean(config.isMinimizeOnCloseChecked);
                         }
-                    });
+                        
+                        var systemMenu = {
+                            refresh: 1011,
+                            minimizeOnClose: 1021,
+                            editShortcuts: 1031,
+                            exit: 1041,
+                            about: 1051
+                        };
 
-                    //createdWindow.onBoundsChanged.addListener(function (bounds) {
-                    //    var outerBounds = settings.outerBounds;
-                    //    outerBounds.left = bounds.left;
-                    //    outerBounds.top = bounds.top;
-                    //    outerBounds.width = bounds.width;
-                    //    outerBounds.height = bounds.height;
+                        var createParams = {
+                            id: "main",
+                            autoSaveLocation: true,
+                            outerBounds: settings.outerBounds,
+                            minimizeOnClose: isMinimizeOnCloseChecked,
+                            hotKeysEnabled: settings.hotkeys[0].isEnabled,
+                            frame: {
+                                systemMenu: {
+                                    items: [{
+                                        header: 'Refresh',
+                                        id: systemMenu.refresh,
+                                        enabled: true
+                                    }, {
+                                        header: 'Minimize on Close',
+                                        id: systemMenu.minimizeOnClose,
+                                        enabled: true,
+                                        checkable: true,
+                                        isChecked: isMinimizeOnCloseChecked
+                                    }, {
+                                        header: 'Edit Shortcuts',
+                                        id: systemMenu.editShortcuts,
+                                        enabled: true
+                                    }, {
+                                        header: 'Exit',
+                                        id: systemMenu.exit,
+                                        enabled: true
+                                    }, {
+                                        header: 'Version ' + appVersion,
+                                        id: systemMenu.about,
+                                        enabled: false
+                                    }]
+                                },
+                            }
+                        };
 
-                    //    paragon.storage.local.set({ outerBounds: outerBounds });
-                    //});
+                        paragon.app.window.create(config.url, createParams, function(createdWindow) {
+                            paragon.notifications.setSettings(settings.notifications);
 
-                    var hk = settings.hotkeys[0];
-                    createdWindow.setHotKeys(hk.name, hk.modifier, hk.key);
+                            paragon.notifications.onSettingsChanged.addListener(function (notificationSettings) {
+                                settings.notifications = notificationSettings;
+                                paragon.storage.local.set({ notifications: notificationSettings });
+                            });
 
-                    symphony.settings.onHotKeysEdited.addListener(function (enabled, modifier, key) {
-                        createdWindow.setHotKeysEnabled(enabled);
-                        createdWindow.setHotKeys(hk.name, modifier, key);
-                        hk.isEnabled = enabled;
-                        hk.modifier = modifier;
-                        hk.key = key;
-                        paragon.storage.local.set({ hotkeys: settings.hotkeys });
-                    });
+                            createdWindow.onSystemMenuItemClicked.addListener(function (id, checked) {
+                                switch (id) {
+                                    case systemMenu.refresh:
+                                        createdWindow.refresh();
+                                        break;
+                                    case systemMenu.minimizeOnClose:
+                                        createdWindow.setMinimizeOnClose(checked);
+                                        paragon.storage.local.set({ isMinimizeOnCloseChecked: checked });
+                                        break;
+                                    case systemMenu.editShortcuts:
+                                        symphony.settings.showEditHotKeysDialog(settings.hotkeys[0]);
+                                        break;
+                                    case systemMenu.exit:
+                                        createdWindow.close();
+                                        break;
+                                    case systemMenu.about:
+                                        break;
+                                    default:
+                                }
+                            });
 
-                    createdWindow.onHotKeyPressed.addListener(function (name) {
-                        console.log("hotkeyPressed:",name);
-                        if (name === hk.name) {
-                            symphony.app.window.showWindow("main");
-                        }
-                    });
+                            //createdWindow.onBoundsChanged.addListener(function (bounds) {
+                            //    var outerBounds = settings.outerBounds;
+                            //    outerBounds.left = bounds.left;
+                            //    outerBounds.top = bounds.top;
+                            //    outerBounds.width = bounds.width;
+                            //    outerBounds.height = bounds.height;
 
-                });
+                            //    paragon.storage.local.set({ outerBounds: outerBounds });
+                            //});
+
+                            var hk = settings.hotkeys[0];
+                            createdWindow.setHotKeys(hk.name, hk.modifier, hk.key);
+
+                            symphony.settings.onHotKeysEdited.addListener(function (enabled, modifier, key) {
+                                createdWindow.setHotKeysEnabled(enabled);
+                                createdWindow.setHotKeys(hk.name, modifier, key);
+                                hk.isEnabled = enabled;
+                                hk.modifier = modifier;
+                                hk.key = key;
+                                paragon.storage.local.set({ hotkeys: settings.hotkeys });
+                            });
+
+                            createdWindow.onHotKeyPressed.addListener(function (name) {
+                                console.log("hotkeyPressed:",name);
+                                if (name === hk.name) {
+                                    symphony.app.window.showWindow("main");
+                                }
+                            });
+
+                        }); 
+                    }
+                });               
             }
         }
         xmlhttp.open("GET", "/config.json");
