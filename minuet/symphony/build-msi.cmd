@@ -17,7 +17,7 @@ set targetsDir="%CD%\targets\"
 rem tools dependencies, must be in your path
 set zip=7z.exe
 
-set archiveName=Symphony-x86-Release-%WRAPPER_VER%
+set archiveName=DesktopClient-Win-x86-%WRAPPER_VER%
 
 echo "create exec zip"
 cd minuet\symphony\bin
