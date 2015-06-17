@@ -1,16 +1,12 @@
 /*
- * Copyright 2014 Goldman Sachs.
  * Created by William Stamatakis
  */
 package com.gs.paragon.verticles;
 
-import java.io.InputStream;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.commons.io.IOUtil;
-import org.apache.log4j.Logger;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.VoidHandler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.eventbus.EventBus;
 import org.vertx.java.core.eventbus.Message;
@@ -18,28 +14,40 @@ import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.http.ServerWebSocket;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
+import org.apache.log4j.Logger;
+import java.io.InputStream;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HttpServerVerticle extends Verticle {
     private static final Logger logger = Logger.getLogger(HttpServerVerticle.class);
     private static int DEFAULT_PORT = 65534;
+    private static final String MEOW = "/meow.js";
+    private static final String WS = "/ws.html";
+    private static final String REST = "/rest.html";
+    private static final String MESSAGEBUS = "/messagebus";
+
     public void start() {
         String portProp = System.getProperty("paragon.messagebroker.port");
 
-        final Integer portNumber = portProp != null ? Integer.parseInt(portProp) : DEFAULT_PORT;
-
-        if(logger.isInfoEnabled()) {
-            logger.info("Starting Paragon Message Broker (HTTP) verticle on port - " + portNumber);
+        int port = DEFAULT_PORT;
+        if(portProp != null) {
+            port = Integer.parseInt(portProp);
         }
+
+        final Integer portNumber = port;
+
+        if(logger.isInfoEnabled())
+            logger.info("Starting Paragon Message Broker (HTTP) verticle on port - " + port);
 
         vertx.createHttpServer().requestHandler(new Handler<HttpServerRequest>() {
             public void handle(HttpServerRequest req) {
-                if (req.path().equals("/ws.html") || req.path().equals("/meow.js")) {
+                if (req.path().equals(WS) || req.path().equals(MEOW) || req.path().equals(REST)) {
                     byte[] bytes = null;
                     InputStream stream = null;
 
                     try {
                         stream = getClass().getResourceAsStream(req.path());
-                        if (req.path().equals("/ws.html")) {
+                        if (req.path().equals(WS) || req.path().equals(REST)) {
                             String html = IOUtil.toString(stream);
                             html = html.replace("{BROKER_PORT_NUMBER}", portNumber.toString());
                             bytes = IOUtil.toByteArray(html);
@@ -62,17 +70,117 @@ public class HttpServerVerticle extends Verticle {
                     } catch (final Exception ex) {
                         logger.error("Error closing file stream : " + ex.getMessage());
                     }
+                } else if (req.path().equals(MESSAGEBUS) && req.method().equals("POST")) {
+                    processPostRequest(req);
                 } else {
                     req.response().setStatusCode(200);
                     req.response().headers().add("Cache-Control", "no-cache");
                     req.response().end("Paragon Message Bus Rocks!");
                 }
             }
+
+            private void processPostRequest(final HttpServerRequest request) {
+                final Buffer body = new Buffer(0);
+                request.dataHandler(new Handler<Buffer>() {
+                    public void handle(Buffer buffer) {
+                        body.appendBuffer(buffer);
+                    }
+                });
+                request.endHandler(new VoidHandler() {
+                    final static long TIME_OUT = 5000;
+
+                    public void handle() {
+                        // The entire body has now been received
+                        logger.info("The total body received was " + body.length() + " bytes");
+                        try {
+                            String payload = body.toString();
+                            JsonObject action = new JsonObject(payload);
+
+                            switch (action.getString("type")) {
+                                case "send":
+                                    sendMessage(action);
+                                    break;
+                                case "publish":
+                                    publishMessage(action);
+                                    break;
+                                default:
+                                    request.response().setStatusCode(500);
+                                    request.response().end("Invalid action.");
+                            }
+                        } catch (Exception ex) {
+                            logger.error("Error processing request : " + ex.getMessage());
+                            request.response().setStatusCode(500);
+                            request.response().end(ex.getMessage());
+                        }
+                    }
+
+                    private boolean isValidAction(String type, JsonObject action) {
+                        return (action.getString("type").equals(type) &&
+                                !(action.getString("address") == null && action.getString("address").isEmpty()) &&
+                                action.getObject("message") != null);
+                    }
+
+                    private void publishMessage(JsonObject action) {
+                        if (isValidAction("publish", action)) {
+                            String address = action.getString("address");
+                            JsonObject message = action.getObject("message");
+
+                            vertx.eventBus().publish(address, message);
+
+                            request.response().setStatusCode(200);
+                            request.response().end();
+                        } else {
+                            request.response().setStatusCode(500);
+                            request.response().end("Invalid action.");
+                        }
+                    }
+
+                    private void sendMessage(JsonObject action) {
+                        if (isValidAction("send", action)) {
+                            String address = action.getString("address");
+                            JsonObject message = action.getObject("message");
+                            final String rid = action.getString("rid");
+                            if (rid == null || rid.isEmpty()) {
+                                // oneway send
+                                vertx.eventBus().send(address, message);
+                                request.response().setStatusCode(200);
+                                request.response().end();
+                            } else {
+                                // send with anticipation of a response
+                                vertx.eventBus().sendWithTimeout(address, message, TIME_OUT, new Handler<AsyncResult<Message<JsonObject>>>() {
+                                    @Override
+                                    public void handle(AsyncResult<Message<JsonObject>> ar) {
+                                        if (ar.failed()) {
+                                            request.response().setStatusCode(500);
+                                            request.response().end("Send Failed with reason: " + ar.cause().getMessage());
+                                        } else {
+                                            Message<JsonObject> result = ar.result();
+                                            JsonObject msg = ar.result().body();
+                                            // construct json response:
+                                            // {type:"response", address:"whatever", rid:"1234", message:{...} [,replyaddress:"4321"]}
+                                            JsonObject response = new JsonObject().putString("type", "response")
+                                                    .putString("address", result.address())
+                                                    .putString("rid", rid)
+                                                    .putObject("message", msg);
+                                            if (!(result.replyAddress() == null || result.replyAddress().isEmpty())) {
+                                                response.putString("replyaddress", result.replyAddress());
+                                            }
+                                            request.response().setStatusCode(200);
+                                            // return strigafied json response.
+                                            request.response().end(response.toString());
+                                        }
+                                    }
+                                });
+                            }
+
+                        } else {
+                            request.response().setStatusCode(500);
+                            request.response().end("Invalid action.");
+                        }
+                    }
+                });
+            }
         }).websocketHandler(new Handler<ServerWebSocket>() {
-        	
-        	private ConcurrentHashMap<ServerWebSocket, ConcurrentHashMap<String, Handler<Message<JsonObject>>>> socketHandlerMap = 
-            		new ConcurrentHashMap<ServerWebSocket, ConcurrentHashMap<String, Handler<Message<JsonObject>>>>();
-        	
             public void handle(final ServerWebSocket socket) {
                 socket.dataHandler(new Handler<Buffer>() {
                     @Override
@@ -86,7 +194,7 @@ public class HttpServerVerticle extends Verticle {
                     @Override
                     public void handle(Void aVoid) {
                         // Remove topic-to-handler map from socket.
-                        ConcurrentHashMap<String, Handler<Message<JsonObject>>> handlerMap = socketHandlerMap.remove(socket);
+                        ConcurrentHashMap<String, Handler<Message<JsonObject>>> handlerMap = _socketHandlerMap.remove(socket);
                         if (handlerMap != null) {
                             // Unregister all associated handlers.
                             EventBus eb = vertx.eventBus();
@@ -96,6 +204,26 @@ public class HttpServerVerticle extends Verticle {
                         }
                     }
                 });
+            }
+
+            private String getPartValue(String query, String partName) {
+                String finalPart = null;
+                if (query != null) {
+                    String[] parts = query.split("\\?" + partName + "=", 2);
+                    if (parts.length != 2) {
+                        parts = query.split("&" + partName + "=", 2);
+                    }
+                    if (parts.length == 2) {
+                        System.out.println(parts[1]);
+
+                        String[] interimPart = parts[1].split("&", 2);
+                        finalPart = interimPart[0];
+
+                        //TODO: remove
+                        System.out.println(finalPart);
+                    }
+                }
+                return finalPart;
             }
 
             private void processIncomingSocketMessage(String message, final ServerWebSocket socket) {
@@ -126,7 +254,7 @@ public class HttpServerVerticle extends Verticle {
                     final Handler<Message<JsonObject>> theHandler;
 
                     // Get the registered handler for this socket on the given address.
-                    final ConcurrentHashMap<String, Handler<Message<JsonObject>>> addressMap = socketHandlerMap.get(socket);
+                    final ConcurrentHashMap<String, Handler<Message<JsonObject>>> addressMap = _socketHandlerMap.get(socket);
                     Handler<Message<JsonObject>> aHandler = null;
                     if (addressMap != null) {
                         aHandler = addressMap.get(address);
@@ -169,7 +297,7 @@ public class HttpServerVerticle extends Verticle {
                                     ConcurrentHashMap<String, Handler<Message<JsonObject>>> theAddressMap = addressMap;
                                     if (theAddressMap == null) {
                                         theAddressMap = new ConcurrentHashMap<String, Handler<Message<JsonObject>>>();
-                                        socketHandlerMap.put(socket, theAddressMap);
+                                        _socketHandlerMap.put(socket, theAddressMap);
                                     }
                                     theAddressMap.put(address, theHandler);
                                 }
@@ -206,7 +334,7 @@ public class HttpServerVerticle extends Verticle {
                     logger.trace("unregisterTopic - address = " + (address != null ? address : "") + ", rid = " + (rid != null ? rid : ""));
                 }
                 if (address != null) {
-                    final ConcurrentHashMap<String, Handler<Message<JsonObject>>> addressMap = socketHandlerMap.get(socket);
+                    final ConcurrentHashMap<String, Handler<Message<JsonObject>>> addressMap = _socketHandlerMap.get(socket);
 
                     Handler<Message<JsonObject>> handler = null;
                     if (addressMap != null) {
@@ -290,6 +418,8 @@ public class HttpServerVerticle extends Verticle {
                     eb.publish(address, msg);
                 }
             }
+
+            private ConcurrentHashMap<ServerWebSocket, ConcurrentHashMap<String, Handler<Message<JsonObject>>>> _socketHandlerMap = new ConcurrentHashMap<ServerWebSocket, ConcurrentHashMap<String, Handler<Message<JsonObject>>>>();
         }).listen(portNumber, "localhost");
     }
 }
