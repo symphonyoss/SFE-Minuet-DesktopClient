@@ -476,20 +476,8 @@ namespace Symphony.Crypto
                 Marshal.Copy(OutPtr, Out, 0, System.Convert.ToInt32(OutLen));
                 Marshal.FreeHGlobal(InputPtr);
 
-                string OutStr;
-
-                // Encode in Base64 if we just encrypted.
-                if (name == "RSAEncrypt")
-                {
-                    OutStr = System.Convert.ToBase64String(Out, 0, System.Convert.ToInt32(OutLen));
-                }
-                else
-                {
-                    OutStr = System.Text.Encoding.UTF8.GetString(Out);
-                }
-
                 // Return the answer.
-                return OutStr;
+                return System.Convert.ToBase64String(Out, 0, System.Convert.ToInt32(OutLen));
             }
 
             private static IntPtr getRSAKeyFromPEM(string PEMKey)
