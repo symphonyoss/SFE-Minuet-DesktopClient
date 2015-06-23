@@ -70,6 +70,8 @@
                                  IsChecked="{Binding Path=SelectedPosition, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static notifications:Position.BottomRight}}" />
                 </UniformGrid>
             </GroupBox>
+
+            <CheckBox Content="Do Not Disturb" IsChecked="{Binding Path=Dnd}" Margin="4"/>
         </StackPanel>
     </DockPanel>
 </Window>

@@ -36,6 +36,18 @@ namespace Paragon.Runtime.Desktop
         }
 
         /// <summary>
+        /// Find running app information based on the specified search criteria.
+        /// </summary>
+        /// <param name="setOptions">Delegate used to set search criteria</param>
+        /// <returns>App information that match the specified criteria</returns>
+        public static IEnumerable<AppInfo> FindAppInfos(Action<AppSearchOptions> setOptions)
+        {
+            var opts = new AppSearchOptions();
+            setOptions(opts);
+            return GetAllAppInfo().Where(opts.IsMatch);
+        }
+
+        /// <summary>
         /// Find app windows based on the specified search criteria.
         /// </summary>
         /// <param name="setOptions">Delegate used to set search criteria</param>
@@ -56,6 +68,16 @@ namespace Paragon.Runtime.Desktop
             return !WindowsVersion.IsWin7OrNewer
                 ? Enumerable.Empty<IParagonAppInfo>() 
                 : RunningProcessTable.Apps;
+        }
+
+        /// <summary>
+        /// Get app information (browser + renderer) 
+        /// for all running applications
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<AppInfo> GetAllAppInfo()
+        {
+            return RunningProcessTable.AppInformation;
         }
 
         /// <summary>
@@ -92,6 +114,11 @@ namespace Paragon.Runtime.Desktop
         public static IParagonAppInfo GetApp(string instanceId)
         {
             return FindApps(opts => opts.InstanceId = instanceId).FirstOrDefault();
+        }
+
+        public static AppInfo GetAppInfo(string instanceId)
+        {
+            return FindAppInfos(opts => opts.InstanceId = instanceId).FirstOrDefault();
         }
 
         /// <summary>
@@ -234,6 +261,14 @@ namespace Paragon.Runtime.Desktop
                     }
 
                     return apps;
+                }
+            }
+
+            public IEnumerable<AppInfo> AppInformation
+            {
+                get
+                {
+                    return _apps;
                 }
             }
 

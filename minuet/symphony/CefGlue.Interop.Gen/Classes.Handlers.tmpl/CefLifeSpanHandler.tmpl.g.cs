@@ -13,26 +13,31 @@ namespace Xilium.CefGlue
     /// </summary>
     public abstract unsafe partial class CefLifeSpanHandler
     {
-        private int on_before_popup(cef_life_span_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* target_url, cef_string_t* target_frame_name, cef_popup_features_t* popupFeatures, cef_window_info_t* windowInfo, cef_client_t** client, cef_browser_settings_t* settings, int* no_javascript_access)
+        private int on_before_popup(cef_life_span_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* target_url, cef_string_t* target_frame_name, CefWindowOpenDisposition target_disposition, int user_gesture, cef_popup_features_t* popupFeatures, cef_window_info_t* windowInfo, cef_client_t** client, cef_browser_settings_t* settings, int* no_javascript_access)
         {
             CheckSelf(self);
             throw new NotImplementedException(); // TODO: CefLifeSpanHandler.OnBeforePopup
         }
         
         /// <summary>
-        /// Called on the IO thread before a new popup window is created. The |browser|
-        /// and |frame| parameters represent the source of the popup request. The
-        /// |target_url| and |target_frame_name| values may be empty if none were
-        /// specified with the request. The |popupFeatures| structure contains
+        /// Called on the IO thread before a new popup browser is created. The
+        /// |browser| and |frame| values represent the source of the popup request. The
+        /// |target_url| and |target_frame_name| values indicate where the popup
+        /// browser should navigate and may be empty if not specified with the request.
+        /// The |target_disposition| value indicates where the user intended to open
+        /// the popup (e.g. current tab, new tab, etc). The |user_gesture| value will
+        /// be true if the popup was opened via explicit user gesture (e.g. clicking a
+        /// link) or false if the popup opened automatically (e.g. via the
+        /// DomContentLoaded event). The |popupFeatures| structure contains additional
         /// information about the requested popup window. To allow creation of the
-        /// popup window optionally modify |windowInfo|, |client|, |settings| and
+        /// popup browser optionally modify |windowInfo|, |client|, |settings| and
         /// |no_javascript_access| and return false. To cancel creation of the popup
-        /// window return true. The |client| and |settings| values will default to the
-        /// source browser's values. The |no_javascript_access| value indicates whether
-        /// the new browser window should be scriptable and in the same process as the
-        /// source browser.
+        /// browser return true. The |client| and |settings| values will default to the
+        /// source browser's values. If the |no_javascript_access| value is set to
+        /// false the new browser will not be scriptable and may not be hosted in the
+        /// same renderer process as the source browser.
         /// </summary>
-        // protected abstract int OnBeforePopup(cef_browser_t* browser, cef_frame_t* frame, cef_string_t* target_url, cef_string_t* target_frame_name, cef_popup_features_t* popupFeatures, cef_window_info_t* windowInfo, cef_client_t** client, cef_browser_settings_t* settings, int* no_javascript_access);
+        // protected abstract int OnBeforePopup(cef_browser_t* browser, cef_frame_t* frame, cef_string_t* target_url, cef_string_t* target_frame_name, CefWindowOpenDisposition target_disposition, int user_gesture, cef_popup_features_t* popupFeatures, cef_window_info_t* windowInfo, cef_client_t** client, cef_browser_settings_t* settings, int* no_javascript_access);
         
         private void on_after_created(cef_life_span_handler_t* self, cef_browser_t* browser)
         {

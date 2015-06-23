@@ -15,6 +15,7 @@ namespace Paragon.Runtime.Kernel.Applications
         {
             InstanceId = Guid.NewGuid().ToString();
             Environment = ApplicationEnvironment.Production;
+            WDPort = -1;
         }
 
         /// <summary>
@@ -41,6 +42,13 @@ namespace Paragon.Runtime.Kernel.Applications
         /// Application environment.
         /// </summary>
         public ApplicationEnvironment Environment { get; set; }
+
+        public string ApplicationFamily { get; set; }
+
+        /// <summary>
+        /// Port to listen on for WebDriver commands. Used in UIAutomationPlugin
+        /// </summary>
+        public int WDPort { get; set; }
 
         /// <summary>
         /// Gets the initialization data. If the application a packaged application, this must be a Uri of the package.

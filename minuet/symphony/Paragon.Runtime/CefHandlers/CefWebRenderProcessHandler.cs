@@ -160,7 +160,7 @@ namespace Paragon.Runtime
 
         protected override void OnBrowserCreated(CefBrowser browser)
         {
-            Logger.Info(fmt => fmt("Created Browser {0}", browser.Identifier));
+            Logger.Info("Created Browser {0}", browser.Identifier);
             base.OnBrowserCreated(browser);
         }
 
@@ -189,10 +189,10 @@ namespace Paragon.Runtime
 
         protected override void OnUncaughtException(CefBrowser browser, CefFrame frame, CefV8Context context, CefV8Exception exception, CefV8StackTrace stackTrace)
         {
-            Logger.Info(fmt => fmt("UncaughtException in Renderer Browser {0} Frame {1}: {2}",
+            Logger.Info("UncaughtException in Renderer Browser {0} Frame {1}: {2}",
                 browser != null ? browser.Identifier : -1,
                 frame != null ? frame.Identifier : -1,
-                exception != null ? exception.Message : string.Empty));
+                exception != null ? exception.Message : string.Empty);
             base.OnUncaughtException(browser, frame, context, exception, stackTrace);
         }
     }

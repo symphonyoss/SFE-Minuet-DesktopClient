@@ -23,8 +23,6 @@ namespace Paragon.Runtime.PackagedApplication
         /// <exception cref="T:System.ArgumentOutOfRangeException">
         /// The folder specified by <paramref name="directoryPath"/> does not exist.
         /// </exception>
-        /// Excluding from code coverage as this is just a constructor;no point creating an object for code coverage purposes.
-        [ExcludeFromCodeCoverage]
         public DirectoryPackage(string directoryPath)
             : base(FileAccess.Read)
         {

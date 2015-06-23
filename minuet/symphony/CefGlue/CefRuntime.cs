@@ -76,25 +76,46 @@
         /// <exception cref="InvalidOperationException"></exception>
         public static void Load()
         {
+            Load(null);
+        }
+
+        /// <summary>
+        /// Loads CEF runtime from specified path.
+        /// </summary>
+        /// <exception cref="DllNotFoundException"></exception>
+        /// <exception cref="CefVersionMismatchException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static void Load(string path)
+        {
             if (_loaded) return;
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                if (Platform == CefRuntimePlatform.Windows)
+                    LoadLibraryWindows(path);
+                else
+                    throw new PlatformNotSupportedException("CEF Runtime can't be initialized on altered path on this platform. Use CefRuntime.Load() instead.");
+            }
 
             CheckVersion();
 
             _loaded = true;
         }
 
+        private static void LoadLibraryWindows(string path)
+        {
+            Xilium.CefGlue.Platform.Windows.NativeMethods.LoadLibraryEx(
+                System.IO.Path.Combine(path, "libcef.dll"),
+                IntPtr.Zero,
+                Xilium.CefGlue.Platform.Windows.LoadLibraryFlags.LOAD_WITH_ALTERED_SEARCH_PATH
+                );
+        }
+
         #region cef_version
 
         private static void CheckVersion()
         {
-            try
-            {
-                CheckVersionByApiHash();
-            }
-            catch (NotSupportedException) // TODO: once load options will be implemented, we can control how perform version
-            {
-                CheckVersionByBuildRevision();
-            }
+             CheckVersionByApiHash();
         }
 
         private static void CheckVersionByApiHash()
@@ -124,15 +145,6 @@
             if (string.Compare(actual, expected, StringComparison.OrdinalIgnoreCase) != 0)
             {
                 throw ExceptionBuilder.RuntimeVersionApiHashMismatch(actual, expected);
-            }
-        }
-
-        private static void CheckVersionByBuildRevision()
-        {
-            var revision = libcef.build_revision();
-            if (revision != libcef.CEF_REVISION)
-            {
-                throw ExceptionBuilder.RuntimeVersionBuildRevisionMismatch(revision, libcef.CEF_REVISION);
             }
         }
 
@@ -192,7 +204,7 @@
 
             if (_initialized) throw ExceptionBuilder.CefRuntimeAlreadyInitialized();
 
-            var n_main_args = args.ToNative();
+            var n_main_args = args != null ? args.ToNative() : null;
             var n_settings = settings.ToNative();
             var n_app = application != null ? application.ToNative() : null;
 
@@ -494,16 +506,68 @@
         #endregion
 
         #region cef_url
-        // TODO: CefRuntime.ParseUrl
-        // TODO: CefRuntime.CreateUrl
-        /*
-        // CefParseURL
-        [DllImport(libcef.DllName, EntryPoint = "cef_parse_url", CallingConvention = libcef.CEF_CALL)]
-        public static extern int parse_url(cef_string_t* url, cef_urlparts_t* parts);
 
-        // CefCreateURL
-        [DllImport(libcef.DllName, EntryPoint = "cef_create_url", CallingConvention = libcef.CEF_CALL)]
-        public static extern int create_url(cef_urlparts_t* parts, cef_string_t* url);
+        /*
+        ///
+        // Parse the specified |url| into its component parts.
+        // Returns false if the URL is empty or invalid.
+        ///
+        bool CefParseURL(const CefString& url,
+                            CefURLParts& parts);
+
+        ///
+        // Creates a URL from the specified |parts|, which must contain a non-empty
+        // spec or a non-empty host and path (at a minimum), but not both.
+        // Returns false if |parts| isn't initialized as described.
+        ///
+        bool CefCreateURL(const CefURLParts& parts,
+                            CefString& url);
+
+        ///
+        // Returns the mime type for the specified file extension or an empty string if
+        // unknown.
+        ///
+        CefString CefGetMimeType(const CefString& extension);
+
+        // Get the extensions associated with the given mime type. This should be passed
+        // in lower case. There could be multiple extensions for a given mime type, like
+        // "html,htm" for "text/html", or "txt,text,html,..." for "text/*". Any existing
+        // elements in the provided vector will not be erased.
+        void CefGetExtensionsForMimeType(const CefString& mime_type,
+                                            std::vector<CefString>& extensions);
+
+        ///
+        // Encodes |data| as a base64 string.
+        ///
+        CefString CefBase64Encode(const void* data, size_t data_size);
+
+        ///
+        // Decodes the base64 encoded string |data|. The returned value will be NULL if
+        // the decoding fails.
+        ///
+        CefRefPtr<CefBinaryValue> CefBase64Decode(const CefString& data);
+
+        ///
+        // Escapes characters in |text| which are unsuitable for use as a query
+        // parameter value. Everything except alphanumerics and -_.!~*'() will be
+        // converted to "%XX". If |use_plus| is true spaces will change to "+". The
+        // result is basically the same as encodeURIComponent in Javacript.
+        ///
+        CefString CefURIEncode(const CefString& text, bool use_plus);
+
+        ///
+        // Unescapes |text| and returns the result. Unescaping consists of looking for
+        // the exact pattern "%XX" where each X is a hex digit and converting to the
+        // character with the numerical value of those digits (e.g. "i%20=%203%3b"
+        // unescapes to "i = 3;"). If |convert_to_utf8| is true this function will
+        // attempt to interpret the initial decoded result as UTF-8. If the result is
+        // convertable into UTF-8 it will be returned as converted. Otherwise the
+        // initial decoded result will be returned.  The |unescape_rule| parameter
+        // supports further customization the decoding process.
+        ///
+        CefString CefURIDecode(const CefString& text,
+                                bool convert_to_utf8,
+                                cef_uri_unescape_rule_t unescape_rule);
         */
 
         #endregion
@@ -767,6 +831,10 @@
 
         #endregion
 
+        #region cef_sandbox_win
+        // TODO: investigate using of sandbox on windows and .net
+        #endregion
+
         public static string GetMimeTypeForExtension(string extension)
         {
             fixed (char* extension_str = extension)
@@ -790,13 +858,27 @@
             }
         }
 
-        #region cef_sandbox_win
-        // TODO: investigate using of sandbox on windows and .net
-        #endregion
+        public static string ChromeVersion
+        {
+            get
+            {
+                return string.Format("{0}.{1}.{2}.{3}", libcef.CHROME_VERSION_MAJOR, libcef.CHROME_VERSION_MINOR, libcef.CHROME_VERSION_BUILD, libcef.CHROME_VERSION_PATCH);
+            }
+        }
 
         private static void LoadIfNeed()
         {
             if (!_loaded) Load();
         }
+
+        #region linux
+
+        /////
+        //// Return the singleton X11 display shared with Chromium. The display is not
+        //// thread-safe and must only be accessed on the browser process UI thread.
+        /////
+        //CEF_EXPORT XDisplay* cef_get_xdisplay();
+
+        #endregion
     }
 }

@@ -154,44 +154,28 @@ namespace Xilium.CefGlue
             }
         }
 
-        public string MisspelledWord
+        /// <summary>
+        /// Returns the text of the misspelled word, if any, that the context menu was
+        /// invoked on.
+        /// </summary>
+        public string GetMisspelledWord()
         {
-            get
-            {
-                var n_result = cef_context_menu_params_t.get_misspelled_word(_self);
-                return cef_string_userfree.ToString(n_result);
-            }
+            var n_result = cef_context_menu_params_t.get_misspelled_word(_self);
+            return cef_string_userfree.ToString(n_result);
         }
 
-        public string[] DictionarySuggestions
-        {
-            get
-            {
-                var list = libcef.string_list_alloc();
-                if (cef_context_menu_params_t.get_dictionary_suggestions(_self, list) != 0)
-                {
-                    var result = cef_string_list.ToArray(list);
-                    libcef.string_list_free(list);
-                    return result;
-                }
-                return new string[0];
-            }
-        }
 
-        public bool IsSpellCheckEnabled
+        /// <summary>
+        /// Returns true if suggestions exist, false otherwise. Fills in |suggestions|
+        /// from the spell check service for the misspelled word if there is one.
+        /// </summary>
+        public string[] GetDictionarySuggestions()
         {
-            get
-            {
-                return cef_context_menu_params_t.is_spell_check_enabled(_self) != 0;
-            }
-        }
-
-        public int MisspellingHash
-        {
-            get
-            {
-                return cef_context_menu_params_t.get_misspelling_hash(_self);
-            }
+            var n_suggestions = libcef.string_list_alloc();
+            cef_context_menu_params_t.get_dictionary_suggestions(_self, n_suggestions);
+            var suggestions = cef_string_list.ToArray(n_suggestions);
+            libcef.string_list_free(n_suggestions);
+            return suggestions;
         }
 
         /// <summary>
@@ -200,6 +184,15 @@ namespace Xilium.CefGlue
         public bool IsEditable
         {
             get { return cef_context_menu_params_t.is_editable(_self) != 0; }
+        }
+
+        /// <summary>
+        /// Returns true if the context menu was invoked on an editable node where
+        /// spell-check is enabled.
+        /// </summary>
+        public bool IsSpellCheckEnabled
+        {
+            get { return cef_context_menu_params_t.is_spell_check_enabled(_self) != 0; }
         }
 
         /// <summary>

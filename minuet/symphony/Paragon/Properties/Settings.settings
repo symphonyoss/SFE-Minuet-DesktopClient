@@ -11,6 +11,7 @@
   &lt;string&gt;Paragon.Plugins.LocalStorage.ParagonLocalStoragePlugin, Paragon.Plugins.LocalStorage&lt;/string&gt;
   &lt;string&gt;Paragon.Plugins.Workspaces.ParagonWorkspacesPlugin, Paragon.Plugins.Workspaces&lt;/string&gt;
   &lt;string&gt;Paragon.Plugins.FileSystem.ParagonFileSystemPlugin, Paragon.Plugins.FileSystem&lt;/string&gt;
+  &lt;string&gt;Paragon.Plugins.UIAutomation.ParagonUIAutomationPlugin, Paragon.Plugins.UIAutomation&lt;/string&gt;
   &lt;string&gt;Paragon.Plugins.Analytics.ParagonRuntimeAnalyticsPlugin, Paragon.Plugins.Analytics&lt;/string&gt;
   &lt;string&gt;Paragon.Plugins.ScreenCapture.ParagonScreenCapturePlugin, Paragon.Plugins.ScreenCapture&lt;/string&gt;
   &lt;string&gt;Paragon.Plugins.Notifications.ParagonNotificationPlugin, Paragon.Plugins.Notifications&lt;/string&gt;

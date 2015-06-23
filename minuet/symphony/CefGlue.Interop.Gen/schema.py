@@ -65,17 +65,27 @@ c2cs_types = {
     'cef_key_event_t': 'cef_key_event_t',
     'cef_geoposition_t': 'cef_geoposition_t',
     'cef_rect_t': 'cef_rect_t',
-    'cef_point_t': 'cef_point_t',
     'cef_mouse_event_t': 'cef_mouse_event_t',
     'cef_screen_info_t': 'cef_screen_info_t',
+    'cef_point_t': 'cef_point_t',
     'cef_size_t': 'cef_size_t',
-    'cef_page_range_t': 'cef_page_range_t',
-
+     'cef_page_range_t': 'cef_page_range_t',
+     'cef_cursor_info_t': 'cef_cursor_info_t',
+     'cef_value_t': 'cef_value_t',
+	'cef_request_context_settings_t' : 'cef_request_context_settings_t',
     # platform dependend structs
     'cef_main_args_t': 'cef_main_args_t',
     'cef_window_info_t': 'cef_window_info_t',
 
-    'cef_text_input_context_t': 'IntPtr'
+    'cef_text_input_context_t': 'IntPtr',
+
+    'cef_color_model_t': 'CefColorModel',
+    'cef_duplex_mode_t': 'CefDuplexMode',
+
+    'cef_cursor_type_t': 'CefCursorType',
+    'cef_delete_cookies_callback_t': 'cef_delete_cookies_callback_t',
+    'cef_set_cookie_callback_t': 'cef_set_cookie_callback_t',
+    'cef_request_callback_t': 'cef_request_callback_t',
     }
 
 c2cs_platform_retval = {
@@ -122,9 +132,9 @@ c2cs_enumtypes = {
     'cef_drag_operations_mask_t': 'CefDragOperationsMask',
     'cef_resource_type_t': 'CefResourceType',
     'cef_transition_type_t': 'CefTransitionType',
-    #2062
-    'cef_color_model_t': 'CefColorModel',
-    'cef_duplex_mode_t': 'CefDuplexMode',
+    'cef_uri_unescape_rule_t': 'CefUriUnescapeRules',
+    'cef_window_open_disposition_t': 'CefWindowOpenDisposition',
+    'cef_return_value_t' : 'CefReturnValue'
     }
 
 c2cs_structtypes = { }

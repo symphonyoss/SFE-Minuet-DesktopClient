@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Xilium.CefGlue
+﻿namespace Xilium.CefGlue
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using Xilium.CefGlue.Interop;
+
     public struct CefPoint
     {
         private int _x;

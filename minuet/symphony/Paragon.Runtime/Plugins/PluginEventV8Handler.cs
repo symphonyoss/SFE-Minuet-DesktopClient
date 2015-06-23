@@ -100,11 +100,11 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("Execution of plugin event method {0} {1} {2} failed: {3}",
+                Logger.Error("Execution of plugin event method {0} {1} {2} failed: {3}",
                     _plugin.Descriptor.PluginId,
                     _eventName,
                     name,
-                    ex));
+                    ex);
 
                 exception = ex.Message;
             }

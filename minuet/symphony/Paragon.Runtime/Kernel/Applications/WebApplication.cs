@@ -63,7 +63,7 @@ namespace Paragon.Runtime.Kernel.Applications
 
         public CefCookieManager CookieManager
         {
-            get { return CefCookieManager.Global; }
+            get { return CefCookieManager.GetGlobal(null); }
         }
 
         public IBrowserSideMessageRouter MessageRouter
@@ -162,6 +162,14 @@ namespace Paragon.Runtime.Kernel.Applications
 
         public IApplicationMetadata Metadata { get; private set; }
 
+        public IApplicationManager ApplicationManager
+        {
+            get
+            {
+                return Paragon.Runtime.Kernel.Applications.ApplicationManager.GetInstance();
+            }
+        }
+
         public string Name
         {
             get { return Package.Manifest.Name; }
@@ -207,13 +215,13 @@ namespace Paragon.Runtime.Kernel.Applications
                 State = ApplicationState.Closing;
 
                 _eventPageUnloadTimer = new Timer(s => ParagonRuntime.MainThreadContext.Post(
-                    o => CloseEventPage(), null), null, 1000, -1);
+                    o => CloseEventPage(true), null), null, 1000, -1);
 
                 RaiseExiting();
             }
             else if (_eventPageBrowser != null)
             {
-                ParagonRuntime.MainThreadContext.Post(o => CloseEventPage(), null);
+                ParagonRuntime.MainThreadContext.Post(o => CloseEventPage(true), null);
             }
             else
             {
@@ -232,7 +240,7 @@ namespace Paragon.Runtime.Kernel.Applications
             ProtocolInvoke.Raise(this, new ProtocolInvocationEventArgs(uri));
         }
 
-        public bool SetCookie(string name, string value, string domain, string path, bool httpOnly, bool secure, DateTime expires, bool global)
+        public bool SetCookie(string name, string value, string domain, string path, bool httpOnly, bool secure, DateTime? expires, bool global)
         {
             // Reset the wait event.
             _setCookieEvent.Reset();
@@ -244,7 +252,7 @@ namespace Paragon.Runtime.Kernel.Applications
                 try
                 {
                     // Create a cookie in the Chromium cookie manager.
-                    success = CefCookieManager.Global.SetCookie(
+                    success = CefCookieManager.GetGlobal(null).SetCookie(
                         "http://gs.com",
                         new CefCookie
                         {
@@ -255,7 +263,7 @@ namespace Paragon.Runtime.Kernel.Applications
                             HttpOnly = httpOnly,
                             Secure = secure,
                             Expires = expires
-                        });
+                        }, null);
                 }
                 finally
                 {
@@ -295,7 +303,7 @@ namespace Paragon.Runtime.Kernel.Applications
             var manifest = Package.Manifest;
             if (manifest == null)
             {
-                Logger.Error(fmt => fmt("Packaged application manifest is null"));
+                Logger.Error("Packaged application manifest is null");
                 return;
             }
 
@@ -316,7 +324,7 @@ namespace Paragon.Runtime.Kernel.Applications
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("Error launching application: {0}", ex.Message));
+                Logger.Error("Error launching application: {0}", ex.Message);
             }
         }
 
@@ -377,7 +385,7 @@ namespace Paragon.Runtime.Kernel.Applications
             Close();
         }
 
-        private void CloseEventPage()
+        private void CloseEventPage(bool closeApp)
         {
             // Fire the closed event
             if (WindowManager != null)
@@ -396,7 +404,8 @@ namespace Paragon.Runtime.Kernel.Applications
             {
                 _eventPageBrowser.RenderProcessTerminated -= OnRenderProcessTerminated;
                 _eventPageBrowser.Close(true);
-                CloseApplication();
+                if( closeApp )
+                    CloseApplication();
             }
         }
 
@@ -416,7 +425,7 @@ namespace Paragon.Runtime.Kernel.Applications
                 }
                 catch (Exception exception)
                 {
-                    Logger.Error(fmt => fmt("failed to shutdown kernel plugin because: {1}. Continuing to shut down other plugins...", Package.Manifest.Name, exception));
+                    Logger.Error("failed to shutdown kernel plugin because: {1}. Continuing to shut down other plugins...", Package.Manifest.Name, exception);
                 }
             }
         }
@@ -482,6 +491,15 @@ namespace Paragon.Runtime.Kernel.Applications
         private void OnRenderProcessTerminated(object sender, RenderProcessTerminatedEventArgs e)
         {
             // TODO : Decide on how to handle the render process termination. If re-launching is needed, do so.
+            /*
+            CloseEventPage(false);
+            if (_eventPageBrowser != null)
+            {
+                _eventPageBrowser.Dispose();
+                _eventPageBrowser = null;
+            }
+            Launch();
+             */
         }
 
         private void OnSessionEnding(object sender, SessionEndingEventArgs e)
@@ -586,7 +604,7 @@ namespace Paragon.Runtime.Kernel.Applications
             Exiting.Raise(this, new ApplicationExitingEventArgs(_sessionEnding));
             // Give a bit of time for the event to fire in JavaScript.
             Thread.Sleep(200);
-            CloseEventPage();
+            CloseEventPage(true);
         }
 
         private void StopLaunchTimeout()

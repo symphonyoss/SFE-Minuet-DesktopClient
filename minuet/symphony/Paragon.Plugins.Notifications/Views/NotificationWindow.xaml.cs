@@ -16,13 +16,12 @@ namespace Paragon.Plugins.Notifications.Views
         {
             InitializeComponent();
             handle = new WindowInteropHelper(this).EnsureHandle();
+            Win32Api.AddToolWindowStyle(this.handle);
         }
 
         public void ShowOnMonitor(IMonitor monitor)
         {
-            Win32Api.Move(handle, monitor);
-            Win32Api.ShowWithNoActivate(handle, handler => Loaded += handler);
-
+            Win32Api.MoveAndShowWithNoActivate(handle, monitor);
             Show();
         }
     }

@@ -4,14 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Permissions;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
-using Microsoft.Windows.Shell;
 using Paragon.Plugins;
 using Paragon.Runtime.Annotations;
 using Paragon.Runtime.Desktop;
@@ -36,6 +34,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         private ICefWebBrowser _browser;
         private HotKeyService _hotKeyService;
         private string _id;
+        private string _appId;
         private bool _isClosed;
         private bool _isClosing;
         private bool _minimizeOnClose;
@@ -44,6 +43,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         private string _title;
         private DeveloperToolsWindow _tools;
         private IApplicationWindowManagerEx _windowManager;
+        private JavaScriptPluginCallback _closeHandler;
 
         public ApplicationWindow()
         {
@@ -128,6 +128,31 @@ namespace Paragon.Runtime.Kernel.Windowing
             DispatchIfRequired(Close, true); 
         }
 
+        /// <summary>
+        /// Called by the web application when it wants to take responsibility for closing the window.
+        /// When the user attempts to close the window, the closeHandler callback will be invoked. It
+        /// is then up to the application to decide whether to close the window or not. It should close
+        /// the window using the window.close() method.
+        /// </summary>
+        /// <param name="closeHandler"></param>
+        [JavaScriptPluginMember]
+        public void AssumeWindowCloseAuthority(JavaScriptPluginCallback closeHandler)
+        {
+            _closeHandler = closeHandler;
+        }
+
+        /// <summary>
+        /// Called by the web application when it wishes to return responsibility for closing the
+        /// window to the native runtime. The closeHandler will no longer be called and the window
+        /// will just close. The application may still be notified of the closure via the 
+        /// windowClosed event.
+        /// </summary>
+        [JavaScriptPluginMember]
+        public void RescindWindowCloseAuthority()
+        {
+            _closeHandler = null;
+        }
+       
         public bool ContainsBrowser(int browserId)
         {
             return _browser != null && _browser.Identifier == browserId;
@@ -150,6 +175,19 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void FocusWindow()
         {
             DispatchIfRequired(() => Focus(), true);
+        }
+
+        /// <summary>
+        /// Bring window to the front.
+        /// </summary>
+        [JavaScriptPluginMember(Name = "bringToFront")]
+        public void BringToFront()
+        {
+            DispatchIfRequired(() =>
+                                   {
+                                       Win32Api.SetWindowPosition(Handle, new IntPtr(-1), 0, 0, 0, 0, SWP.NOMOVE | SWP.NOSIZE);
+                                       Win32Api.SetWindowPosition(Handle, new IntPtr(-2), 0, 0, 0, 0, SWP.NOMOVE | SWP.NOSIZE);
+                                   }, true);
         }
 
         /// <summary>
@@ -199,6 +237,20 @@ namespace Paragon.Runtime.Kernel.Windowing
             }
 
             return _id;
+        }
+
+        public string GetAppId()
+        {
+            //Gets the appID for the paragon application
+            if (string.IsNullOrEmpty(_appId))
+            {
+                if (_windowManager.Application.Metadata.Id != null)
+                {
+                    _appId = _windowManager.Application.Metadata.Id;
+                }
+            }
+
+            return _appId;
         }
 
         /// <summary>
@@ -265,15 +317,14 @@ namespace Paragon.Runtime.Kernel.Windowing
         }
 
         [JavaScriptPluginMember(Name = "runFileDialog")]
-        public string[] RunFileDialog(FileDialogMode mode, string title, string defaultFileName, string[] acceptTypes)
+        public void RunFileDialog(FileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, JavaScriptPluginCallback callback)
         {
-            return (string[]) DispatchIfRequired(new Func<string[]>(() => 
+            DispatchIfRequired(() => 
             {
-                var cb = new FileDialogCallback();
-                CefFileDialogMode dialogMode = (CefFileDialogMode)Enum.Parse(typeof(CefFileDialogMode), mode.ToString(), true);
-                _browser.RunFileDialog(dialogMode, title, defaultFileName, acceptTypes, cb);
-                return cb.SelectedFiles;
-            }));
+                var cb = new FileDialogCallback(callback);
+                var dialogMode = (CefFileDialogMode)Enum.Parse(typeof(CefFileDialogMode), mode.ToString(), true);
+                _browser.RunFileDialog(dialogMode, title, defaultFileName, acceptTypes, 0, cb);
+            });
         }
 
         public void Initialize(IApplicationWindowManagerEx windowManager, ICefWebBrowser browser,
@@ -396,7 +447,10 @@ namespace Paragon.Runtime.Kernel.Windowing
                     width = bounds.Width > 0 ? (int)bounds.Width : (int)Width,
                     height = bounds.Height > 0 ? (int)bounds.Height : (int)Height;
 
-                Win32Api.SetWindowPosition(Handle, IntPtr.Zero, left, top, width, height, SWP.NOZORDER);
+                var virtualSize = new Vector(width, height);
+                var realSize = GetRealSize(virtualSize);
+
+                Win32Api.SetWindowPosition(Handle, IntPtr.Zero, left, top, (int)realSize.Width, (int)realSize.Height, SWP.NOZORDER);           
 
                 if (bounds.MinHeight > 0)
                 {
@@ -432,7 +486,9 @@ namespace Paragon.Runtime.Kernel.Windowing
                 }
                 else if (!focused && !Topmost) // Window already visible
                 {
-                    Win32Api.ShowWindow(Handle, SW.SHOWNOACTIVATE);
+                    if(WindowState == System.Windows.WindowState.Maximized) 
+                        Win32Api.ShowWindow(Handle, SW.SHOWNA);
+                    else Win32Api.ShowWindow(Handle, SW.SHOWNOACTIVATE);
                     Win32Api.ActivateWindowNoFocus(Handle);
                 }
 
@@ -512,6 +568,10 @@ namespace Paragon.Runtime.Kernel.Windowing
             // TODO: Implement this.
         }
 
+        /// <summary>
+        /// When the window gets keyboard focus, transfer the focus to the browser. This does not need to be implemented on the Embedded ApplicationWindow
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
         {
             if (_browser != null)
@@ -520,7 +580,17 @@ namespace Paragon.Runtime.Kernel.Windowing
             }
             base.OnGotKeyboardFocus(e);
         }
-        
+
+        /// <summary>
+        /// Set focus to this window when activated. This does not need to be implemented on the Embedded ApplicationWindow
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnActivated(EventArgs e)
+        {
+            Keyboard.Focus(this);
+            base.OnActivated(e);
+        }
+
         /// <summary>
         /// The JavaScript 'window' object for the created child.
         /// </summary>
@@ -637,21 +707,34 @@ namespace Paragon.Runtime.Kernel.Windowing
 
             if (!_isClosing)
             {
-                _isClosing = true;
-                if (_browser != null)
+                var closeHandler = _closeHandler;
+                if (closeHandler != null)
                 {
-                    if (_tools != null)
-                    {
-                        _tools.Close();
-                    }
-
-                    _browser.Close();
+                    closeHandler.Raise(() => new object[] {});
+                }
+                else
+                {
+                    _isClosing = true;
+                    CloseCefBrowser();
                 }
             }
 
             if (!_isClosed)
             {
                 e.Cancel = true;
+            }
+        }
+
+        private void CloseCefBrowser()
+        {
+            if (_browser != null)
+            {
+                if (_tools != null)
+                {
+                    _tools.Close();
+                }
+
+                _browser.Close();
             }
         }
 
@@ -695,7 +778,9 @@ namespace Paragon.Runtime.Kernel.Windowing
                 var instanceId = _windowManager.Application.Metadata.InstanceId;
                 ParagonDesktop.RegisterAppWindow(hwnd, appId, instanceId);
 
-                if (_options != null && _options.AutoSaveLocation)
+                if (_options != null && 
+                    !string.IsNullOrEmpty(appId) && 
+                    _options.AutoSaveLocation)
                 {
                     var autoSaveWindowPositionBehavior = new AutoSaveWindowPositionBehavior();
                     autoSaveWindowPositionBehavior.Attach(this);
@@ -776,7 +861,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
                 if (frameOptions.Icon)
                 {
-                    using (var stream = _windowManager.Application.Package.GetIcon128())
+                    using (var stream = _windowManager.Application.Package.GetIcon())
                     {
                         if (stream != null)
                         {
@@ -867,6 +952,27 @@ namespace Paragon.Runtime.Kernel.Windowing
             _browser.BeforeResourceLoad += OnBeforeResourceLoad;
             _browser.DownloadUpdated += OnDownloadUpdated;
             _browser.ProtocolExecution += OnProtocolExecution;
+        }
+
+        private Size GetRealSize(Vector virtualSize)
+        {
+            var realSize = new Size(virtualSize.X, virtualSize.Y);
+
+            try
+            {
+                var source = PresentationSource.FromVisual(this);
+                if (source != null && source.CompositionTarget != null)
+                {
+                    var transformToDevice = source.CompositionTarget.TransformToDevice;
+                    realSize = (Size) transformToDevice.Transform((Vector) virtualSize);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(string.Format("Failed to get real size: {0}", ex.Message));
+            }
+
+            return realSize;
         }
 
         private void OnProtocolExecution(object sender, ProtocolExecutionEventArgs e)
@@ -1023,6 +1129,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                 LoadComplete.Raise(this, EventArgs.Empty);
                 InvalidateArrange();
             }
+            Logger.Info("OnPageLoaded : Firing PageLoaded");
             if (PageLoaded != null)
                 PageLoaded(e.Url);
         }
@@ -1057,14 +1164,16 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private BoundsSpecification GetBounds()
         {
-            return (BoundsSpecification)Dispatcher.Invoke(new Func<BoundsSpecification>(() =>
+            if( Dispatcher.CheckAccess() )
             {
                 var rect = RECT.FromHandle(Handle);
+                var screen = Screen.FromHandle(Handle);
+                var workingAreaRect = screen.WorkingArea;
 
                 return new BoundsSpecification
                 {
-                    Left = rect.Left,
-                    Top = rect.Top,
+                    Left = (rect.Right > workingAreaRect.Right) ? (workingAreaRect.Right - rect.Width) : (rect.Left),
+                    Top = (rect.Bottom > workingAreaRect.Bottom) ? (workingAreaRect.Bottom - rect.Height) : (rect.Top),
                     Height = rect.Height,
                     Width = rect.Width,
                     MaxHeight = MaxHeight,
@@ -1072,7 +1181,8 @@ namespace Paragon.Runtime.Kernel.Windowing
                     MinHeight = MinHeight,
                     MinWidth = MinWidth
                 };
-            }));
+            }
+            return (BoundsSpecification)Dispatcher.Invoke(new Func<BoundsSpecification>(GetBounds));
         }
 
         private void OnUnloadPageDialog(object sender, UnloadDialogEventArgs ea)
@@ -1109,6 +1219,12 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private void TitleChanged(object sender, TitleChangedEventArgs e)
         {
+            if (_windowManager !=null)
+            {
+                if(_windowManager.Application.Package.Manifest.UseAppNameAsWindowTitle)
+                    return;
+            }
+
             Title = e.Title;
             PropertyChanged.Raise(() => new object[] { "title", e.Title });
         }

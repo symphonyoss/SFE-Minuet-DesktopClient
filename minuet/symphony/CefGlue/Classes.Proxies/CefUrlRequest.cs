@@ -27,15 +27,15 @@ namespace Xilium.CefGlue
         /// instead of the URL request code path). The |request| object will be marked
         /// as read-only after calling this method.
         /// </summary>
-        public static CefUrlRequest Create(CefRequest request, CefUrlRequestClient client)
+        public static CefUrlRequest Create(CefRequest request, CefUrlRequestClient client, CefRequestContext context)
         {
             if (request == null) throw new ArgumentNullException("request");
 
             var n_request = request.ToNative();
             var n_client = client.ToNative();
-
+            var n_context = context.ToNative();
             return CefUrlRequest.FromNative(
-                cef_urlrequest_t.create(n_request, n_client)
+                cef_urlrequest_t.create(n_request, n_client, n_context)
                 );
         }
 

@@ -77,7 +77,8 @@ namespace Paragon.Runtime.Plugins
                 Methods = _methods.Select(method => new MethodDescriptor
                 {
                     MethodName = method.Key,
-                    HasCallbackParameter = HasCallbackParameter(method.Value)
+                    HasCallbackParameter = HasCallbackParameter(method.Value),
+                    IsVoid = method.Value.ReturnType == typeof(void)
                 }).ToList(),
                 Events = _events.Keys.ToList()
             };
@@ -137,8 +138,7 @@ namespace Paragon.Runtime.Plugins
                 return null;
             }
 
-            var p = new JavaScriptPlugin(pluginProcess, plugin, pluginAttr[0] as JavaScriptPluginAttribute);
-            return p.IsValid ? p : null;
+            return new JavaScriptPlugin(pluginProcess, plugin, pluginAttr[0] as JavaScriptPluginAttribute);
         }
 
         public static JavaScriptPlugin CreateFromType(PluginProcess pluginProcess, Type type, bool isKernel)
@@ -277,7 +277,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("Error converting plugin invocation parameters: " + ex));
+                Logger.Error("Error converting plugin invocation parameters: " + ex);
                 if (callback != null)
                 {
                     InvokeReturnCallback(callback, null, -1, ex.Message);
@@ -307,7 +307,7 @@ namespace Paragon.Runtime.Plugins
 
                             errorCode = -1;
                             error = e.Message;
-                            Logger.Error(fmt => fmt("Error executing plugin method: " + e));
+                            Logger.Error("Error executing plugin method: " + e);
                         }
 
                         if (callback != null)
@@ -402,7 +402,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception e)
             {
-                Logger.Error(fmt => fmt("Error invoking plugin return callback: " + e));
+                Logger.Error("Error invoking plugin return callback: " + e);
             }
         }
 

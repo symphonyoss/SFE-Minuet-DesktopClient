@@ -47,6 +47,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="IMessageBroker.cs" />
     <Compile Include="IMessageInterceptor.cs" />
     <Compile Include="Message.cs" />

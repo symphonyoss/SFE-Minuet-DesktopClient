@@ -21,8 +21,10 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Returns true if this object is valid. Do not call any other methods if this
-        /// method returns false.
+        /// Returns true if this object is valid. This object may become invalid if
+        /// the underlying data is owned by another object (e.g. list or dictionary)
+        /// and that other object is then modified or destroyed. Do not call any other
+        /// methods if this method returns false.
         /// </summary>
         public int IsValid()
         {
@@ -35,6 +37,24 @@ namespace Xilium.CefGlue
         public int IsOwned()
         {
             throw new NotImplementedException(); // TODO: CefBinaryValue.IsOwned
+        }
+        
+        /// <summary>
+        /// Returns true if this object and |that| object have the same underlying
+        /// data.
+        /// </summary>
+        public int IsSame(cef_binary_value_t* that)
+        {
+            throw new NotImplementedException(); // TODO: CefBinaryValue.IsSame
+        }
+        
+        /// <summary>
+        /// Returns true if this object and |that| object have an equivalent underlying
+        /// value but are not necessarily the same object.
+        /// </summary>
+        public int IsEqual(cef_binary_value_t* that)
+        {
+            throw new NotImplementedException(); // TODO: CefBinaryValue.IsEqual
         }
         
         /// <summary>

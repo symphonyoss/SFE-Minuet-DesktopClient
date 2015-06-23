@@ -44,21 +44,18 @@ namespace Paragon.AppPackager
                 Directory.CreateDirectory(packageDir);
             }
 
-            var ext = Path.GetExtension(destinationPath);
-
-            if (string.IsNullOrEmpty(ext))
+            if (!destinationPath.EndsWith(".pgx"))
             {
                 destinationPath += ".pgx";
-            }
-            else
-            {
-                destinationPath = Path.Combine(packageDir, Path.GetFileName(destinationPath)) + ".pgx";
             }
 
             if (File.Exists(destinationPath))
             {
                 File.Delete(destinationPath);
             }
+
+            Console.WriteLine("Input path: " + sourceFolder);
+            Console.WriteLine("Output path: " + destinationPath);
 
             using (var package = System.IO.Packaging.Package.Open(destinationPath, FileMode.Create))
             {
@@ -96,6 +93,8 @@ namespace Paragon.AppPackager
                     }
                 }
             }
+
+            Console.WriteLine("Packaging completed");
             return true;
         }
 

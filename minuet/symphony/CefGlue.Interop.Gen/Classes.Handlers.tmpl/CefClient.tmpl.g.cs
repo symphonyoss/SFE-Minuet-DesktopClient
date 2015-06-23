@@ -69,6 +69,17 @@ namespace Xilium.CefGlue
         /// </summary>
         // protected abstract cef_drag_handler_t* GetDragHandler();
         
+        private cef_find_handler_t* get_find_handler(cef_client_t* self)
+        {
+            CheckSelf(self);
+            throw new NotImplementedException(); // TODO: CefClient.GetFindHandler
+        }
+        
+        /// <summary>
+        /// Return the handler for find result events.
+        /// </summary>
+        // protected abstract cef_find_handler_t* GetFindHandler();
+        
         private cef_focus_handler_t* get_focus_handler(cef_client_t* self)
         {
             CheckSelf(self);

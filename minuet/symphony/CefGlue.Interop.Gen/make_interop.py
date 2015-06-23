@@ -71,6 +71,13 @@ def get_func_parts(func, slot, is_global = False):
     return result
 
 def get_base_func(cls, slot, name, cname):
+    cretval = ''
+    if name == 'AddRef':
+        cretval = 'void'
+    elif name == 'Release':
+        cretval = 'int'
+    elif name == 'HasOneRef':
+        cretval = 'int'
     return {
             'basefunc': True,
             'virtual': True,
@@ -81,11 +88,11 @@ def get_base_func(cls, slot, name, cname):
             'delegate_type': '%s_delegate' % cname,
             'delegate_slot': '_ds%x' % slot,
             'capi_name': cname,
-            'capi_retval': 'int',
+            'capi_retval': cretval,
             'capi_args': ['%s* self' % cls.get_capi_name()],
 
             'csn_name': cname,
-            'csn_retval': 'int',
+            'csn_retval': cretval,
             'csn_args': [ { 'type': '%s*' % cls.get_capi_name(), 'name': 'self' } ],
 
             'csn_args_proto': '%s* self' % cls.get_capi_name(),
@@ -359,7 +366,8 @@ def make_proxy_g_body(cls):
     result.append('{')
     result.append(indent + 'if (_self != null)')
     result.append(indent + '{')
-    result.append(indent + indent + 'Dispose;')
+    result.append(indent + indent + 'Release();')
+    result.append(indent + indent + '_self = null;')
     result.append(indent + '}')
     result.append('}')
     result.append('')
@@ -369,7 +377,9 @@ def make_proxy_g_body(cls):
     result.append(indent + 'if (_self != null)')
     result.append(indent + '{')
     result.append(indent + indent + 'Release();')
+    result.append(indent + indent + '_self = null;')
     result.append(indent + '}')
+    result.append(indent + 'GC.SuppressFinalize(this);')
     result.append('}')
     result.append('')
 
@@ -381,19 +391,13 @@ def make_proxy_g_body(cls):
 
     result.append('internal bool Release()')
     result.append('{')
-    result.append(indent + 'bool retVal %(iname)s.release(_self);' % { 'iname': iname })
-    result.append(indent + 'if(!retVal)');
-    result.append(indent + '{')
-    result.append(indent + indent + '_self = null;')
-    result.append(indent + indent + 'GC.SuppressFinalize(this);')
-    result.append(indent + '}')
-    result.append(indent + 'return retVal;');
+    result.append(indent + 'return %(iname)s.release(_self) != 0;' % { 'iname': iname })
     result.append('}')
     result.append('')
 
     result.append('internal bool HasOneRef')
     result.append('{')
-    result.append(indent + 'get { return %(iname)s.has_one_ref(_self); }' % { 'iname': iname })
+    result.append(indent + 'get { return %(iname)s.has_one_ref(_self) != 0; }' % { 'iname': iname })
     result.append('}')
     result.append('')
 
@@ -427,9 +431,9 @@ def make_handler_g_body(cls):
     result.append('private static Dictionary<IntPtr, %(csname)s> _roots = new Dictionary<IntPtr, %(csname)s>();' % { 'csname' : csname })
     result.append('')
 
-    result.append('private int _refct')
-    result.append('private %s* _self' % iname)
-    # result.append('private bool _disposed')
+    result.append('private int _refct;')
+    result.append('private %s* _self;' % iname)
+    # result.append('private bool _disposed;')
     result.append('')
 
     result.append('protected object SyncRoot { get { return this; } }')
@@ -480,6 +484,7 @@ def make_handler_g_body(cls):
 
     result.append('protected virtual void Dispose(bool disposing)')
     result.append('{')
+    # result.append(indent + '_disposed = true;')
     result.append(indent + 'if (_self != null)')
     result.append(indent + '{')
     result.append(indent + indent + '%s.Free(_self);' % iname)
@@ -503,7 +508,7 @@ def make_handler_g_body(cls):
     result.append('}')
     result.append('')
 
-    result.append('private bool release(%s* self)' % iname)
+    result.append('private int release(%s* self)' % iname)
     result.append('{')
     result.append(indent + 'lock (SyncRoot)')
     result.append(indent + '{')
@@ -511,16 +516,16 @@ def make_handler_g_body(cls):
     result.append(indent + indent + 'if (result == 0)')
     result.append(indent + indent + '{')
     result.append(indent + indent + indent + 'lock (_roots) { _roots.Remove((IntPtr)_self); }')
-    result.append(indent + indent + indent + 'Dispose(true);')
+    result.append(indent + indent + indent + 'return 1;')
     result.append(indent + indent + '}')
-    result.append(indent + indent + 'return result <= 0;')
+    result.append(indent + indent + 'return 0;')
     result.append(indent + '}')
     result.append('}')
     result.append('')
 
     result.append('private int has_one_ref(%s* self)' % iname)
     result.append('{')
-    result.append(indent + 'return _refct > 0;')
+    result.append(indent + 'lock (SyncRoot) { return _refct == 1 ? 1 : 0; }')
     result.append('}')
     result.append('')
 
@@ -675,9 +680,12 @@ def append_xmldoc(result, lines):
 def make_version_cs(content):
     result = []
 
+    result.append('public const string CEF_VERSION = %s;' % __get_version_constant(content, "CEF_VERSION"))
     result.append('public const int CEF_VERSION_MAJOR = %s;' % __get_version_constant(content, "CEF_VERSION_MAJOR"))
-    result.append('public const int CEF_REVISION = %s;' % __get_version_constant(content, "CEF_REVISION"))
     result.append('public const int COPYRIGHT_YEAR = %s;' % __get_version_constant(content, "COPYRIGHT_YEAR"))
+    result.append('public const int CEF_COMMIT_NUMBER = %s;' % __get_version_constant(content, "CEF_COMMIT_NUMBER"))
+    result.append('public const string CEF_COMMIT_HASH = %s;' % __get_version_constant(content, "CEF_COMMIT_HASH"))
+    
     result.append("");
 
     result.append('public const int CHROME_VERSION_MAJOR = %s;' % __get_version_constant(content, "CHROME_VERSION_MAJOR"))

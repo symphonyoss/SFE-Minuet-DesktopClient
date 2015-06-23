@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Packaging;
 using System.Security.Cryptography.X509Certificates;
@@ -6,6 +7,8 @@ using System.Security.Permissions;
 
 namespace Paragon.Runtime.PackagedApplication
 {
+    //Excluding from code coverage Temporarily; can include once Digital Signing is implemented
+    [ExcludeFromCodeCoverage]
     public static class ParagonPackageVerifier
     {
         static string GetInnerPackageName()

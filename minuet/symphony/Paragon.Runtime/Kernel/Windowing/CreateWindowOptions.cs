@@ -11,6 +11,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         {
             Frame = new FrameOptions();
             InitialState = "normal";
+            AutoSaveLocation = true;
             Resizable = true;
             Focused = true;
         }

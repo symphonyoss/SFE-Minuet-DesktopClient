@@ -53,7 +53,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("Failed to send function response because: {0}", ex));
+                Logger.Error("Failed to send function response because: {0}", ex);
             }
         }
 
@@ -190,7 +190,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("Failed to send event because: {0}", ex));
+                Logger.Error("Failed to send event because: {0}", ex);
             }
         }
 

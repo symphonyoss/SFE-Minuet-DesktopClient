@@ -196,7 +196,7 @@ namespace Paragon.Runtime.Kernel.Plugins
                 writer.BaseStream.Write(lenBuffer, 0, lenBuffer.Length);
                 writer.BaseStream.Write(msgBuffer, 0, msgBuffer.Length);
                 writer.BaseStream.Flush();
-                Logger.Info(fmt => fmt("Native Connect Port : sending request (OnMessage) to service : {0}", msg));
+                Logger.Info("Native Connect Port : sending request (OnMessage) to service : {0}", msg);
             }
 
             private void ReadMessages()
@@ -237,7 +237,7 @@ namespace Paragon.Runtime.Kernel.Plugins
                 var args = JsonConvert.DeserializeObject(line);
                 if (OnMessage != null && args != null)
                 {
-                    Logger.Info(fmt => fmt("Native Connect Port : sending response (OnMessage) to client : {0}", line));
+                    Logger.Info("Native Connect Port : sending response (OnMessage) to client : {0}", line);
                     OnMessage(args);
                 }
             }

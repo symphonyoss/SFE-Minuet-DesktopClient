@@ -26,6 +26,7 @@ namespace Xilium.CefGlue.Interop
         internal IntPtr _get_full_path;
         internal IntPtr _get_id;
         internal IntPtr _get_url;
+        internal IntPtr _get_original_url;
         internal IntPtr _get_suggested_file_name;
         internal IntPtr _get_content_disposition;
         internal IntPtr _get_mime_type;
@@ -40,13 +41,13 @@ namespace Xilium.CefGlue.Interop
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        private delegate bool release_delegate(cef_download_item_t* self);
+        private delegate int release_delegate(cef_download_item_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        private delegate bool has_one_ref_delegate(cef_download_item_t* self);
+        private delegate int has_one_ref_delegate(cef_download_item_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
@@ -130,6 +131,12 @@ namespace Xilium.CefGlue.Interop
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
+        private delegate cef_string_userfree* get_original_url_delegate(cef_download_item_t* self);
+        
+        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
+        #if !DEBUG
+        [SuppressUnmanagedCodeSecurity]
+        #endif
         private delegate cef_string_userfree* get_suggested_file_name_delegate(cef_download_item_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
@@ -165,7 +172,7 @@ namespace Xilium.CefGlue.Interop
         private static IntPtr _p1;
         private static release_delegate _d1;
         
-        public static bool release(cef_download_item_t* self)
+        public static int release(cef_download_item_t* self)
         {
             release_delegate d;
             var p = self->_base._release;
@@ -178,11 +185,11 @@ namespace Xilium.CefGlue.Interop
             return d(self);
         }
         
-        // GetRefCt
+        // HasOneRef
         private static IntPtr _p2;
         private static has_one_ref_delegate _d2;
         
-        public static bool has_one_ref(cef_download_item_t* self)
+        public static int has_one_ref(cef_download_item_t* self)
         {
             has_one_ref_delegate d;
             var p = self->_base._has_one_ref;
@@ -416,53 +423,70 @@ namespace Xilium.CefGlue.Interop
             return d(self);
         }
         
-        // GetSuggestedFileName
+        // GetOriginalUrl
         private static IntPtr _p10;
-        private static get_suggested_file_name_delegate _d10;
+        private static get_original_url_delegate _d10;
         
-        public static cef_string_userfree* get_suggested_file_name(cef_download_item_t* self)
+        public static cef_string_userfree* get_original_url(cef_download_item_t* self)
         {
-            get_suggested_file_name_delegate d;
-            var p = self->_get_suggested_file_name;
+            get_original_url_delegate d;
+            var p = self->_get_original_url;
             if (p == _p10) { d = _d10; }
             else
             {
-                d = (get_suggested_file_name_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(get_suggested_file_name_delegate));
+                d = (get_original_url_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(get_original_url_delegate));
                 if (_p10 == IntPtr.Zero) { _d10 = d; _p10 = p; }
             }
             return d(self);
         }
         
-        // GetContentDisposition
+        // GetSuggestedFileName
         private static IntPtr _p11;
-        private static get_content_disposition_delegate _d11;
+        private static get_suggested_file_name_delegate _d11;
         
-        public static cef_string_userfree* get_content_disposition(cef_download_item_t* self)
+        public static cef_string_userfree* get_suggested_file_name(cef_download_item_t* self)
         {
-            get_content_disposition_delegate d;
-            var p = self->_get_content_disposition;
+            get_suggested_file_name_delegate d;
+            var p = self->_get_suggested_file_name;
             if (p == _p11) { d = _d11; }
             else
             {
-                d = (get_content_disposition_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(get_content_disposition_delegate));
+                d = (get_suggested_file_name_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(get_suggested_file_name_delegate));
                 if (_p11 == IntPtr.Zero) { _d11 = d; _p11 = p; }
             }
             return d(self);
         }
         
-        // GetMimeType
+        // GetContentDisposition
         private static IntPtr _p12;
-        private static get_mime_type_delegate _d12;
+        private static get_content_disposition_delegate _d12;
+        
+        public static cef_string_userfree* get_content_disposition(cef_download_item_t* self)
+        {
+            get_content_disposition_delegate d;
+            var p = self->_get_content_disposition;
+            if (p == _p12) { d = _d12; }
+            else
+            {
+                d = (get_content_disposition_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(get_content_disposition_delegate));
+                if (_p12 == IntPtr.Zero) { _d12 = d; _p12 = p; }
+            }
+            return d(self);
+        }
+        
+        // GetMimeType
+        private static IntPtr _p13;
+        private static get_mime_type_delegate _d13;
         
         public static cef_string_userfree* get_mime_type(cef_download_item_t* self)
         {
             get_mime_type_delegate d;
             var p = self->_get_mime_type;
-            if (p == _p12) { d = _d12; }
+            if (p == _p13) { d = _d13; }
             else
             {
                 d = (get_mime_type_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(get_mime_type_delegate));
-                if (_p12 == IntPtr.Zero) { _d12 = d; _p12 = p; }
+                if (_p13 == IntPtr.Zero) { _d13 = d; _p13 = p; }
             }
             return d(self);
         }

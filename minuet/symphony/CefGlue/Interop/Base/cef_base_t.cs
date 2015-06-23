@@ -24,12 +24,12 @@ namespace Xilium.CefGlue.Interop
 #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
 #endif
-        public delegate bool release_delegate(cef_base_t* self);
+        public delegate int release_delegate(cef_base_t* self);
 
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
 #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
 #endif
-        public delegate bool has_one_ref_delegate(cef_base_t* self);
+        public delegate int has_one_ref_delegate(cef_base_t* self);
     }
 }

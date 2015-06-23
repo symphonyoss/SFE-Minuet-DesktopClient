@@ -14,7 +14,7 @@ namespace Xilium.CefGlue
     {
         private static Dictionary<IntPtr, CefDisplayHandler> _roots = new Dictionary<IntPtr, CefDisplayHandler>();
         
-        private int _refct=0;
+        private int _refct;
         private cef_display_handler_t* _self;
         
         protected object SyncRoot { get { return this; } }
@@ -24,9 +24,10 @@ namespace Xilium.CefGlue
         private cef_display_handler_t.has_one_ref_delegate _ds2;
         private cef_display_handler_t.on_address_change_delegate _ds3;
         private cef_display_handler_t.on_title_change_delegate _ds4;
-        private cef_display_handler_t.on_tooltip_delegate _ds5;
-        private cef_display_handler_t.on_status_message_delegate _ds6;
-        private cef_display_handler_t.on_console_message_delegate _ds7;
+        private cef_display_handler_t.on_favicon_urlchange_delegate _ds5;
+        private cef_display_handler_t.on_tooltip_delegate _ds6;
+        private cef_display_handler_t.on_status_message_delegate _ds7;
+        private cef_display_handler_t.on_console_message_delegate _ds8;
         
         protected CefDisplayHandler()
         {
@@ -42,12 +43,14 @@ namespace Xilium.CefGlue
             _self->_on_address_change = Marshal.GetFunctionPointerForDelegate(_ds3);
             _ds4 = new cef_display_handler_t.on_title_change_delegate(on_title_change);
             _self->_on_title_change = Marshal.GetFunctionPointerForDelegate(_ds4);
-            _ds5 = new cef_display_handler_t.on_tooltip_delegate(on_tooltip);
-            _self->_on_tooltip = Marshal.GetFunctionPointerForDelegate(_ds5);
-            _ds6 = new cef_display_handler_t.on_status_message_delegate(on_status_message);
-            _self->_on_status_message = Marshal.GetFunctionPointerForDelegate(_ds6);
-            _ds7 = new cef_display_handler_t.on_console_message_delegate(on_console_message);
-            _self->_on_console_message = Marshal.GetFunctionPointerForDelegate(_ds7);
+            _ds5 = new cef_display_handler_t.on_favicon_urlchange_delegate(on_favicon_urlchange);
+            _self->_on_favicon_urlchange = Marshal.GetFunctionPointerForDelegate(_ds5);
+            _ds6 = new cef_display_handler_t.on_tooltip_delegate(on_tooltip);
+            _self->_on_tooltip = Marshal.GetFunctionPointerForDelegate(_ds6);
+            _ds7 = new cef_display_handler_t.on_status_message_delegate(on_status_message);
+            _self->_on_status_message = Marshal.GetFunctionPointerForDelegate(_ds7);
+            _ds8 = new cef_display_handler_t.on_console_message_delegate(on_console_message);
+            _self->_on_console_message = Marshal.GetFunctionPointerForDelegate(_ds8);
         }
         
         ~CefDisplayHandler()
@@ -76,7 +79,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private bool release(cef_display_handler_t* self)
+        private int release(cef_display_handler_t* self)
         {
             lock (SyncRoot)
             {
@@ -84,15 +87,15 @@ namespace Xilium.CefGlue
                 if (result == 0)
                 {
                     lock (_roots) { _roots.Remove((IntPtr)_self); }
-                    
+                    return 1;
                 }
-                return result <= 0;
+                return 0;
             }
         }
         
-        private bool has_one_ref(cef_display_handler_t* self)
+        private int has_one_ref(cef_display_handler_t* self)
         {
-            return _refct > 0;
+            lock (SyncRoot) { return _refct == 1 ? 1 : 0; }
         }
         
         internal cef_display_handler_t* ToNative()

@@ -81,7 +81,7 @@ namespace Paragon.Runtime.PackagedApplication
                 }
                 catch (Exception exception)
                 {
-                    Logger.Error(fmt => fmt("Failed to create resource handler for [{0}] because: {1}", request.Url, exception));
+                    Logger.Error("Failed to create resource handler for [{0}] because: {1}", request.Url, exception);
                 }
             }
             return null;

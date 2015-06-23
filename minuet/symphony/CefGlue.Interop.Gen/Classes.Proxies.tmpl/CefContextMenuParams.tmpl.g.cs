@@ -136,15 +136,6 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Returns the hash of the misspelled word, if any, that the context menu was
-        /// invoked on.
-        /// </summary>
-        public int GetMisspellingHash()
-        {
-            throw new NotImplementedException(); // TODO: CefContextMenuParams.GetMisspellingHash
-        }
-        
-        /// <summary>
         /// Returns true if suggestions exist, false otherwise. Fills in |suggestions|
         /// from the spell check service for the misspelled word if there is one.
         /// </summary>

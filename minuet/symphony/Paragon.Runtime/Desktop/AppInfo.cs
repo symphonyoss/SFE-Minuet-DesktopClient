@@ -8,7 +8,7 @@ namespace Paragon.Runtime.Desktop
     /// <summary>
     /// Provides cross-process access to key metadata on running apps.
     /// </summary>
-    internal sealed class AppInfo : IDisposable, IEquatable<AppInfo>, IParagonAppInfo
+    public sealed class AppInfo : IDisposable, IEquatable<AppInfo>, IParagonAppInfo
     {
         private readonly IntPtr _hwnd;
         private bool _disposed;
@@ -164,7 +164,7 @@ namespace Paragon.Runtime.Desktop
             RenderInfo = new ProcessPerfInfo(renderPid);
         }
 
-        internal void UpdatePerfInfo(DateTime now)
+        public void UpdatePerfInfo(DateTime now)
         {
             if (BrowserInfo != null)
             {

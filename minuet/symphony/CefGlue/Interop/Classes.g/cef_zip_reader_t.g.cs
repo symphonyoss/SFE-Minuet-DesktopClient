@@ -40,13 +40,13 @@ namespace Xilium.CefGlue.Interop
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        private delegate bool release_delegate(cef_zip_reader_t* self);
+        private delegate int release_delegate(cef_zip_reader_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        private delegate bool has_one_ref_delegate(cef_zip_reader_t* self);
+        private delegate int has_one_ref_delegate(cef_zip_reader_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
@@ -141,7 +141,7 @@ namespace Xilium.CefGlue.Interop
         private static IntPtr _p1;
         private static release_delegate _d1;
         
-        public static bool release(cef_zip_reader_t* self)
+        public static int release(cef_zip_reader_t* self)
         {
             release_delegate d;
             var p = self->_base._release;
@@ -154,11 +154,11 @@ namespace Xilium.CefGlue.Interop
             return d(self);
         }
         
-        // GetRefCt
+        // HasOneRef
         private static IntPtr _p2;
         private static has_one_ref_delegate _d2;
         
-        public static bool has_one_ref(cef_zip_reader_t* self)
+        public static int has_one_ref(cef_zip_reader_t* self)
         {
             has_one_ref_delegate d;
             var p = self->_base._has_one_ref;

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.IO.Packaging;
+using System.Linq;
 using System.Security.Permissions;
+using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
 using Paragon.Plugins;
 
@@ -10,8 +13,12 @@ namespace Paragon.Runtime.PackagedApplication
     public sealed class ApplicationPackage : IApplicationPackage
     {
         private const string PackagedAppManifestFileName = "manifest.json";
+        public static string[] DefaultCustomProtocolWhitelist = new string[] { "mailto" };
         private static readonly ILogger Logger = ParagonLogManager.GetLogger();
         private readonly string _packageFilePath;
+        private readonly Func<Package> _packageFunc;
+        private readonly Timer _closeTimer;
+        private Package _package;
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         public ApplicationPackage(string packageFilePath)
@@ -21,9 +28,6 @@ namespace Paragon.Runtime.PackagedApplication
                 throw new ArgumentNullException("packageFilePath");
             }
 
-            Package package;
-            ApplicationManifest manifest = null;
-            
             //packageFilePath argument passed must be a manifest file, path to a directory which has the manifest file or a pgx package
             var localPath = new Uri(packageFilePath).LocalPath;
             if (File.Exists(localPath))
@@ -32,7 +36,7 @@ namespace Paragon.Runtime.PackagedApplication
                 {
                     //A path to a manifest file was passed in.
                     _packageFilePath = localPath.Replace(PackagedAppManifestFileName, string.Empty);
-                    package = new DirectoryPackage(_packageFilePath);
+                    _packageFunc = () =>  new DirectoryPackage(_packageFilePath);
                 }
                 else
                 {
@@ -41,7 +45,7 @@ namespace Paragon.Runtime.PackagedApplication
                     {
                         //A path to a pgx package was passed in.
                         _packageFilePath = localPath;
-                        package = Package.Open(_packageFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        _packageFunc = () => Package.Open(_packageFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
                     }
                     else
                     {
@@ -56,7 +60,7 @@ namespace Paragon.Runtime.PackagedApplication
                 if (File.Exists(manifestPath))
                 {
                     _packageFilePath = localPath;
-                    package = new DirectoryPackage(_packageFilePath);
+                    _packageFunc = () => new DirectoryPackage(_packageFilePath);
                 }
                 else
                 {
@@ -68,28 +72,65 @@ namespace Paragon.Runtime.PackagedApplication
                 throw new InvalidOperationException("Application package not found: " + packageFilePath);
             }
 
-            var manifestFile = GetPart(package, PackagedAppManifestFileName);
+            var manifestFile = GetPart(PackagedAppManifestFileName);
+
             if (manifestFile != null)
             {
                 var fileStream = manifestFile.GetStream();
                 using (var reader = new StreamReader(fileStream))
                 {
                     var json = reader.ReadToEnd();
-                    manifest = JsonConvert.DeserializeObject<ApplicationManifest>(json);
+                    Manifest = JsonConvert.DeserializeObject<ApplicationManifest>(json);
+                    SetManifestDefaults();
 
-                    var appInfo = manifest.App;
+                    var appInfo = Manifest.App;
                     var applicationType = ApplicationManifest.GetApplicationType(appInfo);
-                    manifest.Type = applicationType;
+                    Manifest.Type = applicationType;
                 }
             }
+            else
+            {
+                throw new InvalidOperationException("Manifest not found: " + PackagedAppManifestFileName);
+            }
 
-            Init(package, manifest);
+            _closeTimer = new Timer(_ =>
+            {
+                if (_package != null)
+                {
+                    _package.Close();
+                    _package = null;
+                }
+            }, null, 10000, Timeout.Infinite);
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         public ApplicationPackage(Package package, IApplicationManifest manifest)
         {
-            Init(package, manifest);
+            if (manifest == null)
+            {
+                throw new ArgumentNullException("manifest");
+            }
+
+            _package = package;
+            Manifest = manifest;
+        }
+
+        private Package Package
+        {
+            get
+            {
+                if (_package == null)
+                {
+                    _package = _packageFunc();
+                }
+
+                if (_closeTimer != null)
+                {
+                    _closeTimer.Change(10000, Timeout.Infinite);
+                }
+
+                return _package;
+            }
         }
 
         public string PackageFilePath
@@ -100,21 +141,9 @@ namespace Paragon.Runtime.PackagedApplication
             }
         }
 
-        public Package Package { get; private set; }
         public IApplicationManifest Manifest { get; private set; }
 
-        public Stream GetIcon16()
-        {
-            if (Manifest.Icons != null)
-            {
-                return GetStream(!string.IsNullOrEmpty(Manifest.Icons.Icon16)
-                    ? Manifest.Icons.Icon16
-                    : Manifest.Icons.Icon128);
-            }
-            return null;
-        }
-
-        public Stream GetIcon128()
+        public Stream GetIcon()
         {
             if (Manifest.Icons != null)
             {
@@ -127,45 +156,24 @@ namespace Paragon.Runtime.PackagedApplication
 
         public PackagePart GetPart(string path)
         {
-            return GetPart(Package, path);
-        }
-
-        private void Init(Package package, IApplicationManifest manifest)
-        {
-            if (manifest == null)
-            {
-                throw new ArgumentNullException("manifest");
-            }
-
-            Package = package;
-            Manifest = manifest;
-        }
-
-        public PackagePart GetPart(Package package, string path)
-        {
-            if (package == null)
-            {
-                return null;
-            }
-
             try
             {
                 path = path.StartsWith("/") ? path : ("/" + path);
                 path = path.Replace("\\", "/");
                 var partUri = new Uri(path, UriKind.Relative);
-                var exists = package.PartExists(partUri);
+                var exists = Package.PartExists(partUri);
 
                 if (exists)
                 {
-                    return package.GetPart(partUri);
+                    return Package.GetPart(partUri);
                 }
 
-                Logger.Warn(fmt => fmt("Package part not found: " + path));
+                Logger.Warn("Package part not found: " + path);
                 return null;
             }
             catch (Exception e)
             {
-                Logger.Error(fmt => fmt("Failed to get package part. Path:{0}, Exception: {1}", path, e.ToString()));
+                Logger.Error("Failed to get package part. Path:{0}, Exception: {1}", path, e.ToString());
                 return null;
             }
         }
@@ -239,9 +247,20 @@ namespace Paragon.Runtime.PackagedApplication
             var partStream = bgScriptPart.GetStream();
             using (var sr = new StreamWriter(partStream))
             {
-                sr.WriteLine(CreateBackgroundScript(app.Launch.WebUrl, bounds));
+                sr.WriteLine(CreateBackgroundScript(app, bounds));
                 sr.Flush();
                 partStream.Flush();
+            }
+
+            // Create icons in package
+            if (manifest.Icons != null && !String.IsNullOrEmpty(manifest.Icons.Icon16))
+            {
+                CreatePartFromStream(GetStream(manifest.Icons.Icon16), newPackage, "image/png", manifest.Icons.Icon16);
+            }
+
+            if (manifest.Icons != null && !String.IsNullOrEmpty(manifest.Icons.Icon128))
+            {
+                CreatePartFromStream(GetStream(manifest.Icons.Icon128), newPackage, "image/png", manifest.Icons.Icon128);
             }
 
             newPackage.Flush();
@@ -257,18 +276,69 @@ namespace Paragon.Runtime.PackagedApplication
             return new ApplicationPackage(newPackage, manifest);
         }
 
-        private static string CreateBackgroundScript(string url, BoundsSpecification bounds)
+        private void SetManifestDefaults()
         {
+            if (Manifest.CustomProtocolWhitelist == null)
+            {
+                Manifest.CustomProtocolWhitelist = DefaultCustomProtocolWhitelist;
+            }
+            else
+            {
+                if (!Manifest.CustomProtocolWhitelist.Contains("*"))
+                {
+                    Manifest.CustomProtocolWhitelist = Manifest.CustomProtocolWhitelist.Union(DefaultCustomProtocolWhitelist).ToArray();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a new part in the specified package and sets its value to the given stream
+        /// </summary>
+        /// <param name="source">The source steam to be written to the new part</param>
+        /// <param name="target">The target package in which to create the new part</param>
+        /// <param name="contentType">The mime type of the new part</param>
+        /// <param name="targetPath">The relative path of the new part within the package</param>
+        private static void CreatePartFromStream(Stream source, Package target, string contentType, string targetPath)
+        {
+            var targetPartUri = PackUriHelper.CreatePartUri(new Uri(targetPath, UriKind.Relative));
+
+            var targetPart = target.CreatePart(targetPartUri, contentType);
+            using (var targetPartStream = targetPart.GetStream())
+            {
+                const int bufSize = 0x1000;
+                byte[] buf = new byte[bufSize];
+                int bytesRead = 0;
+                while ((bytesRead = source.Read(buf, 0, bufSize)) > 0)
+                    targetPartStream.Write(buf, 0, bytesRead);
+            }
+        }
+
+        private static string CreateBackgroundScript(IAppInfo appInfo, BoundsSpecification bounds)
+        {
+            var windoInfoJson = new StringBuilder();
+
+            if (!string.IsNullOrEmpty(appInfo.Launch.Id))
+            {
+                windoInfoJson.AppendFormat(", 'id': '{0}'", appInfo.Launch.Id);
+            }
+
+            if (!appInfo.Launch.AutoSaveLocation)
+            {
+                windoInfoJson.Append(", 'autoSaveLocation': false");
+            }
+
             var boundsJson = bounds != null ? (", 'outerBounds' : " + JsonConvert.SerializeObject(bounds)) : string.Empty;
             var background = string.Format(@"
                 paragon.app.window.create('{0}', {{
                         'frame': {{
-                            'type': 'paragon'
+                            'type': 'notSpecified'
                         }}
                         {1}
+                        {2}
                     }});
                 ",
-                url,
+                appInfo.Launch.WebUrl,
+                windoInfoJson,
                 boundsJson);
 
             return background;

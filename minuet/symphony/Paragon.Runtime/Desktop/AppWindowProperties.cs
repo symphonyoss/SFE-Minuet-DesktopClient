@@ -9,10 +9,10 @@ namespace Paragon.Runtime.Desktop
     {
         private const string Prefix = "PGN_WND:";
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 36)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 37)]
         public string WorkspaceId;
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 36)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 37)]
         public string AppInstanceId;
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]

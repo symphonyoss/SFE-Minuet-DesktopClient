@@ -77,27 +77,11 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Returns the selection start node.
-        /// </summary>
-        public cef_domnode_t* GetSelectionStartNode()
-        {
-            throw new NotImplementedException(); // TODO: CefDomDocument.GetSelectionStartNode
-        }
-        
-        /// <summary>
         /// Returns the selection offset within the start node.
         /// </summary>
         public int GetSelectionStartOffset()
         {
             throw new NotImplementedException(); // TODO: CefDomDocument.GetSelectionStartOffset
-        }
-        
-        /// <summary>
-        /// Returns the selection end node.
-        /// </summary>
-        public cef_domnode_t* GetSelectionEndNode()
-        {
-            throw new NotImplementedException(); // TODO: CefDomDocument.GetSelectionEndNode
         }
         
         /// <summary>

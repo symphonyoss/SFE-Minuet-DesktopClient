@@ -18,11 +18,13 @@ namespace Paragon.Runtime.Kernel.Applications
         private const string StartAppId = "start-app-id";
         private const string StartAppInstId = "start-app-inst-id";
         private const string StartAppType = "start-app-type";
+        private const string WDPort = "wdport";
         private const string Standalone = "standalone";
         private static readonly ILogger Logger = ParagonLogManager.GetLogger();
         private readonly List<string> _args;
 
-        public ParagonCommandLineParser(string commandLine)
+        public 
+            ParagonCommandLineParser(string commandLine)
         {
             _args = new List<string>(commandLine.Split(' '));
         }
@@ -61,6 +63,10 @@ namespace Paragon.Runtime.Kernel.Applications
             }
 
             value = index >= 0 && index + 1 < arg.Length ? arg.Substring(index + 1) : string.Empty;
+
+            // If there are quotes surrounding the value, remove them
+            if (value.StartsWith("\"") && value.EndsWith("\""))
+                value = value.Substring(1, value.Length - 2);
             return true;
         }
 
@@ -106,6 +112,13 @@ namespace Paragon.Runtime.Kernel.Applications
             if (GetValue(Env, out environment))
             {
                 applicationMetadata.Environment = (ApplicationEnvironment) Enum.Parse(typeof (ApplicationEnvironment), environment, true);
+            }
+
+            string wdPortStr;
+            int wdPortInt;
+            if (GetValue(WDPort, out wdPortStr) && int.TryParse(wdPortStr, out wdPortInt))
+            {
+                applicationMetadata.WDPort = wdPortInt;
             }
 
             // Look for standalone flag

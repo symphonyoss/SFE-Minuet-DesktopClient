@@ -16,6 +16,8 @@ namespace Paragon.Plugins
 
         string WorkspaceId { get; set; }
 
+        int WDPort { get; set; }
+
         Action<string> UpdateLaunchStatus { get; set; }
 
         bool IsStandalone { get; set; }

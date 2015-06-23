@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Permissions;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualBasic.Logging;
 using Paragon.Plugins;
+using Timer = System.Threading.Timer;
 
 namespace Paragon.Runtime
 {
@@ -30,6 +32,12 @@ namespace Paragon.Runtime
         private static Timer _cleanupTimer;
         private static string _logDirectory;
         private static bool _stopped;
+        private static string _pid;
+
+        public static string LogDirectory
+        {
+            get { return _logDirectory; }    
+        }
 
         public static string CurrentAppLogFile
         {
@@ -48,9 +56,16 @@ namespace Paragon.Runtime
             // that is currently running.
             _logDirectory = Environment.ExpandEnvironmentVariables(logsDir);
 
+            _pid = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture).PadLeft(5);
+
+            // Max file size for log files is 10MB (the default is 5MB if not explicitly set).
+            const int maxFileSize = 10 * 1024 * 1024;
+
             switch (context)
             {
                 case LogContext.Browser:
+                    CleanupCefLog();
+
                     // Write default trace source messages to a paragon log file.
                     _paragonTraceListener = new FileLogTraceListener
                     {
@@ -59,7 +74,8 @@ namespace Paragon.Runtime
                         CustomLocation = _logDirectory,
                         LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
                         BaseFileName = "paragon",
-                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages
+                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
+                        MaxFileSize = maxFileSize
                     };
 
                     ParagonTraceSources.Default.Listeners.Add(_paragonTraceListener);
@@ -71,7 +87,8 @@ namespace Paragon.Runtime
                         CustomLocation = _logDirectory,
                         LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
                         BaseFileName = "application",
-                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages
+                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
+                        MaxFileSize = maxFileSize
                     };
 
                     // Write app trace source messages to an application log file.
@@ -88,7 +105,8 @@ namespace Paragon.Runtime
                         CustomLocation = _logDirectory,
                         LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
                         BaseFileName = "renderer",
-                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages
+                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
+                        MaxFileSize = maxFileSize
                     };
 
                     // Write default trace source messages to a renderer log file.
@@ -105,7 +123,7 @@ namespace Paragon.Runtime
 
         public static ILogger GetAppLogger(string appId)
         {
-            return Loggers.GetOrAdd(appId, _ => new Logger(__ => appId, AppLogWriter));
+            return Loggers.GetOrAdd(appId, _ => new Logger(appId, AppLogWriter));
         }
 
         public static ILogger GetLogger()
@@ -114,9 +132,7 @@ namespace Paragon.Runtime
             var method = stackFrame.GetMethod();
             var declaringType = method.DeclaringType;
             var typeName = declaringType != null ? declaringType.FullName : "Unknown type";
-
-            return Loggers.GetOrAdd(typeName, _ => new Logger(caller =>
-                string.Concat(typeName, ".", caller), LogWriter));
+            return Loggers.GetOrAdd(typeName, _ => new Logger(typeName, LogWriter));
         }
 
         public static void Shutdown()
@@ -143,6 +159,39 @@ namespace Paragon.Runtime
             if (_rendererTraceListener != null)
             {
                 _rendererTraceListener.Dispose();
+            }
+        }
+
+        private static void CleanupCefLog()
+        {
+            var logger = GetLogger();
+
+            try
+            {
+                var cefLogPath = Path.Combine(_logDirectory, "cef.log");
+                var cefLogFile = new FileInfo(cefLogPath);
+                if (!cefLogFile.Exists)
+                {
+                    return;
+                }
+
+                // Max allowed file size of 20MB.
+                const int maxFileSize = 20 * 1024 * 1024;
+                if (cefLogFile.Length > maxFileSize)
+                {
+                    try
+                    {
+                        cefLogFile.Delete();
+                    }
+                    catch (IOException)
+                    {
+                        logger.Warn("Unable to delete cef.log file as the file is in use");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                logger.Error("Error cleaningup CEF log", e);
             }
         }
 
@@ -304,81 +353,110 @@ namespace Paragon.Runtime
 
         private class Logger : ILogger
         {
-            private readonly Func<string, string> _loggerName;
+            private readonly string _loggerName;
             private readonly AsyncLogWriter _writer;
 
-            public Logger(Func<string, string> loggerName, AsyncLogWriter writer)
+            public Logger(string loggerName, AsyncLogWriter writer)
             {
                 _loggerName = loggerName;
                 _writer = writer;
             }
+       
+            #region ILogger Members
 
             public void Debug(string message, string caller = null)
             {
-                Write(TraceEventType.Verbose, "DEBUG", message, caller);
+                Write(TraceEventType.Verbose, "DEBUG", message);
             }
 
             public void Debug(FormatMessageCallback formatter, string caller = null)
             {
-                Write(TraceEventType.Verbose, "DEBUG", formatter, caller);
+                throw new NotImplementedException();
             }
 
-            public void Error(string message, string caller = null)
+            public void Debug(string format, params object[] args)
             {
-                Write(TraceEventType.Error, "ERROR", message, caller);
-            }
-
-            public void Error(string message, Exception exception, string caller = null)
-            {
-                Write(TraceEventType.Error, "ERROR", message, caller, exception);
-            }
-
-            public void Error(FormatMessageCallback formatter, string caller = null)
-            {
-                Write(TraceEventType.Error, "ERROR", formatter, caller);
-            }
-
-            public void Error(FormatMessageCallback formatter, Exception exception, string caller = null)
-            {
-                Write(TraceEventType.Error, "ERROR", formatter, caller, exception);
-            }
-
-            public void Fatal(string message, string caller = null)
-            {
-                Write(TraceEventType.Critical, "FATAL", message, caller);
-            }
-
-            public void Fatal(FormatMessageCallback formatter, string caller = null)
-            {
-                Write(TraceEventType.Critical, "FATAL", formatter, caller);
+                Write(TraceEventType.Verbose, "DEBUG", () => string.Format(format, args));
             }
 
             public void Info(string message, string caller = null)
             {
-                Write(TraceEventType.Information, "INFO ", message, caller);
+                Write(TraceEventType.Information, "INFO ", message);
             }
 
             public void Info(FormatMessageCallback formatter, string caller = null)
             {
-                Write(TraceEventType.Information, "INFO ", formatter, caller);
+                throw new NotImplementedException();
+            }
+
+            public void Info(string format, params object[] args)
+            {
+                Write(TraceEventType.Information, "INFO ", () => string.Format(format, args));
             }
 
             public void Warn(string message, string caller = null)
             {
-                Write(TraceEventType.Warning, "WARN ", message, caller);
+                Write(TraceEventType.Warning, "WARN ", message);
             }
 
             public void Warn(FormatMessageCallback formatter, string caller = null)
             {
-                Write(TraceEventType.Warning, "WARN ", formatter, caller);
+                throw new NotImplementedException();
             }
 
-            private void Write(TraceEventType eventType, string level, string message, string caller, Exception exception = null)
+            public void Warn(string format, params object[] args)
             {
-                Write(eventType, level, fmt => fmt(message), caller, exception);
+                Write(TraceEventType.Warning, "WARN ", () => string.Format(format, args));
             }
 
-            private void Write(TraceEventType eventType, string level, FormatMessageCallback formatter, string caller, Exception exception = null)
+            public void Error(string message, string caller = null)
+            {
+                Write(TraceEventType.Error, "ERROR", message);
+            }
+
+            public void Error(string message, Exception exception, string caller = null)
+            {
+                Write(TraceEventType.Error, "ERROR", message, exception);
+            }
+
+            public void Error(FormatMessageCallback formatter, string caller = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Error(FormatMessageCallback formatter, Exception exception, string caller = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Error(string format, params object[] args)
+            {
+                Write(TraceEventType.Error, "ERROR", () => string.Format(format, args));
+            }
+
+            public void Fatal(string message, string caller = null)
+            {
+                Write(TraceEventType.Critical, "FATAL", message);
+            }
+
+            public void Fatal(FormatMessageCallback formatter, string caller = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Fatal(string format, params object[] args)
+            {
+                   Write(TraceEventType.Critical, "FATAL", () => string.Format(format, args));
+            }
+
+            #endregion
+
+            private void Write(TraceEventType eventType, string level, string message, Exception exception = null)
+            {
+                Write(eventType, level, () => message, exception);
+            }
+
+            private void Write(TraceEventType eventType, string level, Func<string> getMsg, Exception exception = null)
             {
                 var levelFlag = (TraceEventType)ParagonTraceSources.Default.Switch.Level;
                 if ((levelFlag & eventType) != eventType)
@@ -386,63 +464,39 @@ namespace Paragon.Runtime
                     return;
                 }
 
-                var text = new FormatMessageCallbackFormattedMessage(formatter).ToString();
-                if (exception != null)
-                {
-                    text = string.Concat(text, Environment.NewLine, "EXCEPTION: ", exception.ToString());
-                }
-
-                if (string.IsNullOrEmpty(caller))
-                {
-                    caller = "Delegate";
-                }
-
                 var ts = DateTime.Now;
-                var threadId = Thread.CurrentThread.ManagedThreadId;
-                var getMessage = new Func<string>(() => string.Format("[{0}] {1} {2} {3} {4}",
-                    threadId, ts.ToString("yyyy-MM-dd HH:mm:ss.fff"), level, _loggerName(caller), text));
+                var threadId = Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture).PadLeft(2);
 
-                _writer.Write(getMessage);
-            }
-
-            private class FormatMessageCallbackFormattedMessage
-            {
-                private readonly FormatMessageCallback _formatMessageCallback;
-                private volatile string _cachedMessage;
-
-                public FormatMessageCallbackFormattedMessage(FormatMessageCallback formatMessageCallback)
+                var getMessage = new Func<string>(() =>
                 {
-                    _formatMessageCallback = formatMessageCallback;
-                }
-
-                public override string ToString()
-                {
-                    if (_cachedMessage == null && _formatMessageCallback != null)
-                    {
-                        _formatMessageCallback(FormatMessage);
-                    }
-
-                    return _cachedMessage ?? "Empty log message";
-                }
-
-                private string FormatMessage(string format, params object[] args)
-                {
-                    if (format == null)
-                    {
-                        return null;
-                    }
+                    string text;
 
                     try
                     {
-                        _cachedMessage = string.Format(format, args);
+                        text = getMsg();
+
+                        if (exception != null)
+                        {
+                            text = string.Concat(text, Environment.NewLine, "EXCEPTION: ", exception.ToString());
+                        }
+
                     }
-                    catch
+                    catch (Exception e)
                     {
-                        _cachedMessage = format;
+                        text = "Error formatting log message: " + e.Message;
                     }
 
-                    return _cachedMessage;
-                }
+                    return string.Format(
+                        "{0} {1} {2} {3} {4} {5}",
+                        ts.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                        _pid,
+                        threadId,
+                        level,
+                        _loggerName,
+                        text);
+                });
+
+                _writer.Write(getMessage);
             }
         }
     }

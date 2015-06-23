@@ -156,5 +156,15 @@ namespace Xilium.CefGlue
             throw new NotImplementedException(); // TODO: CefRequest.GetTransitionType
         }
         
+        /// <summary>
+        /// Returns the globally unique identifier for this request or 0 if not
+        /// specified. Can be used by CefRequestHandler implementations in the browser
+        /// process to track a single request across multiple callbacks.
+        /// </summary>
+        public ulong GetIdentifier()
+        {
+            throw new NotImplementedException(); // TODO: CefRequest.GetIdentifier
+        }
+        
     }
 }

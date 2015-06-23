@@ -12,6 +12,8 @@ namespace Paragon.Runtime.Win32
     [ExcludeFromCodeCoverage]
     internal static class NativeMethods
     {
+        public const int LOGPIXELSX = 88;
+
         [DllImport("user32.dll")]
         public static extern IntPtr CallNextHookEx(IntPtr hhook, int code, IntPtr wParam, IntPtr lParam);
 
@@ -45,6 +47,9 @@ namespace Paragon.Runtime.Win32
         [DllImport("user32.dll", SetLastError = true)]
         [SuppressUnmanagedCodeSecurity]
         public static extern bool DestroyWindow(IntPtr hWnd);
+
+        [DllImport("psapi", SetLastError = true)]
+        public static extern bool EmptyWorkingSet(IntPtr hProcess);
 
         [DllImport("user32.dll")]
         [SuppressUnmanagedCodeSecurity]
@@ -245,5 +250,17 @@ namespace Paragon.Runtime.Win32
 
         [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi)]
         public static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPStr)]string lpFileName);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetDC(IntPtr hWnd);
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
+        public static extern int GetDeviceCaps(IntPtr handle, int nIndex);
+
+        [DllImport("user32.dll")]
+        public static extern bool ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        [DllImport("clrdump.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern Int32 CreateDump(Int32 processId, string fileName, Int32 dumpType, Int32 excThreadId, IntPtr extPtrs);
     }
 }

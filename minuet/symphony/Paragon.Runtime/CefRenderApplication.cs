@@ -39,8 +39,8 @@ namespace Paragon.Runtime
             // Prevent a separate gpu-process renderer process from being started.
             commandLine.AppendSwitch("in-process-gpu");
 
-            Logger.Info(fmt => fmt("{0} process started with commandline arguments : {1}",
-                string.IsNullOrEmpty(processType) ? "Browser" : processType, commandLine.ToString()));
+            Logger.Info("{0} process started with commandline arguments : {1}",
+                string.IsNullOrEmpty(processType) ? "Browser" : processType, commandLine.ToString());
 
             base.OnBeforeCommandLineProcessing(processType, commandLine);
         }

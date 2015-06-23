@@ -44,7 +44,7 @@ namespace Paragon.Runtime
                 // Get process handles.
                 var process = Process.GetCurrentProcess();
                 var pid = process.Id;
-                var handle1 = (long)process.Handle;
+                var handle1 = process.Handle;
 
                 if (!_initialEmptyComplete)
                 {

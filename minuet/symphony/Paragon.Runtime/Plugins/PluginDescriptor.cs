@@ -27,5 +27,6 @@ namespace Paragon.Runtime.Plugins
     {
         public string MethodName { get; set; }
         public bool HasCallbackParameter { get; set; }
+        public bool IsVoid { get; set; }
     }
 }

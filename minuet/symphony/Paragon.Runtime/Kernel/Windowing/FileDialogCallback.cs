@@ -1,18 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Paragon.Plugins;
 using Xilium.CefGlue;
 
 namespace Paragon.Runtime.Kernel.Windowing
 {
     public class FileDialogCallback : CefRunFileDialogCallback
     {
-        public string[] SelectedFiles { get; private set; }
+        private JavaScriptPluginCallback _callback;
 
-        protected override void OnFileDialogDismissed(CefBrowserHost browserHost, string[] filePaths)
+        public string[] SelectedFiles { get; private set; }
+        public int SelectedAcceptFilter { get; private set; }
+
+        public FileDialogCallback(JavaScriptPluginCallback callback)
         {
-            SelectedFiles = filePaths;
+            _callback = callback;
         }
+
+        protected override void OnFileDialogDismissed(int selectedAcceptFilter, string[] filePaths)
+        {
+            SelectedAcceptFilter = selectedAcceptFilter;
+            SelectedFiles = filePaths;
+            if (_callback != null)
+            {
+                _callback(new FileDialogResult{ FilePaths = filePaths, SelectedAcceptFilter = selectedAcceptFilter });
+            }
+        }
+    }
+
+    public class FileDialogResult
+    {
+        public int SelectedAcceptFilter { get; set; }
+        public string[] FilePaths { get; set; }
     }
 }

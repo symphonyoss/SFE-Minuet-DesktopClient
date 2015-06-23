@@ -36,10 +36,11 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Creates a new context object with the specified handler.
         /// </summary>
-        public static CefRequestContext CreateContext(CefRequestContextHandler handler)
+        public static CefRequestContext CreateContext(CefRequestContextSettings settings, CefRequestContextHandler handler)
         {
             return CefRequestContext.FromNative(
                 cef_request_context_t.create_context(
+                settings != null ? settings.ToNative() : null,
                     handler != null ? handler.ToNative() : null
                     )
                 );

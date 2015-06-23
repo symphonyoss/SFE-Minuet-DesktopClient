@@ -4,6 +4,7 @@
     {
         int GetSelectedMonitor();
         Position GetPosition();
-        void Save(int selectedMonitor, Position position);
+        bool GetDnd();
+        void Save(int selectedMonitor, Position position, bool dnd);
     }
 }

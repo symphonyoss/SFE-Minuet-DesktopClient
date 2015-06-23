@@ -33,7 +33,6 @@ namespace Paragon
                 .RegisterType<IParagonPlugin, ParagonSystemIdlePlugin>()
                 .RegisterType<IParagonPlugin, ParagonSystemPlugin>()
                 .RegisterType<IParagonPlugin, ParagonWindowOverridesPlugin>()
-                .RegisterType<IParagonPlugin, ParagonWindowOverridesPlugin>()
                 .RegisterType<IParagonPlugin, LoggerPlugin>()
                 .RegisterType<IParagonPlugin, MessageBusPlugin>();
         }
@@ -55,7 +54,7 @@ namespace Paragon
                 catch (Exception e)
                 {
                     var typeName = pluginTypeName;
-                    _logger.Error(fmt => fmt("Error resolving plugin type: {0} - {1}", typeName, e.Message));
+                    _logger.Error("Error resolving plugin type: {0} - {1}", typeName, e.Message);
                     continue;
                 }
 

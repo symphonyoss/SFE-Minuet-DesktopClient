@@ -36,14 +36,14 @@ namespace Paragon.Runtime
 
             if (_threshold == -1)
             {
-                Logger.Info(fmt => fmt("{0} took {1}ms", _message, _stopwatch.ElapsedMilliseconds));
+                Logger.Info("{0} took {1}ms", _message, _stopwatch.ElapsedMilliseconds);
             }
             else if (_stopwatch.ElapsedMilliseconds > _threshold)
             {
                 // The elaspsed time is greater than the specified threshold,
                 // write a log message at WARN level.
-                Logger.Warn(formatter => formatter("{0} completed in {1}ms, exceeding threshold of {2}ms",
-                    _message, _stopwatch.ElapsedMilliseconds, _threshold));
+                Logger.Warn("{0} completed in {1}ms, exceeding threshold of {2}ms",
+                    _message, _stopwatch.ElapsedMilliseconds, _threshold);
             }
         }
 

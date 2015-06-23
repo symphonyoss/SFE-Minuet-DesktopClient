@@ -16,14 +16,12 @@ namespace Xilium.CefGlue
         /// Returns the global cookie manager. By default data will be stored at
         /// CefSettings.cache_path if specified or in memory otherwise.
         /// </summary>
-        public static CefCookieManager Global
+        public static CefCookieManager GetGlobal( CefCompletionCallback callback )
         {
-            get
-            {
-                return CefCookieManager.FromNative(
-                    cef_cookie_manager_t.get_global_manager()
-                    );
-            }
+            var n_handler = callback != null ? callback.ToNative() : null;
+            return CefCookieManager.FromNative(
+                cef_cookie_manager_t.get_global_manager(n_handler)
+                );
         }
 
         /// <summary>
@@ -34,14 +32,15 @@ namespace Xilium.CefGlue
         /// generally intended to be transient and most Web browsers do not persist
         /// them. Returns NULL if creation fails.
         /// </summary>
-        public static CefCookieManager Create(string path, bool persistSessionCookies)
+        public static CefCookieManager Create(string path, bool persistSessionCookies, CefCompletionCallback callback)
         {
             fixed (char* path_str = path)
             {
                 var n_path = new cef_string_t(path_str, path != null ? path.Length : 0);
+                var n_handler = callback != null ? callback.ToNative() : null;
 
                 return CefCookieManager.FromNativeOrNull(
-                    cef_cookie_manager_t.create_manager(&n_path, persistSessionCookies ? 1 : 0)
+                    cef_cookie_manager_t.create_manager(&n_path, persistSessionCookies ? 1 : 0, n_handler)
                     );
             }
         }
@@ -51,10 +50,11 @@ namespace Xilium.CefGlue
         /// "https" schemes are supported. Must be called before any cookies are
         /// accessed.
         /// </summary>
-        public void SetSupportedSchemes(string[] schemes)
+        public void SetSupportedSchemes(string[] schemes, CefCompletionCallback callback)
         {
             var n_schemes = cef_string_list.From(schemes);
-            cef_cookie_manager_t.set_supported_schemes(_self, n_schemes);
+            var n_handler = callback != null ? callback.ToNative() : null;
+            cef_cookie_manager_t.set_supported_schemes(_self, n_schemes, n_handler);
             libcef.string_list_free(n_schemes);
         }
 
@@ -97,7 +97,7 @@ namespace Xilium.CefGlue
         /// the cookie if such characters are found. This method must be called on the
         /// IO thread.
         /// </summary>
-        public bool SetCookie(string url, CefCookie cookie)
+        public bool SetCookie(string url, CefCookie cookie, CefSetCookieCallback callback)
         {
             if (string.IsNullOrEmpty(url)) throw new ArgumentNullException("url");
             if (cookie == null) throw new ArgumentNullException("cookie");
@@ -107,7 +107,8 @@ namespace Xilium.CefGlue
             fixed (char* url_str = url)
             {
                 var n_url = new cef_string_t(url_str, url.Length);
-                n_result = cef_cookie_manager_t.set_cookie(_self, &n_url, n_cookie);
+                var n_handler = callback != null ? callback.ToNative() : null;
+                n_result = cef_cookie_manager_t.set_cookie(_self, &n_url, n_cookie, n_handler);
             }
             CefCookie.Free(n_cookie);
             return n_result != 0;
@@ -122,15 +123,16 @@ namespace Xilium.CefGlue
         /// empty invalid URL is specified or if cookies cannot be accessed. This
         /// method must be called on the IO thread.
         /// </summary>
-        public bool DeleteCookies(string url, string cookieName)
+        public bool DeleteCookies(string url, string cookieName, CefDeleteCookiesCallback callback)
         {
             fixed (char* url_str = url)
             fixed (char* cookieName_str = cookieName)
             {
                 var n_url = new cef_string_t(url_str, url != null ? url.Length : 0);
                 var n_cookieName = new cef_string_t(cookieName_str, cookieName != null ? cookieName.Length : 0);
+                var n_handler = callback != null ? callback.ToNative() : null;
 
-                return cef_cookie_manager_t.delete_cookies(_self, &n_url, &n_cookieName) != 0;
+                return cef_cookie_manager_t.delete_cookies(_self, &n_url, &n_cookieName, n_handler) != 0;
             }
         }
 
@@ -142,13 +144,14 @@ namespace Xilium.CefGlue
         /// Session cookies are generally intended to be transient and most Web browsers
         /// do not persist them. Returns false if cookies cannot be accessed.
         /// </summary>
-        public bool SetStoragePath(string path, bool persistSessionCookies)
+        public bool SetStoragePath(string path, bool persistSessionCookies, CefCompletionCallback callback)
         {
             fixed (char* path_str = path)
             {
                 var n_path = new cef_string_t(path_str, path != null ? path.Length : 0);
 
-                return cef_cookie_manager_t.set_storage_path(_self, &n_path, persistSessionCookies ? 1 : 0) != 0;
+                var n_handler = callback != null ? callback.ToNative() : null;
+                return cef_cookie_manager_t.set_storage_path(_self, &n_path, persistSessionCookies ? 1 : 0, n_handler) != 0;
             }
         }
 

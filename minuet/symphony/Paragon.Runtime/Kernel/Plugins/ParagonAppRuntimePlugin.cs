@@ -87,7 +87,7 @@ namespace Paragon.Runtime.Kernel.Plugins
                 return string.Empty;
             }
 
-            Logger.Debug(fmt => fmt("Application package location is '{0}'", currentAppStartData));
+            Logger.Debug("Application package location is '{0}'", currentAppStartData);
             return currentAppStartData;
         }
 

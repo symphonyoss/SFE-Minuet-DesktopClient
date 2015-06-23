@@ -40,7 +40,7 @@ namespace Paragon.Runtime.Plugins
                     var methodDescriptor = _plugin.Descriptor.Methods.Find(descriptor => descriptor.MethodName == name);
                     if (methodDescriptor == null)
                     {
-                        Logger.Error(fmt => fmt("Plugin method {0} {1} not found", _plugin.Descriptor.PluginId, name));
+                        Logger.Error("Plugin method {0} {1} not found", _plugin.Descriptor.PluginId, name);
                         return false;
                     }
 
@@ -57,7 +57,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("Execution of plugin method {0} {1} failed: {2}", _plugin.Descriptor.PluginId, name, ex));
+                Logger.Error("Execution of plugin method {0} {1} failed: {2}", _plugin.Descriptor.PluginId, name, ex);
                 exception = ex.Message;
             }
 

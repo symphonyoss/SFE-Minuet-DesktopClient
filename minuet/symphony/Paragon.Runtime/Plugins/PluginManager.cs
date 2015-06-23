@@ -43,14 +43,14 @@ namespace Paragon.Runtime.Plugins
                 plugin = JavaScriptPlugin.CreateFromObject(_managerProcess, pluginObject);
                 if (plugin == null)
                 {
-                    Logger.Error(fmt => fmt("Failed to wrap unknown plugin type"));
+                    Logger.Error("Failed to wrap unknown plugin type");
                     return false;
                 }
             }
 
             if (!_localPluginsById.TryAdd(plugin.Descriptor.PluginId, plugin))
             {
-                Logger.Warn(fmt => fmt("Attempt to add a duplicate plugin"));
+                Logger.Warn("Attempt to add a duplicate plugin");
                 return false;
             }
 
@@ -59,7 +59,7 @@ namespace Paragon.Runtime.Plugins
                 plugin.DynamicPluginDisposed += DynamicPluginDisposed;
             }
 
-            Logger.Info(fmt => fmt("Local plugin added successfully: " + plugin.Descriptor.PluginId));
+            Logger.Info("Local plugin added successfully: " + plugin.Descriptor.PluginId);
             return true;
         }
 
@@ -70,36 +70,36 @@ namespace Paragon.Runtime.Plugins
                 var t = assembly.GetType(type);
                 if (t.GetCustomAttributes(typeof (JavaScriptPluginAttribute), true).Length == 0)
                 {
-                    Logger.Error(fmt => fmt("Plugin attribute not found on type: " + type));
+                    Logger.Error("Plugin attribute not found on type: " + type);
                     return null;
                 }
 
                 var plugin = JavaScriptPlugin.CreateFromType(_managerProcess, t, false);
                 if (plugin == null)
                 {
-                    Logger.Error(fmt => fmt("Failed to create plugin instance for type: " + type));
+                    Logger.Error("Failed to create plugin instance for type: " + type);
                     return null;
                 }
 
                 if (plugin.IsDynamic)
                 {
-                    Logger.Error(fmt => fmt("Dynamic application plugins are not allowed - type: " + type));
+                    Logger.Error("Dynamic application plugins are not allowed - type: " + type);
                     return null;
                 }
 
                 if (!_localPluginsById.TryAdd(plugin.Descriptor.PluginId, plugin))
                 {
-                    Logger.Error(fmt => fmt("Failed to add application plugin for type: " + type));
+                    Logger.Error("Failed to add application plugin for type: " + type);
                     return null;
                 }
 
-                Logger.Info(fmt => fmt("Application plugin added successfully: " + plugin.Descriptor.PluginId));
+                Logger.Info("Application plugin added successfully: " + plugin.Descriptor.PluginId);
 
                 return plugin.NativeObject;
             }
             catch (Exception e)
             {
-                Logger.Error(fmt => fmt("Error adding application plugin: " + e));
+                Logger.Error("Error adding application plugin: " + e);
                 return null;
             }
         }
@@ -109,7 +109,7 @@ namespace Paragon.Runtime.Plugins
             JavaScriptPlugin plugin;
             if (!_localPluginsById.TryGetValue(pluginId, out plugin))
             {
-                Logger.Error(fmt => fmt("Requested plugin not found: " + pluginId));
+                Logger.Error("Requested plugin not found: " + pluginId);
                 return null;
             }
 
@@ -126,7 +126,7 @@ namespace Paragon.Runtime.Plugins
             JavaScriptPlugin plugin;
             if (!_localPluginsById.TryRemove(pluginId, out plugin))
             {
-                Logger.Warn(fmt => fmt("Failed to remove plugin - no plugin found with the specified ID: " + pluginId));
+                Logger.Warn("Failed to remove plugin - no plugin found with the specified ID: " + pluginId);
                 return;
             }
 
@@ -141,7 +141,7 @@ namespace Paragon.Runtime.Plugins
                 localPluginRemoved(plugin);
             }
 
-            Logger.Info(fmt => fmt("Successfully removed plugin: " + pluginId));
+            Logger.Info("Successfully removed plugin: " + pluginId);
         }
 
         public void LoadLocalPluginsFromFolder(string folderPath, bool isKernel)
@@ -149,13 +149,13 @@ namespace Paragon.Runtime.Plugins
             var directory = new DirectoryInfo(folderPath);
             if (!directory.Exists)
             {
-                Logger.Error(fmt => fmt("Plugin directory not found: " + folderPath));
+                Logger.Error("Plugin directory not found: " + folderPath);
                 return;
             }
 
             var files = new List<FileInfo>(directory.GetFiles("*.dll"));
             files.AddRange(directory.GetFiles("*.exe"));
-            Logger.Info(fmt => fmt("Inspecting {0} files for plugins", files.Count));
+            Logger.Info("Inspecting {0} files for plugins", files.Count);
             files.ForEach(f => LoadLocalPluginsFromFile(f.FullName, isKernel));
         }
 
@@ -166,7 +166,7 @@ namespace Paragon.Runtime.Plugins
                 var assembly = VerifyAndLoad(pluginAssemblyFilePath);
                 if (assembly == null)
                 {
-                    Logger.Error(fmt => fmt("Failed to verify and load local plugin assembly: " + pluginAssemblyFilePath));
+                    Logger.Error("Failed to verify and load local plugin assembly: " + pluginAssemblyFilePath);
                     return;
                 }
 
@@ -177,27 +177,27 @@ namespace Paragon.Runtime.Plugins
                     var plugin = JavaScriptPlugin.CreateFromType(_managerProcess, type, isKernel);
                     if (plugin == null)
                     {
-                        Logger.Warn(fmt => fmt("Failed to create plugin of type {0} in assembly {1}", type, pluginAssemblyFilePath));
+                        Logger.Warn("Failed to create plugin of type {0} in assembly {1}", type, pluginAssemblyFilePath);
                         continue;
                     }
 
                     if (plugin.IsDynamic)
                     {
-                        Logger.Info(fmt => fmt("Skipping load of dynamic plugin {0} in assembly {1}", type, pluginAssemblyFilePath));
+                        Logger.Info("Skipping load of dynamic plugin {0} in assembly {1}", type, pluginAssemblyFilePath);
                         continue;
                     }
 
                     if (!_localPluginsById.TryAdd(plugin.Descriptor.PluginId, plugin))
                     {
-                        Logger.Warn(fmt => fmt("Failed to add local plugin {0} in assembly {1}", type, pluginAssemblyFilePath));
+                        Logger.Warn("Failed to add local plugin {0} in assembly {1}", type, pluginAssemblyFilePath);
                     }
 
-                    Logger.Info(fmt => fmt("Successfully added local plugin {0} from assembly {1}", type, pluginAssemblyFilePath));
+                    Logger.Info("Successfully added local plugin {0} from assembly {1}", type, pluginAssemblyFilePath);
                 }
             }
             catch (Exception exception)
             {
-                Logger.Error(fmt => fmt("Failed to load plugins from [{0}] because: {1}", pluginAssemblyFilePath, exception));
+                Logger.Error("Failed to load plugins from [{0}] because: {1}", pluginAssemblyFilePath, exception);
             }
         }
 
@@ -234,12 +234,12 @@ namespace Paragon.Runtime.Plugins
                 assembly = AppDomain.CurrentDomain.Load(assemblyName);
                 if (!_loadedAssemblies.TryAdd(assemblyPath, assembly))
                 {
-                    Logger.Warn(fmt => fmt("Attempt to load a duplicate assembly from path: " + assemblyPath));
+                    Logger.Warn("Attempt to load a duplicate assembly from path: " + assemblyPath);
                 }
             }
             catch (Exception e)
             {
-                Logger.Error(fmt => fmt("Error loading plugin assembly: " + e));
+                Logger.Error("Error loading plugin assembly: " + e);
             }
 
             return assembly;
@@ -254,7 +254,7 @@ namespace Paragon.Runtime.Plugins
                 var verified = false;
                 if (!NativeMethods.StrongNameSignatureVerificationEx(assemblyFilePath, true, ref verified))
                 {
-                    Logger.Warn(fmt => fmt("Unable to verify strong name for assembly: " + assemblyFilePath));
+                    Logger.Warn("Unable to verify strong name for assembly: " + assemblyFilePath);
                     return false;
                 }
 
@@ -262,7 +262,7 @@ namespace Paragon.Runtime.Plugins
                 var token = assemblyName.GetPublicKeyToken();
                 if (!token.SequenceEqual(ParagonKeyToken))
                 {
-                    Logger.Warn(fmt => fmt("Invalid strong name found for assembly at: " + assemblyFilePath));
+                    Logger.Warn("Invalid strong name found for assembly at: " + assemblyFilePath);
                     return false;
                 }
 
@@ -270,7 +270,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception e)
             {
-                Logger.Error(fmt => fmt("Error verifying assembly signature: " + e));
+                Logger.Error("Error verifying assembly signature: " + e);
                 return false;
             }
         }

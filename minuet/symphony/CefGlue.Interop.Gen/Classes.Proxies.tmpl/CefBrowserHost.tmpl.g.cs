@@ -135,15 +135,19 @@ namespace Xilium.CefGlue
         /// Call to run a file chooser dialog. Only a single file chooser dialog may be
         /// pending at any given time. |mode| represents the type of dialog to display.
         /// |title| to the title to be used for the dialog and may be empty to show the
-        /// default title ("Open" or "Save" depending on the mode). |default_file_name|
-        /// is the default file name to select in the dialog. |accept_types| is a list
-        /// of valid lower-cased MIME types or file extensions specified in an input
-        /// element and is used to restrict selectable files to such types. |callback|
-        /// will be executed after the dialog is dismissed or immediately if another
-        /// dialog is already pending. The dialog will be initiated asynchronously on
-        /// the UI thread.
+        /// default title ("Open" or "Save" depending on the mode). |default_file_path|
+        /// is the path with optional directory and/or file name component that will be
+        /// initially selected in the dialog. |accept_filters| are used to restrict the
+        /// selectable file types and may any combination of (a) valid lower-cased MIME
+        /// types (e.g. "text/*" or "image/*"), (b) individual file extensions (e.g.
+        /// ".txt" or ".png"), or (c) combined description and file extension delimited
+        /// using "|" and ";" (e.g. "Image Types|.png;.gif;.jpg").
+        /// |selected_accept_filter| is the 0-based index of the filter that will be
+        /// selected by default. |callback| will be executed after the dialog is
+        /// dismissed or immediately if another dialog is already pending. The dialog
+        /// will be initiated asynchronously on the UI thread.
         /// </summary>
-        public void RunFileDialog(CefFileDialogMode mode, cef_string_t* title, cef_string_t* default_file_name, cef_string_list* accept_types, cef_run_file_dialog_callback_t* callback)
+        public void RunFileDialog(CefFileDialogMode mode, cef_string_t* title, cef_string_t* default_file_path, cef_string_list* accept_filters, int selected_accept_filter, cef_run_file_dialog_callback_t* callback)
         {
             throw new NotImplementedException(); // TODO: CefBrowserHost.RunFileDialog
         }
@@ -169,7 +173,8 @@ namespace Xilium.CefGlue
         /// running simultaniously. |forward| indicates whether to search forward or
         /// backward within the page. |matchCase| indicates whether the search should
         /// be case-sensitive. |findNext| indicates whether this is the first request
-        /// or a follow-up.
+        /// or a follow-up. The CefFindHandler instance, if any, returned via
+        /// CefClient::GetFindHandler will be called to report find results.
         /// </summary>
         public void Find(int identifier, cef_string_t* searchText, int forward, int matchCase, int findNext)
         {
@@ -200,6 +205,16 @@ namespace Xilium.CefGlue
         public void CloseDevTools()
         {
             throw new NotImplementedException(); // TODO: CefBrowserHost.CloseDevTools
+        }
+        
+        /// <summary>
+        /// Retrieve a snapshot of current navigation entries as values sent to the
+        /// specified visitor. If |current_only| is true only the current navigation
+        /// entry will be sent, otherwise all navigation entries will be sent.
+        /// </summary>
+        public void GetNavigationEntries(cef_navigation_entry_visitor_t* visitor, int current_only)
+        {
+            throw new NotImplementedException(); // TODO: CefBrowserHost.GetNavigationEntries
         }
         
         /// <summary>

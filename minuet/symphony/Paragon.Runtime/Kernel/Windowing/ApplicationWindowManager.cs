@@ -72,7 +72,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                     _pendingWindowCreations.Add(request);
                 }
                 browser.ExecuteJavaScript(string.Format("window.open('{0}', '{1}');", request.StartUrl, request.RequestId));
-                Logger.Debug(fmt => fmt("Created window with URL {0} and ID {1}", request.StartUrl, request.RequestId));
+                Logger.Debug("Created window with URL {0} and ID {1}", request.StartUrl, request.RequestId);
             }
             else
             {
@@ -124,7 +124,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void ShowApplicationWindowPopup(IApplicationWindowEx applicationWindow, ShowPopupEventArgs eventArgs)
         {
             CreateWindowInternal(eventArgs, request => request.RequestId == eventArgs.PopupBrowser.Source);
-            Logger.Debug(fmt => fmt("Application window with ID {0} shown.", applicationWindow.GetId()));
+            Logger.Debug("Application window with ID {0} shown.", applicationWindow.GetId());
         }
 
         public void RemoveApplicationWindow(IApplicationWindowEx applicationWindow)
@@ -144,7 +144,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                 NoWindowsOpen.Raise(this, EventArgs.Empty);
             }
 
-            Logger.Debug(fmt => fmt("Application window with ID {0} removed.", applicationWindow.GetId()));
+            Logger.Debug("Application window with ID {0} removed.", applicationWindow.GetId());
         }
 
         public void Shutdown()

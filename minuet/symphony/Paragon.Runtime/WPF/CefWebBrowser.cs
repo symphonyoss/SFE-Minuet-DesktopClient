@@ -5,7 +5,6 @@ using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
-using System.Windows.Forms.Integration;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Paragon.Plugins;
@@ -18,6 +17,7 @@ using KeyEventArgs = System.Windows.Forms.KeyEventArgs;
 using System.Linq;
 using Paragon.Runtime.PackagedApplication;
 using Paragon.Runtime.Properties;
+using System.Threading;
 
 namespace Paragon.Runtime.WPF
 {
@@ -138,7 +138,7 @@ namespace Paragon.Runtime.WPF
 
         public void Close(bool force = false)
         {
-            Logger.Info(fmt => fmt("Closing browser {0}", Identifier));
+            Logger.Info("Closing browser {0}", Identifier);
             if (_browser != null)
             {
                 _browser.GetHost().CloseBrowser(force);
@@ -208,7 +208,8 @@ namespace Paragon.Runtime.WPF
                 }
                 else
                 {
-                    _browser.GetHost().ShowDevTools(info, ctl.Client, settings);
+                    var defaultCefPoint = new CefPoint(0, 0);
+                    _browser.GetHost().ShowDevTools(info, ctl.Client, settings, defaultCefPoint);
                 }
 
                 return ctl;
@@ -283,7 +284,7 @@ namespace Paragon.Runtime.WPF
                             info.SetAsChild(ParentHandle, new CefRectangle(rect.Left, rect.Top, rect.Width, rect.Height));
                         }
 
-                        Logger.Info(fmt => fmt("OnHandleCreated - Creating a browser with url {0}", _currentUrl));
+                        Logger.Info("OnHandleCreated - Creating a browser with url {0}", _currentUrl);
                         CefBrowserHost.CreateBrowser(info, _client, settings, _currentUrl);
                     }
                 }
@@ -300,41 +301,83 @@ namespace Paragon.Runtime.WPF
             }
         }
 
-        public void RunFileDialog(CefFileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, CefRunFileDialogCallback callback)
+        public void RunFileDialog(CefFileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, int selectedAcceptFilter, CefRunFileDialogCallback callback)
         {
             if (_browser != null)
             {
-                _browser.GetHost().RunFileDialog(mode, title, defaultFileName, acceptTypes, callback);
+                _browser.GetHost().RunFileDialog(mode, title, defaultFileName, acceptTypes, selectedAcceptFilter, callback);
             }
+        }
+
+        //satisfy the CEF test suite
+        public string GetSource(string frameName)
+        {
+            if (_browser != null)
+            {
+                var frame = _browser.GetFrame(frameName);
+                if (frame != null)
+                {
+                    var done = new ManualResetEvent(false);
+                    SourceStringVisitor visitor = new SourceStringVisitor(done);
+                    frame.GetSource(visitor);
+                    done.WaitOne();
+                    return visitor.Info;
+                }
+            }
+            return "Not able to retrieve source.";
+        }
+
+        //satisfy the CEF test suite
+        public string GetText(string frameName)
+        {
+            if (_browser != null)
+            {
+                var frame = _browser.GetFrame(frameName);
+                if (frame != null)
+                {
+                    var done = new ManualResetEvent(false);
+                    SourceStringVisitor visitor = new SourceStringVisitor(done);
+                    frame.GetText(visitor);
+                    done.WaitOne();
+                    return visitor.Info;
+                }
+            }
+            return "Not able to retrieve text.";
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
+
             if (_browser != null && disposing)
             {
                 ParagonRuntime.RemoveBrowser(this);
                 if (_widgetWindowZOrderHandler != null)
                 {
                     _widgetWindowZOrderHandler.Dispose();
+                    _widgetWindowZOrderHandler = null;
                 }
                 if (_containerWindowMoveListener != null)
                 {
                     _containerWindowMoveListener.Dispose();
+                    _containerWindowMoveListener = null;
                 }
                 if (_router != null)
                 {
+                    _router.Dispose();
                     _router = null;
                 }
                 if (_client != null)
                 {
                     _client.Dispose();
+                    _client = null;
                 }
                 if (_browser != null)
                 {
                     _browser.Dispose();
+                    _browser = null;
                 }
-                _browser = null;
                 _browserWindowHandle = IntPtr.Zero;
             }
         }
@@ -355,7 +398,7 @@ namespace Paragon.Runtime.WPF
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("Error in OnBeforeContextMenu : {0}", ex));
+                Logger.Error("Error in OnBeforeContextMenu : {0}", ex);
             }
             finally
             {
@@ -416,7 +459,7 @@ namespace Paragon.Runtime.WPF
             catch (Exception ex)
             {
                 e.Cancel = true;
-                Logger.Error(fmt => fmt("Error in OnBeforePopup : {0}. Popup will not be allowed.", ex));
+                Logger.Error("Error in OnBeforePopup : {0}. Popup will not be allowed.", ex);
             }
             finally
             {
@@ -476,7 +519,7 @@ namespace Paragon.Runtime.WPF
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("Error in OnBeforeResourceLoad : {0}. Resource loading will be aborted.", ex));
+                Logger.Error("Error in OnBeforeResourceLoad : {0}. Resource loading will be aborted.", ex);
                 ea.Cancel = true;
             }
         }
@@ -494,7 +537,7 @@ namespace Paragon.Runtime.WPF
                     }
                     catch (Exception ex)
                     {
-                        Logger.Error(fmt => fmt("Error in OnBeforeUnloadDialog : {0}. Dialog will be suppressed.", ex));
+                        Logger.Error("Error in OnBeforeUnloadDialog : {0}. Dialog will be suppressed.", ex);
                     }
                 });
             }
@@ -521,6 +564,7 @@ namespace Paragon.Runtime.WPF
                             _widgetWindowZOrderHandler = new WidgetWindowZOrderHandler(_browserWindowHandle);
                         }
                     }
+
                     if (!IsPopup)
                     {
                         if( BrowserAfterCreated != null )
@@ -542,10 +586,12 @@ namespace Paragon.Runtime.WPF
                             }
                         }
                     }
+
+                    SetBrowserZoomLevel();
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(fmt => fmt("Error in OnBrowserAfterCreated : {0}", ex));
+                    Logger.Error("Error in OnBrowserAfterCreated : {0}", ex);
                     throw;
                 }
             }, true);
@@ -568,7 +614,7 @@ namespace Paragon.Runtime.WPF
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("Error in OnBeforeContextMenu : {0}", ex));
+                Logger.Error("Error in OnBeforeContextMenu : {0}", ex);
             }
         }
 
@@ -605,7 +651,7 @@ namespace Paragon.Runtime.WPF
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(fmt => fmt("Error in OnJSDialog : {0}. Dialog will be suppressed.", ex));
+                    Logger.Error("Error in OnJSDialog : {0}. Dialog will be suppressed.", ex);
                     ea.SuppressMessage = true;
                 }
                 finally
@@ -637,7 +683,7 @@ namespace Paragon.Runtime.WPF
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(fmt => fmt("Error in OnLoadEnd : {0}", ex));
+                    Logger.Error("Error in OnLoadEnd : {0}", ex);
                 }
                 finally
                 {
@@ -677,7 +723,7 @@ namespace Paragon.Runtime.WPF
                         // page along with any error text that may have been provided.
                         var html = StaticWebContent.GetLoadErrorPage(e.FailedUrl, e.ErrorText, ParagonLogManager.CurrentParagonLogFile);
                         e.Frame.LoadString(html, PackagedApplicationSchemeHandlerFactory.ErrorPage);
-                        Logger.Error(fmt => fmt("Error loading the main frame: url = {0}, Error = {1} {2}", e.FailedUrl, e.ErrorCode, e.ErrorText));
+                        Logger.Error("Error loading the main frame: url = {0}, Error = {1} {2}", e.FailedUrl, e.ErrorCode, e.ErrorText);
                     }
                     else
                     {
@@ -710,7 +756,7 @@ namespace Paragon.Runtime.WPF
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(fmt => fmt("Error in OnLoadStart : {0}", ex));
+                    Logger.Error("Error in OnLoadStart : {0}", ex);
                 }
             },
             true);
@@ -750,7 +796,13 @@ namespace Paragon.Runtime.WPF
 
         void ICefWebBrowserInternal.OnRenderProcessTerminated(RenderProcessTerminatedEventArgs e)
         {
-            InvokeHandler(RenderProcessTerminated, e, true);
+            if (RenderProcessTerminated != null)
+                RenderProcessTerminated(this, e);
+            else
+            {
+                var frame = e.Browser.GetMainFrame();
+                frame.LoadUrl(frame.Url);
+            }
         }
 
         void ICefWebBrowserInternal.OnTitleChanged(TitleChangedEventArgs e)
@@ -774,7 +826,7 @@ namespace Paragon.Runtime.WPF
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("Error in OnProtocolExecution : {0}. Protocol will not be allowed.", ex.Message));
+                Logger.Error("Error in OnProtocolExecution : {0}. Protocol will not be allowed.", ex.Message);
                 ea.Allow = false;
             }
         }
@@ -786,6 +838,38 @@ namespace Paragon.Runtime.WPF
         }
 
         #endregion
+
+        /// <summary>
+        /// Match browser zoom level to system dpi
+        /// Adjust zoom level for system dpi 125%
+        /// </summary>
+        private void SetBrowserZoomLevel()
+        {
+            if (_browser != null)
+            {
+                using (var browserHost = _browser.GetHost())
+                {
+                    var hdc = IntPtr.Zero;
+                    try
+                    {
+                        hdc = NativeMethods.GetDC(_browserWindowHandle);
+                        int ppix = NativeMethods.GetDeviceCaps(hdc, NativeMethods.LOGPIXELSX);
+                        if (ppix == 120)
+                        {
+                            var zoomLevel = ppix/100.0;
+                            browserHost.SetZoomLevel(zoomLevel);
+                        }
+                    }
+                    finally
+                    {
+                        if (hdc != IntPtr.Zero)
+                        {
+                            NativeMethods.ReleaseDC(_browserWindowHandle, hdc);
+                        }
+                    }
+                }
+            }
+        }
 
         private void InvokeHandler<T>(EventHandler<T> handler, T args, bool invokeAsync = false, string callingMethodName = null)
             where T : EventArgs
@@ -802,7 +886,7 @@ namespace Paragon.Runtime.WPF
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(fmt => fmt("Error in {0} : {1}", callingMethodName ?? "Unknown", ex));
+                    Logger.Error("Error in {0} : {1}", callingMethodName ?? "Unknown", ex);
                 }
             }, invokeAsync);
         }
@@ -821,7 +905,7 @@ namespace Paragon.Runtime.WPF
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(fmt => fmt("Error in {0} : {1}", callingMethodName ?? "Unknown", ex));
+                    Logger.Error("Error in {0} : {1}", callingMethodName ?? "Unknown", ex);
                 }
             }, invokeAsync);
         }
@@ -864,13 +948,13 @@ namespace Paragon.Runtime.WPF
                     {
                         if (_browser.IsLoading)
                         {
-                            Logger.Info(fmt => fmt("Stopping the loading of {0}", _currentUrl));
+                            Logger.Info("Stopping the loading of {0}", _currentUrl);
                             _browser.StopLoad();
                         }
                     }
                     finally
                     {
-                        Logger.Info(fmt => fmt("Loading url = {0}", _currentUrl));
+                        Logger.Info("Loading url = {0}", _currentUrl);
                         _browser.GetMainFrame().LoadUrl(_currentUrl);
                     }
                 }

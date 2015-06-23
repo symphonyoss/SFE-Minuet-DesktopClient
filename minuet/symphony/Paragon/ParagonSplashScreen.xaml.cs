@@ -25,10 +25,11 @@ namespace Paragon
     /// <summary>
     /// Interaction logic for ParagonSplashScreen.xaml
     /// </summary>
-    public partial class ParagonSplashScreen : INotifyPropertyChanged
+    public partial class ParagonSplashScreen : INotifyPropertyChanged, IParagonSplashScreen
     {
         private Storyboard _showboard;
         private Storyboard _hideboard;
+        private FrameworkElement _statusText;
         ResourceDictionary _styleRd;
         private static readonly ILogger Logger = ParagonLogManager.GetLogger();
 
@@ -46,25 +47,32 @@ namespace Paragon
 
             if (shellIconStream != null)
             {
-                var icon = new Icon(shellIconStream, 128, 128);
-
-                using (var bmp = icon.ToBitmap())
+                try
                 {
-                    var hbmp = bmp.GetHbitmap();
+                    var icon = new Icon(shellIconStream, 128, 128);
 
-                    try
+                    using (var bmp = icon.ToBitmap())
                     {
-                        ShellIcon = Imaging.CreateBitmapSourceFromHBitmap(hbmp, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                        var hbmp = bmp.GetHbitmap();
+
+                        try
+                        {
+                            ShellIcon = Imaging.CreateBitmapSourceFromHBitmap(hbmp, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error("Error creating splash screen bitmap: ", ex);
+                        }
+                        finally
+                        {
+                            if (IntPtr.Zero != hbmp)
+                                Win32Api.DeleteObject(hbmp);
+                        }
                     }
-                    catch(Exception ex)
-                    {
-                        Logger.Error(fmt => fmt("Error creating splash screen bitmap: " + ex));
-                    }
-                    finally
-                    {
-                        if (IntPtr.Zero != hbmp)
-                            Win32Api.DeleteObject(hbmp);
-                    }
+                }
+                catch 
+                {
+                    Logger.Warn("Could not create the splash screen icon from the specified icon in the manifest. Will use the paragon icon ");
                 }
             }
 
@@ -80,28 +88,30 @@ namespace Paragon
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(fmt => fmt("Error reading splash screen xaml: " + ex));
+                    Logger.Error("Error reading splash screen xaml: ", ex);
                 }
-                
             }
         }
 
         public override void OnApplyTemplate()
         {
-            if (this.Style == null)
+            if (Style == null)
             {
                 if (_styleRd != null)
                 {
                     if (_styleRd.Contains("Custom"))
-                        this.Style = _styleRd["Custom"] as Style;
+                        Style = _styleRd["Custom"] as Style;
                 }
                 else
-                    this.Style = Application.Current.Resources["Default"] as Style;
+                    Style = Application.Current.Resources["Default"] as Style;
             }
 
             base.OnApplyTemplate();
-            _showboard = Resources["ShowStoryBoard"] as Storyboard;
-            _hideboard = Resources["HideStoryBoard"] as Storyboard;
+            if (this.Template != null)
+            {
+                _showboard = Style.Resources["ShowStoryBoard"] as Storyboard;
+                _hideboard = Style.Resources["HideStoryBoard"] as Storyboard;
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -110,17 +120,24 @@ namespace Paragon
         public string Version { get; set; }
         public string Text { get; private set; }
         public string PreviousText { get; private set; }
+
         public void ShowText(string text)
         {
+            // TODO : Cleanu this up
+            if( _statusText == null )
+                _statusText = this.Template.FindName("StatusText", this) as FrameworkElement;
+
             PreviousText = Text;
             Text = text;
-            if (_showboard != null)
-                BeginStoryboard(_showboard);
+
+            if (_showboard != null && _statusText != null)
+                _showboard.Begin(_statusText);
 
             OnPropertyChanged("Text");
             OnPropertyChanged("PreviousText");
-            if (_hideboard != null)
-                BeginStoryboard(_hideboard);
+
+            if (_hideboard != null && _statusText != null)
+                _hideboard.Begin(_statusText);
         }
 
         private void OnPropertyChanged(string propertyName)

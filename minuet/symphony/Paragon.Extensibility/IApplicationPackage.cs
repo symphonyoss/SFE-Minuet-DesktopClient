@@ -12,9 +12,7 @@ namespace Paragon.Plugins
 
         string PackageFilePath { get; }
 
-        Stream GetIcon16();
-
-        Stream GetIcon128();
+        Stream GetIcon();
 
         PackagePart GetPart(string path);
     }
