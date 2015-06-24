@@ -84,7 +84,7 @@ namespace Xilium.CefGlue
         
         /// <summary>
         /// Called when the browser wants to move or resize the popup widget. |rect|
-        /// contains the new location and size.
+        /// contains the new location and size in view coordinates.
         /// </summary>
         // protected abstract void OnPopupSize(cef_browser_t* browser, cef_rect_t* rect);
         
@@ -95,24 +95,28 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Called when an element should be painted. |type| indicates whether the
-        /// element is the view or the popup widget. |buffer| contains the pixel data
-        /// for the whole image. |dirtyRects| contains the set of rectangles that need
-        /// to be repainted. On Windows |buffer| will be |width|*|height|*4 bytes
-        /// in size and represents a BGRA image with an upper-left origin.
+        /// Called when an element should be painted. Pixel values passed to this
+        /// method are scaled relative to view coordinates based on the value of
+        /// CefScreenInfo.device_scale_factor returned from GetScreenInfo. |type|
+        /// indicates whether the element is the view or the popup widget. |buffer|
+        /// contains the pixel data for the whole image. |dirtyRects| contains the set
+        /// of rectangles in pixel coordinates that need to be repainted. |buffer| will
+        /// be |width|*|height|*4 bytes in size and represents a BGRA image with an
+        /// upper-left origin.
         /// </summary>
         // protected abstract void OnPaint(cef_browser_t* browser, CefPaintElementType type, UIntPtr dirtyRectsCount, cef_rect_t* dirtyRects, void* buffer, int width, int height);
         
-        private void on_cursor_change(cef_render_handler_t* self, cef_browser_t* browser, IntPtr cursor)
+        private void on_cursor_change(cef_render_handler_t* self, cef_browser_t* browser, IntPtr cursor, CefCursorType type, cef_cursor_info_t* custom_cursor_info)
         {
             CheckSelf(self);
             throw new NotImplementedException(); // TODO: CefRenderHandler.OnCursorChange
         }
         
         /// <summary>
-        /// Called when the browser window's cursor has changed.
+        /// Called when the browser's cursor has changed. If |type| is CT_CUSTOM then
+        /// |custom_cursor_info| will be populated with the custom cursor information.
         /// </summary>
-        // protected abstract void OnCursorChange(cef_browser_t* browser, IntPtr cursor);
+        // protected abstract void OnCursorChange(cef_browser_t* browser, IntPtr cursor, CefCursorType type, cef_cursor_info_t* custom_cursor_info);
         
         private int start_dragging(cef_render_handler_t* self, cef_browser_t* browser, cef_drag_data_t* drag_data, CefDragOperationsMask allowed_ops, int x, int y)
         {
@@ -123,6 +127,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Called when the user starts dragging content in the web view. Contextual
         /// information about the dragged content is supplied by |drag_data|.
+        /// (|x|, |y|) is the drag start location in screen coordinates.
         /// OS APIs that run a system message loop may be used within the
         /// StartDragging call.
         /// Return false to abort the drag operation. Don't call any of
@@ -147,7 +152,7 @@ namespace Xilium.CefGlue
         /// </summary>
         // protected abstract void UpdateDragCursor(cef_browser_t* browser, CefDragOperationsMask operation);
         
-        private void on_scroll_offset_changed(cef_render_handler_t* self, cef_browser_t* browser)
+        private void on_scroll_offset_changed(cef_render_handler_t* self, cef_browser_t* browser, double x, double y)
         {
             CheckSelf(self);
             throw new NotImplementedException(); // TODO: CefRenderHandler.OnScrollOffsetChanged
@@ -156,7 +161,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Called when the scroll offset has changed.
         /// </summary>
-        // protected abstract void OnScrollOffsetChanged(cef_browser_t* browser);
+        // protected abstract void OnScrollOffsetChanged(cef_browser_t* browser, double x, double y);
         
     }
 }

@@ -42,19 +42,19 @@ namespace Xilium.CefGlue
         }
 
 
-        private int on_before_resource_load(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request)
+        private CefReturnValue on_before_resource_load(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_request_callback_t* callback)
         {
             CheckSelf(self);
 
             var m_browser = CefBrowser.FromNative(browser);
             var m_frame = CefFrame.FromNative(frame);
             var m_request = CefRequest.FromNative(request);
-
-            var result = OnBeforeResourceLoad(m_browser, m_frame, m_request);
+            var m_callback = CefRequestCallback.FromNative(callback);
+            var result = OnBeforeResourceLoad(m_browser, m_frame, m_request, m_callback);
 
             m_request.Dispose();
 
-            return result ? 1 : 0;
+            return result;
         }
 
         /// <summary>
@@ -62,9 +62,9 @@ namespace Xilium.CefGlue
         /// object may be modified. To cancel the request return true otherwise return
         /// false.
         /// </summary>
-        protected virtual bool OnBeforeResourceLoad(CefBrowser browser, CefFrame frame, CefRequest request)
+        protected virtual CefReturnValue OnBeforeResourceLoad(CefBrowser browser, CefFrame frame, CefRequest request, CefRequestCallback callback)
         {
-            return false;
+            return CefReturnValue.Continue;
         }
 
 
@@ -95,17 +95,17 @@ namespace Xilium.CefGlue
         }
 
 
-        private void on_resource_redirect(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* old_url, cef_string_t* new_url)
+        private void on_resource_redirect(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_string_t* new_url)
         {
             CheckSelf(self);
 
             var m_browser = CefBrowser.FromNative(browser);
             var m_frame = CefFrame.FromNative(frame);
-            var m_oldUrl = cef_string_t.ToString(old_url);
+            var m_request = CefRequest.FromNative(request);
             var m_newUrl = cef_string_t.ToString(new_url);
 
             var o_newUrl = m_newUrl;
-            OnResourceRedirect(m_browser, m_frame, m_oldUrl, ref m_newUrl);
+            OnResourceRedirect(m_browser, m_frame, m_request, ref m_newUrl);
 
             if ((object)m_newUrl != (object)o_newUrl)
             {
@@ -118,7 +118,7 @@ namespace Xilium.CefGlue
         /// parameter will contain the old URL. The |new_url| parameter will contain
         /// the new URL and can be changed if desired.
         /// </summary>
-        protected virtual void OnResourceRedirect(CefBrowser browser, CefFrame frame, string oldUrl, ref string newUrl)
+        protected virtual void OnResourceRedirect(CefBrowser browser, CefFrame frame, CefRequest request, ref string newUrl)
         {
         }
 
@@ -152,13 +152,13 @@ namespace Xilium.CefGlue
         }
 
 
-        private int on_quota_request(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* origin_url, long new_size, cef_quota_callback_t* callback)
+        private int on_quota_request(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* origin_url, long new_size, cef_request_callback_t* callback)
         {
             CheckSelf(self);
 
             var m_browser = CefBrowser.FromNative(browser);
             var m_origin_url = cef_string_t.ToString(origin_url);
-            var m_callback = CefQuotaCallback.FromNative(callback);
+            var m_callback = CefRequestCallback.FromNative(callback);
 
             var result = OnQuotaRequest(m_browser, m_origin_url, new_size, m_callback);
 
@@ -173,7 +173,7 @@ namespace Xilium.CefGlue
         /// this method or at a later time to grant or deny the request. Return false
         /// to cancel the request.
         /// </summary>
-        protected virtual bool OnQuotaRequest(CefBrowser browser, string originUrl, long newSize, CefQuotaCallback callback)
+        protected virtual bool OnQuotaRequest(CefBrowser browser, string originUrl, long newSize, CefRequestCallback callback)
         {
             callback.Continue(true);
             return true;
@@ -206,14 +206,16 @@ namespace Xilium.CefGlue
         }
 
 
-        private int on_certificate_error(cef_request_handler_t* self, CefErrorCode cert_error, cef_string_t* request_url, cef_allow_certificate_error_callback_t* callback)
+        private int on_certificate_error(cef_request_handler_t* self, cef_browser_t* browser, CefErrorCode cert_error, cef_string_t* request_url, cef_sslinfo_t* ssl_info, cef_request_callback_t* callback)
         {
             CheckSelf(self);
 
+            var m_browser = CefBrowser.FromNative(browser);
             var m_request_url = cef_string_t.ToString(request_url);
-            var m_callback = CefAllowCertificateErrorCallback.FromNativeOrNull(callback);
+            var m_ssl_info = CefSslInfo.FromNative(ssl_info);
+            var m_callback = CefRequestCallback.FromNativeOrNull(callback);
 
-            var result = OnCertificateError(cert_error, m_request_url, m_callback);
+            var result = OnCertificateError(m_browser, cert_error, m_request_url, m_ssl_info, m_callback);
 
             return result ? 1 : 0;
         }
@@ -227,8 +229,10 @@ namespace Xilium.CefGlue
         /// canceled automatically. If CefSettings.ignore_certificate_errors is set
         /// all invalid certificates will be accepted without calling this method.
         /// </summary>
-        protected virtual bool OnCertificateError(CefErrorCode certError, string requestUrl, CefAllowCertificateErrorCallback callback)
+        protected virtual bool OnCertificateError(CefBrowser browser, CefErrorCode certError, string requestUrl, CefSslInfo sslInfo, CefRequestCallback callback)
         {
+            if (callback != null)
+                callback.Cancel();
             return false;
         }
 
@@ -285,12 +289,62 @@ namespace Xilium.CefGlue
             OnRenderProcessTerminated(m_browser, status);
         }
 
+
         /// <summary>
         /// Called on the browser process UI thread when the render process
         /// terminates unexpectedly. |status| indicates how the process
         /// terminated.
         /// </summary>
         protected virtual void OnRenderProcessTerminated(CefBrowser browser, CefTerminationStatus status)
+        {
+        }
+
+        private int on_open_urlfrom_tab(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* target_url, CefWindowOpenDisposition target_disposition, int user_gesture)
+        {
+            CheckSelf(self);
+
+            var m_browser = CefBrowser.FromNative(browser);
+            var m_frame = CefFrame.FromNative(frame);
+            var m_target_url = cef_string_t.ToString(target_url);
+
+            var result = OnOpenUrlFromTab(m_browser, m_frame, m_target_url, target_disposition, user_gesture);
+
+            return result ? 1 : 0;
+        }
+
+        protected virtual bool OnOpenUrlFromTab(CefBrowser browser, CefFrame frame, string targetUrl, CefWindowOpenDisposition targetDisposition, int userGesture)
+        {
+            return false;
+        }
+
+        private int on_resource_response(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response)
+        {
+            CheckSelf(self);
+
+            var m_browser = CefBrowser.FromNative(browser);
+            var m_frame = CefFrame.FromNative(frame);
+            var m_request = CefRequest.FromNative(request);
+            var m_response = CefResponse.FromNative(response);
+
+            var result = OnResourceResponse(m_browser, m_frame, m_request, m_response);
+
+            return result ? 1 : 0;
+        }
+
+        protected virtual bool OnResourceResponse(CefBrowser browser, CefFrame frame, CefRequest request, CefResponse response)
+        {
+            return false;
+        }
+
+        private void on_render_view_ready(cef_request_handler_t* self, cef_browser_t* browser)
+        {
+            CheckSelf(self);
+
+            var m_browser = CefBrowser.FromNative(browser);
+            OnRenderViewReady(m_browser);
+        }
+
+        protected virtual void OnRenderViewReady(CefBrowser browser)
         {
         }
     }

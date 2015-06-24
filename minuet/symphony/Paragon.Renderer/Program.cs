@@ -16,20 +16,24 @@ namespace Paragon.Renderer
             InitLogging(args);
             var logger = ParagonLogManager.GetLogger();
             var procId = Process.GetCurrentProcess().Id;
-            logger.Info(fmt => fmt("Render process {0} starting", procId));
+            logger.Info("Render process {0} starting", procId);
 
             try
             {
                 CefRuntime.Load();
-                CefRuntime.ExecuteProcess(new CefMainArgs(args), new CefRenderApplication(), IntPtr.Zero);
+
+                using (new WorkingSetMonitor(120, 180))
+                {
+                    CefRuntime.ExecuteProcess(new CefMainArgs(args), new CefRenderApplication(), IntPtr.Zero);
+                }
             }
             catch (Exception ex)
             {
-                logger.Error(fmt => fmt("Fatal error in render process {0} : {1}, StackTrace = {2}", procId, ex.Message, ex.StackTrace));
+                logger.Error("Fatal error in render process {0} : {1}, StackTrace = {2}", procId, ex.Message, ex.StackTrace);
                 return 1;
             }
 
-            logger.Info(fmt => fmt("Render process {0} stopping.", procId));
+            logger.Info("Render process {0} stopping.", procId);
             return 0;
         }
 

@@ -5,9 +5,9 @@ namespace Paragon.Runtime.Desktop
     /// <summary>
     /// EventArgs for app related events.
     /// </summary>
-    internal sealed class AppEventArgs : EventArgs
+    public sealed class AppEventArgs : EventArgs
     {
-        internal AppEventArgs(AppInfo appInfo)
+        public AppEventArgs(AppInfo appInfo)
         {
             AppInfo = appInfo;
         }

@@ -9,13 +9,13 @@ namespace Xilium.CefGlue.Interop
     [StructLayout(LayoutKind.Sequential, Pack = libcef.ALIGN)]
     internal unsafe struct cef_page_range_t
     {
-        public int From;
-        public int To;
+        public int from;
+        public int to;
 
-        public cef_page_range_t(int width, int height)
+        public cef_page_range_t(int from, int to)
         {
-            this.From = width;
-            this.To = height;
+            this.from = from;
+            this.to = to;
         }
     }
 }

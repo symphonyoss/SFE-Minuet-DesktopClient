@@ -44,6 +44,7 @@ classdef = {
     'CefV8Value': { 'role': ROLE_PROXY },
     'CefV8StackTrace': { 'role': ROLE_PROXY },
     'CefV8StackFrame': { 'role': ROLE_PROXY },
+    'CefValue': { 'role': ROLE_PROXY },
     'CefBinaryValue': { 'role': ROLE_PROXY },
     'CefDictionaryValue': { 'role': ROLE_PROXY },
     'CefListValue': { 'role': ROLE_PROXY },
@@ -105,4 +106,15 @@ classdef = {
     'CefPrintJobCallback': { 'role': ROLE_PROXY },
     'CefPrintHandler': { 'role': ROLE_HANDLER },
     'CefPrintSettings': { 'role': ROLE_PROXY },
+    # r1949
+    'CefNavigationEntryVisitor': { 'role': ROLE_HANDLER },
+    'CefNavigationEntry': { 'role': ROLE_PROXY },
+    # 2272 branch
+    # r2035
+    'CefFindHandler': { 'role': ROLE_HANDLER },
+    'CefSSLCertPrincipal': { 'role': ROLE_PROXY, 'name': 'CefSslCertPrincipal' },
+    'CefSSLInfo': { 'role': ROLE_PROXY, 'name': 'CefSslInfo' },
+    'CefSetCookieCallback': { 'role': ROLE_PROXY },
+    'CefDeleteCookiesCallback': { 'role': ROLE_PROXY },
+    'CefRequestCallback': { 'role': ROLE_PROXY },
     }

@@ -27,7 +27,7 @@ namespace Paragon.Runtime.Win32
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public static void FlashWindow(IntPtr hwnd, bool clear = false, bool autoclear = false)
+        public static void FlashWindow(IntPtr hwnd, bool clear, bool autoclear = false, int maxFlashes = 5)
         {
             var flags = clear ? FlashWindowFlags.FLASHW_STOP : FlashWindowFlags.FLASHW_ALL;
             flags |= autoclear ? FlashWindowFlags.FLASHW_TIMERNOFG : FlashWindowFlags.FLASHW_TIMER;
@@ -36,7 +36,7 @@ namespace Paragon.Runtime.Win32
             {
                 hwnd = hwnd,
                 dwFlags = (uint) flags,
-                uCount = uint.MaxValue,
+                uCount = (uint) maxFlashes,
                 dwTimeout = 0
             };
 

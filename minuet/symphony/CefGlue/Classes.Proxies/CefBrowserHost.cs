@@ -227,26 +227,32 @@ namespace Xilium.CefGlue
         /// Call to run a file chooser dialog. Only a single file chooser dialog may be
         /// pending at any given time. |mode| represents the type of dialog to display.
         /// |title| to the title to be used for the dialog and may be empty to show the
-        /// default title ("Open" or "Save" depending on the mode). |default_file_name|
-        /// is the default file name to select in the dialog. |accept_types| is a list
-        /// of valid lower-cased MIME types or file extensions specified in an input
-        /// element and is used to restrict selectable files to such types. |callback|
-        /// will be executed after the dialog is dismissed or immediately if another
-        /// dialog is already pending. The dialog will be initiated asynchronously on
-        /// the UI thread.
+        /// default title ("Open" or "Save" depending on the mode). |default_file_path|
+        /// is the path with optional directory and/or file name component that will be
+        /// initially selected in the dialog. |accept_filters| are used to restrict the
+        /// selectable file types and may any combination of (a) valid lower-cased MIME
+        /// types (e.g. "text/*" or "image/*"), (b) individual file extensions (e.g.
+        /// ".txt" or ".png"), or (c) combined description and file extension delimited
+        /// using "|" and ";" (e.g. "Image Types|.png;.gif;.jpg").
+        /// |selected_accept_filter| is the 0-based index of the filter that will be
+        /// selected by default. |callback| will be executed after the dialog is
+        /// dismissed or immediately if another dialog is already pending. The dialog
+        /// will be initiated asynchronously on the UI thread.
         /// </summary>
-        public void RunFileDialog(CefFileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, CefRunFileDialogCallback callback)
+        public void RunFileDialog(CefFileDialogMode mode, string title, string defaultFilePath, string[] acceptFilters, int selectedAcceptFilter, CefRunFileDialogCallback callback)
         {
+            if (callback == null) throw new ArgumentNullException("callback");
+
             fixed (char* title_ptr = title)
-            fixed (char* defaultFileName_ptr = defaultFileName)
+            fixed (char* defaultFilePath_ptr = defaultFilePath)
             {
                 var n_title = new cef_string_t(title_ptr, title != null ? title.Length : 0);
-                var n_defaultFileName = new cef_string_t(defaultFileName_ptr, defaultFileName != null ? defaultFileName.Length : 0);
-                var n_acceptTypes = cef_string_list.From(acceptTypes);
+                var n_defaultFilePath = new cef_string_t(defaultFilePath_ptr, defaultFilePath != null ? defaultFilePath.Length : 0);
+                var n_acceptFilters = cef_string_list.From(acceptFilters);
 
-                cef_browser_host_t.run_file_dialog(_self, mode, &n_title, &n_defaultFileName, n_acceptTypes, callback.ToNative());
+                cef_browser_host_t.run_file_dialog(_self, mode, &n_title, &n_defaultFilePath, n_acceptFilters, selectedAcceptFilter, callback.ToNative());
 
-                libcef.string_list_free(n_acceptTypes);
+                libcef.string_list_free(n_acceptFilters);
             }
         }
 
@@ -278,7 +284,8 @@ namespace Xilium.CefGlue
         /// running simultaniously. |forward| indicates whether to search forward or
         /// backward within the page. |matchCase| indicates whether the search should
         /// be case-sensitive. |findNext| indicates whether this is the first request
-        /// or a follow-up.
+        /// or a follow-up. The CefFindHandler instance, if any, returned via
+        /// CefClient::GetFindHandler will be called to report find results.
         /// </summary>
         public void Find(int identifier, string searchText, bool forward, bool matchCase, bool findNext)
         {
@@ -299,17 +306,14 @@ namespace Xilium.CefGlue
         }
 
         /// <summary>
-        /// Open developer tools in its own window.
+        /// Open developer tools in its own window. If |inspect_element_at| is non-
+        /// empty the element at the specified (x,y) location will be inspected.
         /// </summary>
-        public void ShowDevTools(CefWindowInfo windowInfo, CefClient client, CefBrowserSettings browserSettings, CefPoint point)
+        public void ShowDevTools(CefWindowInfo windowInfo, CefClient client, CefBrowserSettings browserSettings, CefPoint inspectElementAt)
         {
-            var p = new cef_point_t(point.X, point.Y);
-            cef_browser_host_t.show_dev_tools(_self, windowInfo.ToNative(), client.ToNative(), browserSettings.ToNative(), &p);
-        }
-
-        public void ShowDevTools(CefWindowInfo windowInfo, CefClient client, CefBrowserSettings browserSettings)
-        {
-            cef_browser_host_t.show_dev_tools(_self, windowInfo.ToNative(), client.ToNative(), browserSettings.ToNative(), null);
+            var n_inspectElementAt = new cef_point_t(inspectElementAt.X, inspectElementAt.Y);
+            cef_browser_host_t.show_dev_tools(_self, windowInfo.ToNative(), client.ToNative(), browserSettings.ToNative(),
+                &n_inspectElementAt);
         }
 
         /// <summary>
@@ -319,6 +323,16 @@ namespace Xilium.CefGlue
         public void CloseDevTools()
         {
             cef_browser_host_t.close_dev_tools(_self);
+        }
+
+        /// <summary>
+        /// Retrieve a snapshot of current navigation entries as values sent to the
+        /// specified visitor. If |current_only| is true only the current navigation
+        /// entry will be sent, otherwise all navigation entries will be sent.
+        /// </summary>
+        public void GetNavigationEntries(CefNavigationEntryVisitor visitor, bool currentOnly)
+        {
+            cef_browser_host_t.get_navigation_entries(_self, visitor.ToNative(), currentOnly ? 1 : 0);
         }
 
         /// <summary>
@@ -337,6 +351,31 @@ namespace Xilium.CefGlue
             get
             {
                 return cef_browser_host_t.is_mouse_cursor_change_disabled(_self) != 0;
+            }
+        }
+
+        /// <summary>
+        /// If a misspelled word is currently selected in an editable node calling
+        /// this method will replace it with the specified |word|.
+        /// </summary>
+        public void ReplaceMisspelling(string word)
+        {
+            fixed (char* word_str = word)
+            {
+                var n_word = new cef_string_t(word_str, word != null ? word.Length : 0);
+                cef_browser_host_t.replace_misspelling(_self, &n_word);
+            }
+        }
+
+        /// <summary>
+        /// Add the specified |word| to the spelling dictionary.
+        /// </summary>
+        public void AddWordToDictionary(string word)
+        {
+            fixed (char* word_str = word)
+            {
+                var n_word = new cef_string_t(word_str, word != null ? word.Length : 0);
+                cef_browser_host_t.add_word_to_dictionary(_self, &n_word);
             }
         }
 
@@ -386,9 +425,9 @@ namespace Xilium.CefGlue
         }
 
         /// <summary>
-        /// Invalidate the |dirtyRect| region of the view. The browser will call
-        /// CefRenderHandler::OnPaint asynchronously with the updated regions. This
-        /// method is only used when window rendering is disabled.
+        /// Invalidate the view. The browser will call CefRenderHandler::OnPaint
+        /// asynchronously. This method is only used when window rendering is
+        /// disabled.
         /// </summary>
         public void Invalidate(CefPaintElementType type)
         {
@@ -456,6 +495,10 @@ namespace Xilium.CefGlue
             cef_browser_host_t.send_capture_lost_event(_self);
         }
 
+        /// <summary>
+        /// Notify the browser that the window hosting it is about to be moved or
+        /// resized. This method is only used on Windows and Linux.
+        /// </summary>
         public void NotifyMoveOrResizeStarted()
         {
             cef_browser_host_t.notify_move_or_resize_started(_self);

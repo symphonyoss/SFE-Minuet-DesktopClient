@@ -51,6 +51,11 @@ namespace Paragon.Runtime.PackagedApplication
         public string Description { get; set; }
 
         /// <summary>
+        /// Use the app name as WindowName irrespective of title changes via the html doc
+        /// </summary>
+        public bool UseAppNameAsWindowTitle { get; set; }
+
+        /// <summary>
         /// Gets or sets a flag indicating whether the app is single instance or not.
         /// </summary>
         public bool SingleInstance { get; set; }
@@ -85,6 +90,8 @@ namespace Paragon.Runtime.PackagedApplication
         }
 
         // Optional
+        public string FamilyName { get; set; }
+
         public string[] Permissions { get; set; }
 
         public string[] ExternalUrlWhitelist { get; set; }
@@ -94,6 +101,8 @@ namespace Paragon.Runtime.PackagedApplication
         public bool DisableSpellChecking { get; set; }
 
         public string SpellCheckLanguage { get; set; }
+
+        public string SplashScreenStyle { get; set; }
 
         IIconInfo IApplicationManifest.Icons
         {
@@ -131,8 +140,6 @@ namespace Paragon.Runtime.PackagedApplication
 
             return applicationType;
         }
-
-        public string SplashScreenStyle { get; set; }
     }
 
     public class IconInfo : IIconInfo
@@ -234,6 +241,7 @@ namespace Paragon.Runtime.PackagedApplication
             MaxWidth = -1;
             Left = -1;
             Top = -1;
+            AutoSaveLocation = true;
         }
 
         /// <summary>
@@ -241,6 +249,18 @@ namespace Paragon.Runtime.PackagedApplication
         /// </summary>
         [JsonProperty("web_url", Required = Required.Always)]
         public string WebUrl { get; set; }
+
+        /// <summary>
+        /// Id (optional) to identify the window. This will  be used to remember the size 
+        /// and position of the window and restore that geometry when a window with the same id is later opened.
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Default true. Used to say if the window position and geometry if remembered if 
+        /// a window with the same id is opened later.
+        /// </summary>
+        public bool AutoSaveLocation { get; set; }
 
         public string Container { get; set; }
 

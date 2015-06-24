@@ -211,6 +211,26 @@
         /// </summary>
         public CefColor BackgroundColor { get; set; }
 
+        ///<summary>
+        /// Comma delimited ordered list of language codes without any whitespace that
+        /// will be used in the "Accept-Language" HTTP header. May be overridden on a
+        /// per-browser basis using the CefBrowserSettings.accept_language_list value.
+        /// If both values are empty then "en-US,en" will be used. Can be overridden
+        /// for individual CefRequestContext instances via the
+        /// CefRequestContextSettings.accept_language_list value.
+        ///</summary>
+        public string AcceptLanguageList { get; set; }
+
+        ///<summary>
+        /// The location where user data such as spell checking dictionary files will
+        /// be stored on disk. If empty then the default platform-specific user data
+        /// directory will be used ("~/.cef_user_data" directory on Linux,
+        /// "~/Library/Application Support/CEF/User Data" directory on Mac OS X,
+        /// "Local Settings\Application Data\CEF\User Data" directory under the user
+        /// profile directory on Windows).
+        ///</summary>
+        public string UserDataPath { get; set; }
+
         internal cef_settings_t* ToNative()
         {
             var ptr = cef_settings_t.Alloc();
@@ -221,6 +241,7 @@
             ptr->windowless_rendering_enabled = WindowlessRenderingEnabled ? 1 : 0;
             ptr->command_line_args_disabled = CommandLineArgsDisabled ? 1 : 0;
             cef_string_t.Copy(CachePath, &ptr->cache_path);
+            cef_string_t.Copy(UserDataPath, &ptr->user_data_path);
             ptr->persist_session_cookies = PersistSessionCookies ? 1 : 0;
             cef_string_t.Copy(UserAgent, &ptr->user_agent);
             cef_string_t.Copy(ProductVersion, &ptr->product_version);
@@ -236,6 +257,7 @@
             ptr->context_safety_implementation = (int)ContextSafetyImplementation;
             ptr->ignore_certificate_errors = IgnoreCertificateErrors ? 1 : 0;
             ptr->background_color = BackgroundColor.ToArgb();
+            cef_string_t.Copy(AcceptLanguageList, &ptr->accept_language_list);
             return ptr;
         }
 
@@ -243,6 +265,7 @@
         {
             libcef.string_clear(&ptr->browser_subprocess_path);
             libcef.string_clear(&ptr->cache_path);
+            libcef.string_clear(&ptr->user_data_path);
             libcef.string_clear(&ptr->user_agent);
             libcef.string_clear(&ptr->product_version);
             libcef.string_clear(&ptr->locale);
@@ -250,6 +273,7 @@
             libcef.string_clear(&ptr->javascript_flags);
             libcef.string_clear(&ptr->resources_dir_path);
             libcef.string_clear(&ptr->locales_dir_path);
+            libcef.string_clear(&ptr->accept_language_list);
         }
 
         internal static void Free(cef_settings_t* ptr)

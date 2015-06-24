@@ -7,44 +7,41 @@ namespace Paragon.Plugins.Notifications.Win32
 {
     public static class Win32Api
     {
-        public static void Move(IntPtr handle, IMonitor targetMonitor)
+        /// <summary>
+        /// Moves and shows a window at the top of the Z-order without activating it.
+        /// </summary>
+        /// <param name="handle">
+        /// The HWND of the target window.
+        /// </param>
+        /// <param name="targetScreen">
+        /// The screen to move and maximize the window to. If this is null, no size or move is performed, just the bring to top.
+        /// </param>
+        internal static void MoveAndShowWithNoActivate(IntPtr handle, IMonitor targetScreen)
         {
-            var currentForegroundWindow = NativeMethods.GetForegroundWindow();
-            var thisWindowThreadId = NativeMethods.GetWindowThreadProcessId(handle, IntPtr.Zero);
-            var currentForegroundWindowThreadId = NativeMethods.GetWindowThreadProcessId(currentForegroundWindow, IntPtr.Zero);
-
-            NativeMethods.AttachThreadInput(currentForegroundWindowThreadId, thisWindowThreadId, true);
-
-            var flags = NativeMethods.SWP_NOACTIVATE;
-            var bounds = targetMonitor.WorkingArea;
-
-            NativeMethods.SetWindowPos(handle, IntPtr.Zero, (int) bounds.Left, (int) bounds.Top, (int) bounds.Width, (int) bounds.Height, flags);
-            NativeMethods.AttachThreadInput(currentForegroundWindowThreadId, thisWindowThreadId, false);
+            // http://blogs.msdn.com/b/oldnewthing/archive/2005/11/21/495246.aspx
+            // As a result of the introduction of "topmost" windows, HWND_TOP now brings the window "as high in the Z-order as 
+            // possible without violating the rule that topmost windows always appear above non-topmost windows".
+            // What does this mean in practice?
+            // - If a window is topmost, then HWND_TOP puts it at the very top of the Z-order.
+            // - If a window is not topmost, then HWND_TOP puts it at the top of all non-topmost windows (i.e., just below the lowest topmost window, if any).
+            var flags = NativeMethods.SWP.NOACTIVATE | NativeMethods.SWP.SHOWWINDOW | NativeMethods.SWP.ASYNCWINDOWPOS;
+            var bounds = targetScreen != null ? targetScreen.WorkingArea : Rect.Empty;
+            if (bounds.IsEmpty)
+            {
+                flags |= NativeMethods.SWP.NOSIZE | NativeMethods.SWP.NOMOVE;
+            }
+            NativeMethods.SetWindowPos(
+                handle,
+                NativeMethods.HWND_TOP,
+                (int)bounds.Left, (int)bounds.Top, (int)bounds.Width, (int)bounds.Height,
+                (uint)flags);
         }
 
-        public static void ShowWithNoActivate(IntPtr handle, Action<RoutedEventHandler> attachToOnLoaded)
+        internal static void AddToolWindowStyle(IntPtr handle)
         {
-            var currentForegroundWindow = NativeMethods.GetForegroundWindow();
-            var thisWindowThreadId = NativeMethods.GetWindowThreadProcessId(handle, IntPtr.Zero);
-            var currentForegroundWindowThreadId = NativeMethods.GetWindowThreadProcessId(currentForegroundWindow, IntPtr.Zero);
-
-            NativeMethods.AttachThreadInput(currentForegroundWindowThreadId, thisWindowThreadId, true);
-
-            var flags = NativeMethods.SWP_NOSIZE
-                        | NativeMethods.SWP_NOMOVE
-                        | NativeMethods.SWP_SHOWWINDOW
-                        | NativeMethods.SWP_NOACTIVATE;
-
-            NativeMethods.SetWindowPos(handle, IntPtr.Zero, 0, 0, 0, 0, flags);
-            NativeMethods.AttachThreadInput(currentForegroundWindowThreadId, thisWindowThreadId, false);
-
-            attachToOnLoaded((sender, args) =>
-            {
-                var exStyle = (uint) NativeMethods.GetWindowLong(handle, -20);
-                exStyle |= NativeMethods.WS_EX_TOOLWINDOW;
-
-                SetWindowLong(handle, -20, (IntPtr) exStyle);
-            });
+            var exStyle = (uint)NativeMethods.GetWindowLong(handle, -20);
+            exStyle |= NativeMethods.WS_EX_TOOLWINDOW;
+            SetWindowLong(handle, -20, (IntPtr)exStyle);
         }
 
         private static int IntPtrToInt32(IntPtr intPtr)
@@ -63,7 +60,6 @@ namespace Paragon.Plugins.Notifications.Win32
             if (IntPtr.Size == 4)
             {
                 var tempResult = NativeMethods.SetWindowLong(handle, nIndex, IntPtrToInt32(dwNewLong));
-
                 error = Marshal.GetLastWin32Error();
                 result = new IntPtr(tempResult);
             }

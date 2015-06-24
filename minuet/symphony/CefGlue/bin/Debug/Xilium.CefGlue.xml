@@ -12,6 +12,14 @@
             <exception cref="T:Xilium.CefGlue.CefVersionMismatchException"></exception>
             <exception cref="T:System.InvalidOperationException"></exception>
         </member>
+        <member name="M:Xilium.CefGlue.CefRuntime.Load(System.String)">
+            <summary>
+            Loads CEF runtime from specified path.
+            </summary>
+            <exception cref="T:System.DllNotFoundException"></exception>
+            <exception cref="T:Xilium.CefGlue.CefVersionMismatchException"></exception>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
         <member name="M:Xilium.CefGlue.CefRuntime.ExecuteProcess(Xilium.CefGlue.CefMainArgs,Xilium.CefGlue.CefApp,System.IntPtr)">
             <summary>
             This function should be called from the application entry point function to
@@ -639,18 +647,22 @@
             UI thread.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefBrowserHost.RunFileDialog(Xilium.CefGlue.CefFileDialogMode,System.String,System.String,System.String[],Xilium.CefGlue.CefRunFileDialogCallback)">
+        <member name="M:Xilium.CefGlue.CefBrowserHost.RunFileDialog(Xilium.CefGlue.CefFileDialogMode,System.String,System.String,System.String[],System.Int32,Xilium.CefGlue.CefRunFileDialogCallback)">
             <summary>
             Call to run a file chooser dialog. Only a single file chooser dialog may be
             pending at any given time. |mode| represents the type of dialog to display.
             |title| to the title to be used for the dialog and may be empty to show the
-            default title ("Open" or "Save" depending on the mode). |default_file_name|
-            is the default file name to select in the dialog. |accept_types| is a list
-            of valid lower-cased MIME types or file extensions specified in an input
-            element and is used to restrict selectable files to such types. |callback|
-            will be executed after the dialog is dismissed or immediately if another
-            dialog is already pending. The dialog will be initiated asynchronously on
-            the UI thread.
+            default title ("Open" or "Save" depending on the mode). |default_file_path|
+            is the path with optional directory and/or file name component that will be
+            initially selected in the dialog. |accept_filters| are used to restrict the
+            selectable file types and may any combination of (a) valid lower-cased MIME
+            types (e.g. "text/*" or "image/*"), (b) individual file extensions (e.g.
+            ".txt" or ".png"), or (c) combined description and file extension delimited
+            using "|" and ";" (e.g. "Image Types|.png;.gif;.jpg").
+            |selected_accept_filter| is the 0-based index of the filter that will be
+            selected by default. |callback| will be executed after the dialog is
+            dismissed or immediately if another dialog is already pending. The dialog
+            will be initiated asynchronously on the UI thread.
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefBrowserHost.StartDownload(System.String)">
@@ -669,7 +681,8 @@
             running simultaniously. |forward| indicates whether to search forward or
             backward within the page. |matchCase| indicates whether the search should
             be case-sensitive. |findNext| indicates whether this is the first request
-            or a follow-up.
+            or a follow-up. The CefFindHandler instance, if any, returned via
+            CefClient::GetFindHandler will be called to report find results.
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefBrowserHost.StopFinding(System.Boolean)">
@@ -679,7 +692,8 @@
         </member>
         <member name="M:Xilium.CefGlue.CefBrowserHost.ShowDevTools(Xilium.CefGlue.CefWindowInfo,Xilium.CefGlue.CefClient,Xilium.CefGlue.CefBrowserSettings,Xilium.CefGlue.CefPoint)">
             <summary>
-            Open developer tools in its own window.
+            Open developer tools in its own window. If |inspect_element_at| is non-
+            empty the element at the specified (x,y) location will be inspected.
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefBrowserHost.CloseDevTools">
@@ -688,9 +702,27 @@
             instance.
             </summary>
         </member>
+        <member name="M:Xilium.CefGlue.CefBrowserHost.GetNavigationEntries(Xilium.CefGlue.CefNavigationEntryVisitor,System.Boolean)">
+            <summary>
+            Retrieve a snapshot of current navigation entries as values sent to the
+            specified visitor. If |current_only| is true only the current navigation
+            entry will be sent, otherwise all navigation entries will be sent.
+            </summary>
+        </member>
         <member name="M:Xilium.CefGlue.CefBrowserHost.SetMouseCursorChangeDisabled(System.Boolean)">
             <summary>
             Set whether mouse cursor change is disabled.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefBrowserHost.ReplaceMisspelling(System.String)">
+            <summary>
+            If a misspelled word is currently selected in an editable node calling
+            this method will replace it with the specified |word|.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefBrowserHost.AddWordToDictionary(System.String)">
+            <summary>
+            Add the specified |word| to the spelling dictionary.
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefBrowserHost.WasResized">
@@ -720,9 +752,9 @@
         </member>
         <member name="M:Xilium.CefGlue.CefBrowserHost.Invalidate(Xilium.CefGlue.CefPaintElementType)">
             <summary>
-            Invalidate the |dirtyRect| region of the view. The browser will call
-            CefRenderHandler::OnPaint asynchronously with the updated regions. This
-            method is only used when window rendering is disabled.
+            Invalidate the view. The browser will call CefRenderHandler::OnPaint
+            asynchronously. This method is only used when window rendering is
+            disabled.
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefBrowserHost.SendKeyEvent(Xilium.CefGlue.CefKeyEvent)">
@@ -759,6 +791,12 @@
         <member name="M:Xilium.CefGlue.CefBrowserHost.SendCaptureLostEvent">
             <summary>
             Send a capture lost event to the browser.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefBrowserHost.NotifyMoveOrResizeStarted">
+            <summary>
+            Notify the browser that the window hosting it is about to be moved or
+            resized. This method is only used on Windows and Linux.
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefBrowserHost.GetNSTextInputContext">
@@ -880,7 +918,6 @@
             Return the handler for printing on Linux. If a print handler is not
             provided then printing will not be supported on the Linux platform.
             </summary>
-            <returns></returns>
         </member>
         <member name="T:Xilium.CefGlue.CefCallback">
             <summary>
@@ -923,6 +960,11 @@
         <member name="M:Xilium.CefGlue.CefClient.GetDragHandler">
             <summary>
             Return the handler for drag events.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefClient.GetFindHandler">
+            <summary>
+            Return the handler for find result events.
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefClient.GetFocusHandler">
@@ -1112,6 +1154,16 @@
             Method that will be called once the task is complete.
             </summary>
         </member>
+        <member name="T:Xilium.CefGlue.CefCompletionHandler">
+            <summary>
+            Generic callback interface used for asynchronous completion.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefCompletionHandler.OnComplete">
+            <summary>
+            Method that will be called once the task is complete.
+            </summary>
+        </member>
         <member name="T:Xilium.CefGlue.CefContextMenuHandler">
             <summary>
             Implement this interface to handle context menu events. The methods of this
@@ -1148,6 +1200,18 @@
             <summary>
             Provides information about the context menu state. The ethods of this class
             can only be accessed on browser process the UI thread.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefContextMenuParams.GetMisspelledWord">
+            <summary>
+            Returns the text of the misspelled word, if any, that the context menu was
+            invoked on.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefContextMenuParams.GetDictionarySuggestions">
+            <summary>
+            Returns true if suggestions exist, false otherwise. Fills in |suggestions|
+            from the spell check service for the misspelled word if there is one.
             </summary>
         </member>
         <member name="P:Xilium.CefGlue.CefContextMenuParams.X">
@@ -1230,6 +1294,12 @@
             Returns true if the context menu was invoked on an editable node.
             </summary>
         </member>
+        <member name="P:Xilium.CefGlue.CefContextMenuParams.IsSpellCheckEnabled">
+            <summary>
+            Returns true if the context menu was invoked on an editable node where
+            spell-check is enabled.
+            </summary>
+        </member>
         <member name="P:Xilium.CefGlue.CefContextMenuParams.EditState">
             <summary>
             Returns flags representing the actions supported by the editable node, if
@@ -1242,7 +1312,13 @@
             any thread unless otherwise indicated.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefCookieManager.Create(System.String,System.Boolean)">
+        <member name="M:Xilium.CefGlue.CefCookieManager.GetGlobal(Xilium.CefGlue.CefCompletionCallback)">
+            <summary>
+            Returns the global cookie manager. By default data will be stored at
+            CefSettings.cache_path if specified or in memory otherwise.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefCookieManager.Create(System.String,System.Boolean,Xilium.CefGlue.CefCompletionCallback)">
             <summary>
             Creates a new cookie manager. If |path| is empty data will be stored in
             memory only. Otherwise, data will be stored at the specified |path|. To
@@ -1252,7 +1328,7 @@
             them. Returns NULL if creation fails.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefCookieManager.SetSupportedSchemes(System.String[])">
+        <member name="M:Xilium.CefGlue.CefCookieManager.SetSupportedSchemes(System.String[],Xilium.CefGlue.CefCompletionCallback)">
             <summary>
             Set the schemes supported by this manager. By default only "http" and
             "https" schemes are supported. Must be called before any cookies are
@@ -1274,7 +1350,7 @@
             cookies cannot be accessed.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefCookieManager.SetCookie(System.String,Xilium.CefGlue.CefCookie)">
+        <member name="M:Xilium.CefGlue.CefCookieManager.SetCookie(System.String,Xilium.CefGlue.CefCookie,Xilium.CefGlue.CefSetCookieCallback)">
             <summary>
             Sets a cookie given a valid URL and explicit user-provided cookie
             attributes. This function expects each attribute to be well-formed. It will
@@ -1284,7 +1360,7 @@
             IO thread.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefCookieManager.DeleteCookies(System.String,System.String)">
+        <member name="M:Xilium.CefGlue.CefCookieManager.DeleteCookies(System.String,System.String,Xilium.CefGlue.CefDeleteCookiesCallback)">
             <summary>
             Delete all cookies that match the specified parameters. If both |url| and
             values |cookie_name| are specified all host and domain cookies matching
@@ -1295,7 +1371,7 @@
             method must be called on the IO thread.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefCookieManager.SetStoragePath(System.String,System.Boolean)">
+        <member name="M:Xilium.CefGlue.CefCookieManager.SetStoragePath(System.String,System.Boolean,Xilium.CefGlue.CefCompletionCallback)">
             <summary>
             Sets the directory path that will be used for storing cookie data. If
             |path| is empty data will be stored in memory only. Otherwise, data will be
@@ -1310,12 +1386,6 @@
             Flush the backing store (if any) to disk and execute the specified
             |callback| on the IO thread when done. Returns false if cookies cannot be
             accessed.
-            </summary>
-        </member>
-        <member name="P:Xilium.CefGlue.CefCookieManager.Global">
-            <summary>
-            Returns the global cookie manager. By default data will be stored at
-            CefSettings.cache_path if specified or in memory otherwise.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefCookieVisitor">
@@ -1339,17 +1409,21 @@
             will be called on the browser process UI thread.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefDialogHandler.OnFileDialog(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefFileDialogMode,System.String,System.String,System.String[],Xilium.CefGlue.CefFileDialogCallback)">
+        <member name="M:Xilium.CefGlue.CefDialogHandler.OnFileDialog(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefFileDialogMode,System.String,System.String,System.String[],System.Int32,Xilium.CefGlue.CefFileDialogCallback)">
             <summary>
             Called to run a file chooser dialog. |mode| represents the type of dialog
             to display. |title| to the title to be used for the dialog and may be empty
             to show the default title ("Open" or "Save" depending on the mode).
-            |default_file_name| is the default file name to select in the dialog.
-            |accept_types| is a list of valid lower-cased MIME types or file extensions
-            specified in an input element and is used to restrict selectable files to
-            such types. To display a custom dialog return true and execute |callback|
-            either inline or at a later time. To display the default dialog return
-            false.
+            |default_file_path| is the path with optional directory and/or file name
+            component that should be initially selected in the dialog. |accept_filters|
+            are used to restrict the selectable file types and may any combination of
+            (a) valid lower-cased MIME types (e.g. "text/*" or "image/*"),
+            (b) individual file extensions (e.g. ".txt" or ".png"), or (c) combined
+            description and file extension delimited using "|" and ";" (e.g.
+            "Image Types|.png;.gif;.jpg"). |selected_accept_filter| is the 0-based
+            index of the filter that should be selected by default. To display a custom
+            dialog return true and execute |callback| either inline or at a later time.
+            To display the default dialog return false.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefDictionaryValue">
@@ -1526,6 +1600,11 @@
             Called when the page title changes.
             </summary>
         </member>
+        <member name="M:Xilium.CefGlue.CefDisplayHandler.OnFaviconUrlChange(Xilium.CefGlue.CefBrowser,System.String[])">
+            <summary>
+            Called when the page icon changes.
+            </summary>
+        </member>
         <member name="M:Xilium.CefGlue.CefDisplayHandler.OnTooltip(Xilium.CefGlue.CefBrowser,System.String)">
             <summary>
             Called when the browser is about to display a tooltip. |text| contains the
@@ -1600,19 +1679,9 @@
             Returns true if a portion of the document is selected.
             </summary>
         </member>
-        <member name="P:Xilium.CefGlue.CefDomDocument.SelectionStartNode">
-            <summary>
-            Returns the selection start node.
-            </summary>
-        </member>
         <member name="P:Xilium.CefGlue.CefDomDocument.SelectionStartOffset">
             <summary>
             Returns the selection offset within the start node.
-            </summary>
-        </member>
-        <member name="P:Xilium.CefGlue.CefDomDocument.SelectionEndNode">
-            <summary>
-            Returns the selection end node.
             </summary>
         </member>
         <member name="P:Xilium.CefGlue.CefDomDocument.GetSelectionEndOffset">
@@ -1940,6 +2009,11 @@
             Returns the URL.
             </summary>
         </member>
+        <member name="P:Xilium.CefGlue.CefDownloadItem.OriginalUrl">
+            <summary>
+            Returns the original URL before any redirections.
+            </summary>
+        </member>
         <member name="P:Xilium.CefGlue.CefDownloadItem.SuggestedFileName">
             <summary>
             Returns the suggested file name.
@@ -1963,6 +2037,16 @@
         <member name="M:Xilium.CefGlue.CefDownloadItemCallback.Cancel">
             <summary>
             Call to cancel the download.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefDownloadItemCallback.Pause">
+            <summary>
+            Call to pause the download.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefDownloadItemCallback.Resume">
+            <summary>
+            Call to resume the download.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefDragData">
@@ -2125,16 +2209,34 @@
             Callback interface for asynchronous continuation of file dialog requests.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefFileDialogCallback.Continue(System.String[])">
+        <member name="M:Xilium.CefGlue.CefFileDialogCallback.Continue(System.Int32,System.String[])">
             <summary>
-            Continue the file selection with the specified |file_paths|. This may be
-            a single value or a list of values depending on the dialog mode. An empty
-            value is treated the same as calling Cancel().
+            Continue the file selection. |selected_accept_filter| should be the 0-based
+            index of the value selected from the accept filters array passed to
+            CefDialogHandler::OnFileDialog. |file_paths| should be a single value or a
+            list of values depending on the dialog mode. An empty |file_paths| value is
+            treated the same as calling Cancel().
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefFileDialogCallback.Cancel">
             <summary>
             Cancel the file selection.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefFindHandler">
+            <summary>
+            Implement this interface to handle events related to find results. The
+            methods of this class will be called on the UI thread.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefFindHandler.OnFindResult(Xilium.CefGlue.CefBrowser,System.Int32,System.Int32,Xilium.CefGlue.CefRectangle,System.Int32,System.Boolean)">
+            <summary>
+            Called to report find results returned by CefBrowserHost::Find().
+            |identifer| is the identifier passed to Find(), |count| is the number of
+            matches currently identified, |selectionRect| is the location of where the
+            match was found (in window coordinates), |activeMatchOrdinal| is the
+            current position in the search results, and |finalUpdate| is true if this
+            is the last find notification.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefFocusHandler">
@@ -2322,7 +2424,7 @@
         <member name="T:Xilium.CefGlue.CefGeolocationHandler">
             <summary>
             Implement this interface to handle events related to geolocation permission
-            requests. The methods of this class will be called on the browser process IO
+            requests. The methods of this class will be called on the browser process UI
             thread.
             </summary>
         </member>
@@ -2330,8 +2432,10 @@
             <summary>
             Called when a page requests permission to access geolocation information.
             |requesting_url| is the URL requesting permission and |request_id| is the
-            unique ID for the permission request. Call CefGeolocationCallback::Continue
-            to allow or deny the permission request.
+            unique ID for the permission request. Return true and call
+            CefGeolocationCallback::Continue() either in this method or at a later
+            time to continue or cancel the request. Return false to cancel the request
+            immediately.
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefGeolocationHandler.OnCancelGeolocationPermission(Xilium.CefGlue.CefBrowser,System.String,System.Int32)">
@@ -3003,6 +3107,84 @@
             Returns the number of items in this menu.
             </summary>
         </member>
+        <member name="T:Xilium.CefGlue.CefNavigationEntry">
+            <summary>
+            Class used to represent an entry in navigation history.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefNavigationEntry.IsValid">
+            <summary>
+            Returns true if this object is valid. Do not call any other methods if this
+            function returns false.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefNavigationEntry.Url">
+            <summary>
+            Returns the actual URL of the page. For some pages this may be data: URL or
+            similar. Use GetDisplayURL() to return a display-friendly version.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefNavigationEntry.GetDisplayUrl">
+            <summary>
+            Returns a display-friendly version of the URL.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefNavigationEntry.OriginalUrl">
+            <summary>
+            Returns the original URL that was entered by the user before any redirects.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefNavigationEntry.Title">
+            <summary>
+            Returns the title set by the page. This value may be empty.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefNavigationEntry.TransitionType">
+            <summary>
+            Returns the transition type which indicates what the user did to move to
+            this page from the previous page.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefNavigationEntry.HasPostData">
+            <summary>
+            Returns true if this navigation includes post data.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefNavigationEntry.FrameName">
+            <summary>
+            Returns the name of the sub-frame that navigated or an empty value if the
+            main frame navigated.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefNavigationEntry.CompletionTime">
+            <summary>
+            Returns the time for the last known successful navigation completion. A
+            navigation may be completed more than once if the page is reloaded. May be
+            0 if the navigation has not yet completed.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefNavigationEntry.HttpStatusCode">
+            <summary>
+            Returns the HTTP status code for the last known successful navigation
+            response. May be 0 if the response has not yet been received or if the
+            navigation has not yet completed.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefNavigationEntryVisitor">
+            <summary>
+            Callback interface for CefBrowserHost::GetNavigationEntries. The methods of
+            this class will be called on the browser process UI thread.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefNavigationEntryVisitor.Visit(Xilium.CefGlue.CefNavigationEntry,System.Boolean,System.Int32,System.Int32)">
+            <summary>
+            Method that will be executed. Do not keep a reference to |entry| outside of
+            this callback. Return true to continue visiting entries or false to stop.
+            |current| is true if this entry is the currently loaded navigation entry.
+            |index| is the 0-based index of this entry and |total| is the total number
+            of entries.
+            </summary>
+        </member>
         <member name="T:Xilium.CefGlue.CefPostData">
             <summary>
             Class used to represent post data for a web request. The methods of this
@@ -3098,26 +3280,191 @@
             Return the number of bytes.
             </summary>
         </member>
+        <member name="T:Xilium.CefGlue.CefPrintDialogCallback">
+            <summary>
+            Callback interface for asynchronous continuation of print dialog requests.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintDialogCallback.Continue(Xilium.CefGlue.CefPrintSettings)">
+            <summary>
+            Continue printing with the specified |settings|.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintDialogCallback.Cancel">
+            <summary>
+            Cancel the printing.
+            </summary>
+        </member>
         <member name="T:Xilium.CefGlue.CefPrintHandler">
-            <summar>
-            Implement this structure to handle printing on Linux. The functions of this
-            structure will be called on the browser process UI thread.
-            </summar>
+            <summary>
+            Implement this interface to handle printing on Linux. The methods of this
+            class will be called on the browser process UI thread.
+            </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefPrintHandler.OnPrintSettings(Xilium.CefGlue.CefPrintSettings,System.Boolean)">
-            
-             Synchronize |settings| with client state. If |get_defaults| is true (1)
-             then populate |settings| with the default print settings. Do not keep a
-             reference to |settings| outside of this callback.
-            
+            <summary>
+            Synchronize |settings| with client state. If |get_defaults| is true then
+            populate |settings| with the default print settings. Do not keep a
+            reference to |settings| outside of this callback.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintHandler.OnPrintDialog(System.Boolean,Xilium.CefGlue.CefPrintDialogCallback)">
+            <summary>
+            Show the print dialog. Execute |callback| once the dialog is dismissed.
+            Return true if the dialog will be displayed or false to cancel the
+            printing immediately.
+            </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefPrintHandler.OnPrintJob(System.String,System.String,Xilium.CefGlue.CefPrintJobCallback)">
-            
+            <summary>
+            Send the print job to the printer. Execute |callback| once the job is
+            completed. Return true if the job will proceed or false to cancel the job
+            immediately.
+            </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefPrintHandler.OnPrintReset">
-            
-             Reset client state related to printing.
-            
+            <summary>
+            Reset client state related to printing.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefPrintJobCallback">
+            <summary>
+            Callback interface for asynchronous continuation of print job requests.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintJobCallback.Continue">
+            <summary>
+            Indicate completion of the print job.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefPrintSettings">
+            <summary>
+            Class representing print settings.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.Create">
+            <summary>
+            Create a new CefPrintSettings object.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.Copy">
+            <summary>
+            Returns a writable copy of this object.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.SetOrientation(System.Boolean)">
+            <summary>
+            Set the page orientation.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.IsLandscape">
+            <summary>
+            Returns true if the orientation is landscape.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.SetPrinterPrintableArea(Xilium.CefGlue.CefSize,Xilium.CefGlue.CefRectangle,System.Boolean)">
+            <summary>
+            Set the printer printable area in device units.
+            Some platforms already provide flipped area. Set |landscape_needs_flip|
+            to false on those platforms to avoid double flipping.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.SetDeviceName(System.String)">
+            <summary>
+            Set the device name.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.SetDpi(System.Int32)">
+            <summary>
+            Set the DPI (dots per inch).
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.GetDpi">
+            <summary>
+            Get the DPI (dots per inch).
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.SetPageRanges(Xilium.CefGlue.CefPageRange[])">
+            <summary>
+            Set the page ranges.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.GetPageRangesCount">
+            <summary>
+            Returns the number of page ranges that currently exist.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.GetPageRanges">
+            <summary>
+            Retrieve the page ranges.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.SetSelectionOnly(System.Boolean)">
+            <summary>
+            Set whether only the selection will be printed.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.SetCollate(System.Boolean)">
+            <summary>
+            Set whether pages will be collated.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.SetColorModel(Xilium.CefGlue.CefColorModel)">
+            <summary>
+            Set the color model.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.GetColorModel">
+            <summary>
+            Get the color model.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.SetCopies(System.Int32)">
+            <summary>
+            Set the number of copies.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.GetCopies">
+            <summary>
+            Get the number of copies.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.SetDuplexMode(Xilium.CefGlue.CefDuplexMode)">
+            <summary>
+            Set the duplex mode.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintSettings.GetDuplexMode">
+            <summary>
+            Get the duplex mode.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefPrintSettings.IsValid">
+            <summary>
+            Returns true if this object is valid. Do not call any other methods if this
+            function returns false.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefPrintSettings.IsReadOnly">
+            <summary>
+            Returns true if the values of this object are read-only. Some APIs may
+            expose read-only objects.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefPrintSettings.DeviceName">
+            <summary>
+            Get the device name.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefPrintSettings.IsSelectionOnly">
+            <summary>
+            Returns true if only the selection will be printed.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefPrintSettings.WillCollate">
+            <summary>
+            Returns true if pages will be collated.
+            </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefProcessMessage">
             <summary>
@@ -3250,27 +3597,32 @@
         <member name="M:Xilium.CefGlue.CefRenderHandler.OnPopupSize(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefRectangle)">
             <summary>
             Called when the browser wants to move or resize the popup widget. |rect|
-            contains the new location and size.
+            contains the new location and size in view coordinates.
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefRenderHandler.OnPaint(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefPaintElementType,Xilium.CefGlue.CefRectangle[],System.IntPtr,System.Int32,System.Int32)">
             <summary>
-            Called when an element should be painted. |type| indicates whether the
-            element is the view or the popup widget. |buffer| contains the pixel data
-            for the whole image. |dirtyRects| contains the set of rectangles that need
-            to be repainted. On Windows |buffer| will be |width|*|height|*4 bytes
-            in size and represents a BGRA image with an upper-left origin.
+            Called when an element should be painted. Pixel values passed to this
+            method are scaled relative to view coordinates based on the value of
+            CefScreenInfo.device_scale_factor returned from GetScreenInfo. |type|
+            indicates whether the element is the view or the popup widget. |buffer|
+            contains the pixel data for the whole image. |dirtyRects| contains the set
+            of rectangles in pixel coordinates that need to be repainted. |buffer| will
+            be |width|*|height|*4 bytes in size and represents a BGRA image with an
+            upper-left origin.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefRenderHandler.OnCursorChange(Xilium.CefGlue.CefBrowser,System.IntPtr)">
+        <member name="M:Xilium.CefGlue.CefRenderHandler.OnCursorChange(Xilium.CefGlue.CefBrowser,System.IntPtr,Xilium.CefGlue.CefCursorType,Xilium.CefGlue.CefCursorInfo)">
             <summary>
-            Called when the browser window's cursor has changed.
+            Called when the browser's cursor has changed. If |type| is CT_CUSTOM then
+            |custom_cursor_info| will be populated with the custom cursor information.
             </summary>
         </member>
         <member name="M:Xilium.CefGlue.CefRenderHandler.StartDragging(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefDragData,Xilium.CefGlue.CefDragOperationsMask,System.Int32,System.Int32)">
             <summary>
             Called when the user starts dragging content in the web view. Contextual
             information about the dragged content is supplied by |drag_data|.
+            (|x|, |y|) is the drag start location in screen coordinates.
             OS APIs that run a system message loop may be used within the
             StartDragging call.
             Return false to abort the drag operation. Don't call any of
@@ -3282,7 +3634,7 @@
             </summary>
         </member>
         <!-- Badly formed XML comment ignored for member "M:Xilium.CefGlue.CefRenderHandler.UpdateDragCursor(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefDragOperationsMask)" -->
-        <member name="M:Xilium.CefGlue.CefRenderHandler.OnScrollOffsetChanged(Xilium.CefGlue.CefBrowser)">
+        <member name="M:Xilium.CefGlue.CefRenderHandler.OnScrollOffsetChanged(Xilium.CefGlue.CefBrowser,System.Double,System.Double)">
             <summary>
             Called when the scroll offset has changed.
             </summary>
@@ -3427,8 +3779,8 @@
         </member>
         <member name="P:Xilium.CefGlue.CefRequest.ResourceType">
             <summary>
-            Get the resource type for this request. Accurate resource type information
-            may only be available in the browser process.
+            Get the resource type for this request. Only available in the browser
+            process.
             </summary>
         </member>
         <member name="P:Xilium.CefGlue.CefRequest.TransitionType">
@@ -3436,6 +3788,22 @@
             Get the transition type for this request. Only available in the browser
             process and only applies to requests that represent a main frame or
             sub-frame navigation.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefRequestCallback">
+            <summary>
+            Callback interface used for asynchronous continuation of authentication
+            requests.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefRequestCallback.Continue(System.Boolean)">
+            <summary>
+            Continue the authentication request.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefRequestCallback.Cancel">
+            <summary>
+            Cancel the authentication request.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefRequestContext">
@@ -3460,7 +3828,7 @@
             Returns the global context object.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefRequestContext.CreateContext(Xilium.CefGlue.CefRequestContextHandler)">
+        <member name="M:Xilium.CefGlue.CefRequestContext.CreateContext(Xilium.CefGlue.CefRequestContextSettings,Xilium.CefGlue.CefRequestContextHandler)">
             <summary>
             Creates a new context object with the specified handler.
             </summary>
@@ -3510,7 +3878,7 @@
             ERR_ABORTED.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefRequestHandler.OnBeforeResourceLoad(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefFrame,Xilium.CefGlue.CefRequest)">
+        <member name="M:Xilium.CefGlue.CefRequestHandler.OnBeforeResourceLoad(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefFrame,Xilium.CefGlue.CefRequest,Xilium.CefGlue.CefRequestCallback)">
             <summary>
             Called on the IO thread before a resource request is loaded. The |request|
             object may be modified. To cancel the request return true otherwise return
@@ -3525,7 +3893,7 @@
             this callback.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefRequestHandler.OnResourceRedirect(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefFrame,System.String,System.String@)">
+        <member name="M:Xilium.CefGlue.CefRequestHandler.OnResourceRedirect(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefFrame,Xilium.CefGlue.CefRequest,System.String@)">
             <summary>
             Called on the IO thread when a resource load is redirected. The |old_url|
             parameter will contain the old URL. The |new_url| parameter will contain
@@ -3541,7 +3909,7 @@
             information is available. Return false to cancel the request.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefRequestHandler.OnQuotaRequest(Xilium.CefGlue.CefBrowser,System.String,System.Int64,Xilium.CefGlue.CefQuotaCallback)">
+        <member name="M:Xilium.CefGlue.CefRequestHandler.OnQuotaRequest(Xilium.CefGlue.CefBrowser,System.String,System.Int64,Xilium.CefGlue.CefRequestCallback)">
             <summary>
             Called on the IO thread when JavaScript requests a specific storage quota
             size via the webkitStorageInfo.requestQuota function. |origin_url| is the
@@ -3560,7 +3928,7 @@
             ON SCHEME, HOST OR OTHER URL ANALYSIS BEFORE ALLOWING OS EXECUTION.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefRequestHandler.OnCertificateError(Xilium.CefGlue.CefErrorCode,System.String,Xilium.CefGlue.CefAllowCertificateErrorCallback)">
+        <member name="M:Xilium.CefGlue.CefRequestHandler.OnCertificateError(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefErrorCode,System.String,Xilium.CefGlue.CefSslInfo,Xilium.CefGlue.CefRequestCallback)">
             <summary>
             Called on the UI thread to handle requests for URLs with an invalid
             SSL certificate. Return true and call CefAllowCertificateErrorCallback::
@@ -3719,12 +4087,13 @@
             class will be called on the browser process UI thread.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefRunFileDialogCallback.OnFileDialogDismissed(Xilium.CefGlue.CefBrowserHost,System.String[])">
+        <member name="M:Xilium.CefGlue.CefRunFileDialogCallback.OnFileDialogDismissed(System.Int32,System.String[])">
             <summary>
-            Called asynchronously after the file dialog is dismissed. If the selection
-            was successful |file_paths| will be a single value or a list of values
-            depending on the dialog mode. If the selection was cancelled |file_paths|
-            will be empty.
+            Called asynchronously after the file dialog is dismissed.
+            |selected_accept_filter| is the 0-based index of the value selected from
+            the accept filters array passed to CefBrowserHost::RunFileDialog.
+            |file_paths| will be a single value or a list of values depending on the
+            dialog mode. If the selection was cancelled |file_paths| will be empty.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefSchemeHandlerFactory">
@@ -3788,6 +4157,102 @@
             This function may be called on any thread. It should only be called once
             per unique |scheme_name| value. If |scheme_name| is already registered or
             if an error occurs this method will return false.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefSslCertPrincipal">
+            <summary>
+            Class representing the issuer or subject field of an X.509 certificate.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslCertPrincipal.DisplayName">
+            <summary>
+            Returns a name that can be used to represent the issuer.  It tries in this
+            order: CN, O and OU and returns the first non-empty one found.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslCertPrincipal.CommonName">
+            <summary>
+            Returns the common name.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslCertPrincipal.LocalityName">
+            <summary>
+            Returns the locality name.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslCertPrincipal.StateOrProvinceName">
+            <summary>
+            Returns the state or province name.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslCertPrincipal.CountryName">
+            <summary>
+            Returns the country name.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslCertPrincipal.StreetAddresses">
+            <summary>
+            Retrieve the list of street addresses.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslCertPrincipal.OrganizationNames">
+            <summary>
+            Retrieve the list of organization names.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslCertPrincipal.OrganizationUnitNames">
+            <summary>
+            Retrieve the list of organization unit names.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslCertPrincipal.DomainComponents">
+            <summary>
+            Retrieve the list of domain components.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefSslInfo">
+            <summary>
+            Class representing SSL information.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslInfo.Subject">
+            <summary>
+            Returns the subject of the X.509 certificate. For HTTPS server
+            certificates this represents the web server.  The common name of the
+            subject should match the host name of the web server.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslInfo.Issuer">
+            <summary>
+            Returns the issuer of the X.509 certificate.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslInfo.SerialNumber">
+            <summary>
+            Returns the DER encoded serial number for the X.509 certificate. The value
+            possibly includes a leading 00 byte.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslInfo.ValidStart">
+            <summary>
+            Returns the date before which the X.509 certificate is invalid.
+            CefTime.GetTimeT() will return 0 if no date was specified.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslInfo.ValidExpiry">
+            <summary>
+            Returns the date after which the X.509 certificate is invalid.
+            CefTime.GetTimeT() will return 0 if no date was specified.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslInfo.DerEncoded">
+            <summary>
+            Returns the DER encoded data for the X.509 certificate.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSslInfo.PemEncoded">
+            <summary>
+            Returns the PEM encoded data for the X.509 certificate.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefStreamReader">
@@ -3962,6 +4427,29 @@
             Returns true if this task runner belongs to the current thread.
             </summary>
         </member>
+        <member name="T:Xilium.CefGlue.CefTraceClient">
+            <summary>
+            Implement this interface to receive trace notifications. The methods of this
+            class will be called on the browser process UI thread.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefTraceClient.OnTraceDataCollected(System.IO.Stream)">
+            <summary>
+            Called 0 or more times between CefBeginTracing and OnEndTracingComplete
+            with a UTF8 JSON |fragment| of the specified |fragment_size|. Do not keep
+            a reference to |fragment|.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefTraceClient.OnTraceBufferPercentFullReply(System.Single)">
+            <summary>
+            Called in response to CefGetTraceBufferPercentFullAsync.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefTraceClient.OnEndTracingComplete">
+            <summary>
+            Called after all processes have sent their trace data.
+            </summary>
+        </member>
         <member name="T:Xilium.CefGlue.CefUrlRequest">
             <summary>
             Class used to make a URL request. URL requests are not associated with a
@@ -3971,7 +4459,7 @@
             on the same thread that created it.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefUrlRequest.Create(Xilium.CefGlue.CefRequest,Xilium.CefGlue.CefUrlRequestClient)">
+        <member name="M:Xilium.CefGlue.CefUrlRequest.Create(Xilium.CefGlue.CefRequest,Xilium.CefGlue.CefUrlRequestClient,Xilium.CefGlue.CefRequestContext)">
             <summary>
             Create a new URL request. Only GET, POST, HEAD, DELETE and PUT request
             methods are supported. Multiple post data elements are not supported and
@@ -4033,7 +4521,7 @@
             successful or not.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefUrlRequestClient.OnUploadProgress(Xilium.CefGlue.CefUrlRequest,System.UInt64,System.UInt64)">
+        <member name="M:Xilium.CefGlue.CefUrlRequestClient.OnUploadProgress(Xilium.CefGlue.CefUrlRequest,System.Int64,System.Int64)">
             <summary>
             Notifies the client of upload progress. |current| denotes the number of
             bytes sent so far and |total| is the total size of uploading data (or -1 if
@@ -4041,7 +4529,7 @@
             UR_FLAG_REPORT_UPLOAD_PROGRESS flag is set on the request.
             </summary>
         </member>
-        <member name="M:Xilium.CefGlue.CefUrlRequestClient.OnDownloadProgress(Xilium.CefGlue.CefUrlRequest,System.UInt64,System.UInt64)">
+        <member name="M:Xilium.CefGlue.CefUrlRequestClient.OnDownloadProgress(Xilium.CefGlue.CefUrlRequest,System.Int64,System.Int64)">
             <summary>
             Notifies the client of download progress. |current| denotes the number of
             bytes received up to the call and |total| is the expected total size of the
@@ -5043,6 +5531,68 @@
             Returns true if at end of the file contents.
             </summary>
         </member>
+        <member name="F:Xilium.CefGlue.CefReturnValue.Cancel">
+            
+        </member>
+        <member name="F:Xilium.CefGlue.CefReturnValue.Continue">
+            
+        </member>
+        <member name="F:Xilium.CefGlue.CefReturnValue.ContinueAsync">
+            
+        </member>
+        <member name="T:Xilium.CefGlue.CefUriUnescapeRules">
+            <summary>
+            URI unescape rules passed to CefURIDecode().
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefUriUnescapeRules.None">
+            <summary>
+            Don't unescape anything at all.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefUriUnescapeRules.Normal">
+            <summary>
+            Don't unescape anything special, but all normal unescaping will happen.
+            This is a placeholder and can't be combined with other flags (since it's
+            just the absence of them). All other unescape rules imply "normal" in
+            addition to their special meaning. Things like escaped letters, digits,
+            and most symbols will get unescaped with this mode.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefUriUnescapeRules.Spaces">
+            <summary>
+            Convert %20 to spaces. In some places where we're showing URLs, we may
+            want this. In places where the URL may be copied and pasted out, then
+            you wouldn't want this since it might not be interpreted in one piece
+            by other applications.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "F:Xilium.CefGlue.CefUriUnescapeRules.UrlSpecialChars" -->
+        <member name="F:Xilium.CefGlue.CefUriUnescapeRules.ControlChars">
+             <summary>
+             Unescapes control characters such as %01. This INCLUDES NULLs. This is
+             used for rare cases such as data: URL decoding where the result is binary
+             data. This flag also unescapes BiDi control characters.
+            
+             DO NOT use CONTROL_CHARS if the URL is going to be displayed in the UI
+             for security reasons.
+             </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefUriUnescapeRules.ReplacePlusWithSpace">
+            <summary>
+            URL queries use "+" for space. This flag controls that replacement.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefCursorType">
+            <summary>
+            Cursor type values.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefDuplexMode">
+            <summary>
+            Print job duplex mode values.
+            </summary>
+        </member>
         <member name="T:Xilium.CefGlue.CefDragOperationsMask">
             <summary>
             "Verb" of a drag-and-drop operation as negotiated between the source and
@@ -5065,10 +5615,31 @@
             Like Open, but allows picking multiple files to open.
             </summary>
         </member>
+        <member name="F:Xilium.CefGlue.CefFileDialogMode.OpenFolder">
+            <summary>
+            Like Open, but selects a folder to open.
+            </summary>
+        </member>
         <member name="F:Xilium.CefGlue.CefFileDialogMode.Save">
             <summary>
             Allows picking a nonexistent file, and prompts to overwrite if the file
             already exists.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefFileDialogMode.TypeMask">
+            <summary>
+            General mask defining the bits used for the type values.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefFileDialogMode.OverwritePromptFlag">
+            <summary>
+            Prompt to overwrite if the user selects an existing file with the Save
+            dialog.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefFileDialogMode.HideReadOnlyFlag">
+            <summary>
+            Do not display read-only files.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefFocusSource">
@@ -5094,6 +5665,30 @@
         <member name="T:Xilium.CefGlue.CefKeyEventType">
             <summary>
             Key event types.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefKeyEventType.RawKeyDown">
+            <summary>
+            Notification that a key transitioned from "up" to "down".
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefKeyEventType.KeyDown">
+            <summary>
+            Notification that a key was pressed. This does not necessarily correspond
+            to a character depending on the key and language. Use KEYEVENT_CHAR for
+            character input.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefKeyEventType.KeyUp">
+            <summary>
+            Notification that a key was released.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefKeyEventType.Char">
+            <summary>
+            Notification that a character was typed. Use this for text input. Key
+            down events may generate 0, 1, or more than one character event depending
+            on the key, locale, and operating system.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefLogSeverity">
@@ -5139,6 +5734,11 @@
         <member name="T:Xilium.CefGlue.CefMouseButtonType">
             <summary>
             Mouse button types.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefColorModel">
+            <summary>
+            Print job color mode values.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefResourceType">
@@ -5215,6 +5815,16 @@
         <member name="F:Xilium.CefGlue.CefResourceType.Xhr">
             <summary>
             XMLHttpRequest.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefResourceType.Ping">
+            <summary>
+            A request for a &lt;ping&gt;.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefResourceType.ServiceWorker">
+            <summary>
+            Main resource of a service worker.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefState">
@@ -5378,11 +5988,6 @@
         <member name="F:Xilium.CefGlue.CefUrlRequestOptions.ReportUploadProgress">
             <summary>
             If set upload progress events will be generated when a request has a body.
-            </summary>
-        </member>
-        <member name="F:Xilium.CefGlue.CefUrlRequestOptions.ReportLoadTiming">
-            <summary>
-            If set load timing info will be collected for the request.
             </summary>
         </member>
         <member name="F:Xilium.CefGlue.CefUrlRequestOptions.ReportRawHeaders">
@@ -5715,6 +6320,21 @@
             Paint element types.
             </summary>
         </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_request_context_settings_t.size">
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_request_context_settings_t.cache_path">
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_request_context_settings_t.persist_session_cookies">
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_request_context_settings_t.ignore_certificate_errors">
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_request_context_settings_t.accept_language_list">
+            
+        </member>
         <member name="T:Xilium.CefGlue.CefWindowInfo">
             <summary>
             Class representing window information.
@@ -6035,7 +6655,7 @@
         </member>
         <member name="P:Xilium.CefGlue.CefGeoposition.Timestamp">
             <summary>
-            Time of position measurement in miliseconds since Epoch in UTC time. This
+            Time of position measurement in milliseconds since Epoch in UTC time. This
             is taken from the host computer's system clock.
             </summary>
         </member>
@@ -6095,6 +6715,13 @@
             <summary>
             True if the focus is currently on an editable field on the page. This is
             useful for determining if standard key events should be intercepted.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefCursorInfo">
+            <summary>
+            Structure representing cursor information. |buffer| will be
+            |size.width|*|size.height|*4 bytes in size and represents a BGRA image with
+            an upper-left origin.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefSettings">
@@ -6298,12 +6925,40 @@
             of the background color but will be otherwise ignored.
             </summary>
         </member>
+        <member name="P:Xilium.CefGlue.CefSettings.AcceptLanguageList">
+            <summary>
+             Comma delimited ordered list of language codes without any whitespace that
+             will be used in the "Accept-Language" HTTP header. May be overridden on a
+             per-browser basis using the CefBrowserSettings.accept_language_list value.
+             If both values are empty then "en-US,en" will be used. Can be overridden
+             for individual CefRequestContext instances via the
+             CefRequestContextSettings.accept_language_list value.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSettings.UserDataPath">
+            <summary>
+             The location where user data such as spell checking dictionary files will
+             be stored on disk. If empty then the default platform-specific user data
+             directory will be used ("~/.cef_user_data" directory on Linux,
+             "~/Library/Application Support/CEF/User Data" directory on Mac OS X,
+             "Local Settings\Application Data\CEF\User Data" directory under the user
+             profile directory on Windows).
+            </summary>
+        </member>
         <member name="T:Xilium.CefGlue.CefBrowserSettings">
             <summary>
             Browser initialization settings. Specify <c>null</c> or 0 to get the recommended
             default values. The consequences of using custom values may not be well
             tested. Many of these and other settings can also configured using command-
             line switches.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefBrowserSettings.WindowlessFrameRate">
+            <summary>
+            The maximum rate in frames per second (fps) that CefRenderHandler::OnPaint
+            will be called for a windowless browser. The actual fps may be lower if
+            the browser cannot generate frames at the requested rate. The minimum
+            value is 1 and the maximum value is 60 (default 30).
             </summary>
         </member>
         <member name="P:Xilium.CefGlue.CefBrowserSettings.DefaultEncoding">
@@ -6440,14 +7095,6 @@
             Controls whether WebGL can be used. Note that WebGL requires hardware
             support and may not work on all systems even when enabled. Also
             configurable using the "disable-webgl" command-line switch.
-            </summary>
-        </member>
-        <member name="P:Xilium.CefGlue.CefBrowserSettings.AcceleratedCompositing">
-            <summary>
-            Controls whether content that depends on accelerated compositing can be
-            used. Note that accelerated compositing requires hardware support and may
-            not work on all systems even when enabled. Also configurable using the
-            "disable-accelerated-compositing" command-line switch.
             </summary>
         </member>
         <member name="P:Xilium.CefGlue.CefBrowserSettings.BackgroundColor">

@@ -33,7 +33,11 @@ namespace Xilium.CefGlue
         
         ~CefCookieManager()
         {
-            Dispose();
+            if (_self != null)
+            {
+                Release();
+                _self = null;
+            }
         }
         
         public void Dispose()
@@ -41,7 +45,9 @@ namespace Xilium.CefGlue
             if (_self != null)
             {
                 Release();
+                _self = null;
             }
+            GC.SuppressFinalize(this);
         }
         
         internal void AddRef()
@@ -51,18 +57,12 @@ namespace Xilium.CefGlue
         
         internal bool Release()
         {
-            bool retVal = cef_cookie_manager_t.release(_self);
-            if (retVal)
-            {
-                _self = null;
-                GC.SuppressFinalize(this);
-            }
-            return retVal;
+            return cef_cookie_manager_t.release(_self) != 0;
         }
         
         internal bool HasOneRef
         {
-            get { return cef_cookie_manager_t.has_one_ref(_self); }
+            get { return cef_cookie_manager_t.has_one_ref(_self) != 0; }
         }
         
         internal cef_cookie_manager_t* ToNative()

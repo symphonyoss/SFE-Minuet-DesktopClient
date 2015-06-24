@@ -69,6 +69,7 @@ namespace Xilium.CefGlue
         {
         }
 
+
         private cef_print_handler_t* get_print_handler(cef_browser_process_handler_t* self)
         {
             CheckSelf(self);
@@ -80,11 +81,9 @@ namespace Xilium.CefGlue
         /// Return the handler for printing on Linux. If a print handler is not
         /// provided then printing will not be supported on the Linux platform.
         /// </summary>
-        /// <returns></returns>
         protected virtual CefPrintHandler GetPrintHandler()
         {
             return null;
         }
-
     }
 }

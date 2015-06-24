@@ -198,7 +198,7 @@ namespace Paragon.Plugins.MessageBus
 
         public Process FindMessageBrokerProcess()
         {
-            var procs = Process.GetProcessesByName(_brokerExeName);
+            var procs = IsConfigurationValid ? Process.GetProcessesByName(_brokerExeName) : null;
             return procs.FirstOrDefault(p => IsParagonMessageBrokerProcess(p.Id));
         }
 

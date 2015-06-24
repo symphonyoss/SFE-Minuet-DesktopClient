@@ -43,6 +43,7 @@ namespace Paragon.Runtime
         public static event EventHandler<RenderProcessInitEventArgs> RenderProcessInitialize;
 
         public static void Initialize(string cachePath = null,
+                                      string paragonPath = null, 
                                       string spellCheckLanguage = null,
                                       bool disableSpellChecking = false,
                                       bool ignoreCertificateErrors = false,
@@ -50,7 +51,7 @@ namespace Paragon.Runtime
         {
             if (IsInitialized)
             {
-                Logger.Debug(fmt => fmt("CEF initialization aborted because it is already initialized ."));
+                Logger.Debug("CEF initialization aborted because it is already initialized .");
                 return;
             }
 
@@ -60,11 +61,11 @@ namespace Paragon.Runtime
             {
                 if (Interlocked.CompareExchange(ref _cefInitializing, 1, 0) == 1)
                 {
-                    Logger.Debug(fmt => fmt("CEF initialization aborted because initialization is in progress"));
+                    Logger.Debug("CEF initialization aborted because initialization is in progress");
                     return;
                 }
 
-                Logger.Debug(fmt => fmt("CEF is initializing"));
+                Logger.Debug("CEF is initializing");
 
                 MainThreadContext = SynchronizationContext.Current;
 
@@ -79,7 +80,7 @@ namespace Paragon.Runtime
                         cachePath = Path.Combine(cachePath, "cache");
                     }
 
-                    var rendererPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "paragon.renderer.exe");
+                    var rendererPath = paragonPath ?? Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "paragon.renderer.exe");
                     if (!File.Exists(rendererPath))
                     {
                         rendererPath = Path.Combine(Environment.CurrentDirectory, "paragon.renderer.exe");
@@ -107,7 +108,8 @@ namespace Paragon.Runtime
                         LogFile = logPath,
                         BrowserSubprocessPath = rendererPath,
                         CachePath = cachePath,
-                        PersistSessionCookies = persistSessionCookies
+                        PersistSessionCookies = persistSessionCookies,
+                        ProductVersion = string.Format( "Paragon/{0} Chrome/{1}", Assembly.GetExecutingAssembly().GetName().Version, CefRuntime.ChromeVersion)
                     };
 
                     var args = new CefMainArgs(new[] {"--process-per-tab"});
@@ -134,7 +136,7 @@ namespace Paragon.Runtime
                     {
                         CefRuntime.Initialize(args, settings, _cefApp, IntPtr.Zero);
                         Interlocked.Exchange(ref _cefInitialized, 1);
-                        Logger.Info(fmt => fmt("CEF initialized successfully"));
+                        Logger.Info("CEF initialized successfully");
                     }
                     else
                     {
@@ -147,7 +149,7 @@ namespace Paragon.Runtime
                 }
                 catch (Exception e)
                 {
-                    Logger.Error(fmt => fmt("Error initializing CEF: " + e));
+                    Logger.Error("Error initializing CEF: " + e);
                     throw;
                 }
                 finally
@@ -175,9 +177,9 @@ namespace Paragon.Runtime
             {
                 if (Interlocked.Exchange(ref _cefInitialized, 0) == 1)
                 {
-                    Logger.Info(fmt => fmt("CEF will shut down because {0}", reason));
+                    Logger.Info("CEF will shut down because {0}", reason);
                     var browsers = new List<ICefWebBrowser>(Browsers);
-                    Logger.Info(fmt => fmt("Closing all open browsers."));
+                    Logger.Info("Closing all open browsers.");
 
                     foreach (var browser in browsers)
                     {
@@ -193,7 +195,7 @@ namespace Paragon.Runtime
 
                     Browsers.Clear();
 
-                    Logger.Info(fmt => fmt("Shutting down CEF."));
+                    Logger.Info("Shutting down CEF.");
                     _cefApp = null;
 
                     CefRuntime.Shutdown();
@@ -215,7 +217,7 @@ namespace Paragon.Runtime
         public static void AddBrowser(ICefWebBrowser b)
         {
             Browsers.Add(b);
-            Logger.Info(fmt => fmt("There are currently {0} browsers open.", Browsers.Count));
+            Logger.Info("There are currently {0} browsers open.", Browsers.Count);
         }
 
         public static void RemoveBrowser(ICefWebBrowser b)

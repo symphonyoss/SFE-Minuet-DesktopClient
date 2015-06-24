@@ -19,5 +19,21 @@ namespace Xilium.CefGlue
             throw new NotImplementedException(); // TODO: CefDownloadItemCallback.Cancel
         }
         
+        /// <summary>
+        /// Call to pause the download.
+        /// </summary>
+        public void Pause()
+        {
+            throw new NotImplementedException(); // TODO: CefDownloadItemCallback.Pause
+        }
+        
+        /// <summary>
+        /// Call to resume the download.
+        /// </summary>
+        public void Resume()
+        {
+            throw new NotImplementedException(); // TODO: CefDownloadItemCallback.Resume
+        }
+        
     }
 }

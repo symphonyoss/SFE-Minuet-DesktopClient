@@ -66,7 +66,6 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\GlobalAssemblyInfo.cs">
@@ -77,8 +76,8 @@
     <Compile Include="CefHandlers\LoadStartEventArgs.cs" />
     <Compile Include="EventArgs\ProtocolExecutionEventArgs.cs" />
     <Compile Include="EventHandlerExtensions.cs" />
-    <Compile Include="ExcludeFromCodeCoverageAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Kernel\Applications\ApplicationManager.cs" />
     <Compile Include="Kernel\Plugins\LoggerPlugin.cs" />
     <Compile Include="Kernel\Windowing\ApplicationWindow.cs" />
     <Compile Include="Desktop\AppEventArgs.cs">
@@ -221,6 +220,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="StaticWebContent.cs" />
+    <Compile Include="Win32\MemoryDump.cs" />
+    <Compile Include="Win32\Enums\ProcessDumpType.cs" />
     <Compile Include="Win32\Enums\SW.cs" />
     <Compile Include="Win32\Enums\FlashWindowFlags.cs" />
     <Compile Include="Win32\Enums\GAF.cs" />
@@ -248,7 +249,6 @@
     <Compile Include="Win32\Structs\PropVariant.cs" />
     <Compile Include="Win32\Structs\PropertyKey.cs" />
     <Compile Include="Win32\SafeProcessHandle.cs" />
-    <Compile Include="Win32\SingleInstance.cs" />
     <Compile Include="Win32\Structs\FLASHWINFO.cs" />
     <Compile Include="Win32\Structs\MINMAXINFO.cs" />
     <Compile Include="Win32\Structs\MONITORINFO.cs" />
@@ -269,6 +269,7 @@
     <Compile Include="WinForms\ContainerWindowMoveListener.cs" />
     <Compile Include="WinForms\WidgetWindowZOrderHandler.cs" />
     <Compile Include="WinForms\NativeApplicationWindow.cs" />
+    <Compile Include="WorkingSetMonitor.cs" />
     <Compile Include="WPF\AutoSaveWindowPositionBehavior.cs" />
     <Compile Include="WPF\BrowserHwndHost.cs" />
     <Compile Include="WPF\CefWebBrowser.cs" />
@@ -287,6 +288,7 @@
     <Compile Include="WPF\Lazy.cs" />
     <Compile Include="WPF\ParagonWindow.cs" />
     <Compile Include="WPF\ProgressRing.cs" />
+    <Compile Include="WPF\SourceStringVisitor.cs" />
     <Compile Include="WPF\WindowButton.cs" />
     <Compile Include="WPF\WindowCommands.cs" />
     <Compile Include="WPF\WindowInteropHelperExtensions.cs" />
@@ -334,17 +336,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="Shell32">
-      <Guid>{50A7E9B0-70EF-11D1-B75A-00A0C90564FE}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="App.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -352,6 +343,10 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

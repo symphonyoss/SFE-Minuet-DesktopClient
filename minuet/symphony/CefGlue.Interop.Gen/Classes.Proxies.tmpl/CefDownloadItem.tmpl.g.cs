@@ -118,6 +118,14 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
+        /// Returns the original URL before any redirections.
+        /// </summary>
+        public cef_string_userfree* GetOriginalUrl()
+        {
+            throw new NotImplementedException(); // TODO: CefDownloadItem.GetOriginalUrl
+        }
+        
+        /// <summary>
         /// Returns the suggested file name.
         /// </summary>
         public cef_string_userfree* GetSuggestedFileName()

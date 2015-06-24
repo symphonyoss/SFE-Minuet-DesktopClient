@@ -25,9 +25,12 @@ namespace Xilium.CefGlue
         /// would not normally be rendered then the response may receive special
         /// handling inside the browser (for example, via the file download code path
         /// instead of the URL request code path). The |request| object will be marked
-        /// as read-only after calling this method.
+        /// as read-only after calling this method. In the browser process if
+        /// |request_context| is empty the global request context will be used. In the
+        /// render process |request_context| must be empty and the context associated
+        /// with the current renderer process' browser will be used.
         /// </summary>
-        public static cef_urlrequest_t* Create(cef_request_t* request, cef_urlrequest_client_t* client)
+        public static cef_urlrequest_t* Create(cef_request_t* request, cef_urlrequest_client_t* client, cef_request_context_t* request_context)
         {
             throw new NotImplementedException(); // TODO: CefUrlRequest.Create
         }

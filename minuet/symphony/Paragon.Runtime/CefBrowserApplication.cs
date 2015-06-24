@@ -74,7 +74,7 @@ namespace Paragon.Runtime
 
         protected override void OnContextInitialized()
         {
-            CefCookieManager.Global.SetSupportedSchemes(CefBrowserApplication.AllowedProtocols);
+            CefCookieManager.GetGlobal(null).SetSupportedSchemes(CefBrowserApplication.AllowedProtocols, null);
             base.OnContextInitialized();
         }
 
@@ -82,8 +82,10 @@ namespace Paragon.Runtime
         {
             if (RenderProcessInitialize != null)
             {
-                var ea = new RenderProcessInitEventArgs(extraInfo);
-                RenderProcessInitialize(this, ea);
+                using (var ea = new RenderProcessInitEventArgs(extraInfo))
+                {
+                    RenderProcessInitialize(this, ea);
+                }
             }
             base.OnRenderProcessThreadCreated(extraInfo);
         }

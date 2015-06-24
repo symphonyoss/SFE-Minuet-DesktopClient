@@ -18,6 +18,7 @@ namespace Paragon.Plugins.Notifications.ViewModels
 
         private int selectedMonitor;
         private Position selectedPosition;
+        private bool dnd;
 
         public UserConfigurationWindowViewModel(
             IMonitors monitors,
@@ -67,6 +68,16 @@ namespace Paragon.Plugins.Notifications.ViewModels
             }
         }
 
+        public bool Dnd
+        {
+            get { return dnd; }
+            set 
+            { 
+                dnd = value;
+                OnPropertyChanged("Dnd");
+            }
+        }
+
         public event EventHandler RequestClose;
         public event EventHandler RequestShow;
 
@@ -93,6 +104,7 @@ namespace Paragon.Plugins.Notifications.ViewModels
             SelectedMonitor = monitor;
 
             SelectedPosition = notificationSettings.GetPosition();
+            Dnd = notificationSettings.GetDnd();
 
             // subcribe to change events after rehydrating 
             // otherwise each property change will recreate samples
@@ -101,7 +113,8 @@ namespace Paragon.Plugins.Notifications.ViewModels
                 var propertyName = args.PropertyName;
 
                 if (propertyName == "SelectedPosition"
-                    || propertyName == "SelectedMonitor")
+                    || propertyName == "SelectedMonitor"
+                    || propertyName == "Dnd")
                 {
                     ClearSamples();
                     ShowSample(SelectedPosition, SelectedMonitor);
@@ -132,7 +145,7 @@ namespace Paragon.Plugins.Notifications.ViewModels
 
         private void OnSave()
         {
-            notificationSettings.Save(SelectedMonitor, SelectedPosition);
+            notificationSettings.Save(SelectedMonitor, SelectedPosition, Dnd);
 
             OnRequestClose();
         }

@@ -26,7 +26,6 @@ namespace Paragon.Runtime.WPF
             if (AssociatedObject.IsInitialized)
             {
                 Init();
-
             }
             else
             {
@@ -44,7 +43,7 @@ namespace Paragon.Runtime.WPF
             var placement = default(WINDOWPLACEMENT);
             if (NativeMethods.GetWindowPlacement(_hwnd.Value, ref placement))
             {
-                Save(AssociatedObject.GetId(), placement);
+                Save(AssociatedObject.GetId() + AssociatedObject.GetAppId(), placement);
             }
         }
 
@@ -53,15 +52,15 @@ namespace Paragon.Runtime.WPF
             _hwnd = new WindowInteropHelper(AssociatedObject).Handle;
 
             WINDOWPLACEMENT placement;
-            if (TryGetPosition(AssociatedObject.GetId(), out placement))
+            if (TryGetPosition(AssociatedObject.GetId()+AssociatedObject.GetAppId(), out placement))
             {
                 NativeMethods.SetWindowPlacement(_hwnd.Value, ref placement);
             }
         }
 
-        private bool TryGetPosition(string windowId, out WINDOWPLACEMENT placement)
+        private bool TryGetPosition(string appAndWindowId, out WINDOWPLACEMENT placement)
         {
-            var file = Path.Combine(WindowPosDir, windowId);
+            var file = Path.Combine(WindowPosDir, appAndWindowId);
             placement = default(WINDOWPLACEMENT);
             if (_store.GetFileNames(file).Length == 0)
             {
@@ -81,9 +80,9 @@ namespace Paragon.Runtime.WPF
             }
         }
 
-        private void Save(string windowId, WINDOWPLACEMENT placement)
+        private void Save(string appAndWindowId, WINDOWPLACEMENT placement)
         {
-            var file = Path.Combine(WindowPosDir, windowId);
+            var file = Path.Combine(WindowPosDir, appAndWindowId);
             using (var writer = new StreamWriter(new IsolatedStorageFileStream(file, FileMode.Create, FileAccess.Write, _store)))
             {
                 writer.Write(StructConverter.ToString(placement));

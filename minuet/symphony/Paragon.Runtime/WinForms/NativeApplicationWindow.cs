@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Interop;
+using Paragon.Plugins;
+using Paragon.Runtime.Win32;
 
 namespace Paragon.Runtime.WinForms
 {
@@ -29,10 +33,115 @@ namespace Paragon.Runtime.WinForms
             _hooks.Add(hwndSourceHook);
         }
 
+        #region Temporaty fix for bug in minimize/restore after Aero Snapping 
+
+        private const int WIN_MINIMIZE_X = -32000;
+        RECT _bounds;
+        bool _boundsInitialized = false;
+        private WindowState _state = WindowState.Normal;
+        private WindowState _prevState = WindowState.Normal;
+
+        private void OnWindowPosChanging(ref Message m)
+        {
+            var pos = (WINDOWPOS)Marshal.PtrToStructure(m.LParam, typeof(WINDOWPOS));
+            bool changed = false;
+            
+            if ((pos.flags & (int)SWP.NOMOVE) != (int)SWP.NOMOVE)
+            {
+                if (!_boundsInitialized)
+                {
+                    _bounds = new RECT() { Left = pos.x, Top = pos.y, Right = pos.x + pos.cx, Bottom = pos.y + pos.cy };
+                    _boundsInitialized = true;
+                }
+                // Prevent messages with wrong location.
+                if (_state == WindowState.Minimized && _prevState != WindowState.Maximized && (pos.x != _bounds.Left || pos.y != _bounds.Top))
+                {
+                    pos.flags |= (int)SWP.NOMOVE;
+                    changed = true;
+                }
+            }
+            if ((pos.flags & (int)SWP.NOSIZE) != (int)SWP.NOSIZE)
+            {
+                if (!_boundsInitialized)
+                {
+                    _bounds = new RECT() { Left = pos.x, Top = pos.y, Right = pos.x + pos.cx, Bottom = pos.y + pos.cy };
+                    _boundsInitialized = true;
+                }
+                // Prevent messages with wrong siize
+                if (_state == WindowState.Minimized && _prevState != WindowState.Maximized && (pos.cx != _bounds.Width || pos.cy != _bounds.Height))
+                {
+                    pos.flags |= (int)SWP.NOSIZE;
+                    changed = true;
+                }
+            }
+            if (!_boundsInitialized)
+            {
+                _bounds = RECT.FromHandle(Handle);
+                _boundsInitialized = true;
+            }
+            if (changed)
+            {
+                Marshal.StructureToPtr(pos, m.LParam, true);
+            }
+        }
+
+        private void OnWindowPosChanged(ref Message m)
+        {
+            var pos = (WINDOWPOS)Marshal.PtrToStructure(m.LParam, typeof(WINDOWPOS));
+            if ((pos.flags & (int)SWP.NOMOVE) != (int)SWP.NOMOVE && pos.x != WIN_MINIMIZE_X)
+            {
+                _bounds.Right = _bounds.Width + pos.x;
+                _bounds.Bottom = _bounds.Height + pos.y;
+                _bounds.Left = pos.x;
+                _bounds.Top = pos.y;
+            }
+            if ((pos.flags & (int)SWP.NOSIZE) != (int)SWP.NOSIZE && pos.x != WIN_MINIMIZE_X)
+            {
+                _bounds.Right = pos.x + pos.cx;
+                _bounds.Bottom = pos.y + pos.cy;
+            }
+        }
+
+        private void OnSizeChanged(ref Message m)
+        {
+            switch ((int)m.WParam)
+            {
+                case (int)SizeChangeType.RESTORED:
+                    _prevState = _state;
+                    _state = WindowState.Normal;
+                    break;
+
+                case (int)SizeChangeType.MINIMIZED:
+                    _prevState = _state;
+                    _state = WindowState.Minimized;
+                    break;
+
+                case (int)SizeChangeType.MAXIMIZED:
+                    _prevState = _state;
+                    _state = WindowState.Maximized;
+                    break;
+            }
+        }
+        #endregion
+
         [DebuggerStepThrough]
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         protected override void WndProc(ref Message m)
         {
+            // The following code fixes the improper restoration from minimized state after Aero Snapping (Win+Left/Right)
+            switch (m.Msg)
+            {
+                case (int)WM.WINDOWPOSCHANGING:
+                    OnWindowPosChanging(ref m);
+                    break;
+                case (int)WM.WINDOWPOSCHANGED:
+                    OnWindowPosChanged(ref m);
+                    break;
+                case (int) WM.SIZE:
+                    OnSizeChanged(ref m);
+                    break;
+            }
+
             foreach (var hook in _hooks.ToArray())
             {
                 var handled = false;

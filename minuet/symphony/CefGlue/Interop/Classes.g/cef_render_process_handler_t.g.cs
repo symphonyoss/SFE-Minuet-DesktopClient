@@ -35,13 +35,13 @@ namespace Xilium.CefGlue.Interop
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        internal delegate bool release_delegate(cef_render_process_handler_t* self);
+        internal delegate int release_delegate(cef_render_process_handler_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        internal delegate bool has_one_ref_delegate(cef_render_process_handler_t* self);
+        internal delegate int has_one_ref_delegate(cef_render_process_handler_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG

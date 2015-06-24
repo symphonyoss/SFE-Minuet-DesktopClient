@@ -33,6 +33,8 @@ namespace Paragon.Plugins
 
         void FocusWindow();
 
+        void BringToFront();
+
         void FullScreenWindow();
 
         void Minimize();
@@ -81,6 +83,6 @@ namespace Paragon.Plugins
 
         void SetZoomLevel(double level);
 
-        string[] RunFileDialog(FileDialogMode mode, string title, string defaultFileName, string[] acceptTypes);
+        void RunFileDialog(FileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, JavaScriptPluginCallback callback);
     }
 }

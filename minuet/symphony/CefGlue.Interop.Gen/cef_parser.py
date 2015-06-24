@@ -374,18 +374,20 @@ _simpletypes = {
     'long long' : ['long long', '0'],
     'size_t' : ['size_t', '0'],
     'time_t' : ['time_t', '0'],
+    'cef_color_t' : ['uint32', '0'],
     'bool' : ['int', '0'],
     'char': ['char', '0'],
     'char* const': ['char* const', 'NULL'],
-    'CefCursorHandle' : ['cef_cursor_handle_t', 'NULL'],
-    'CefEventHandle' : ['cef_event_handle_t', 'NULL'],
-    'CefWindowHandle' : ['cef_window_handle_t', 'NULL'],
+    'CefCursorHandle' : ['cef_cursor_handle_t', 'kNullCursorHandle'],
+    'CefEventHandle' : ['cef_event_handle_t', 'kNullEventHandle'],
+    'CefWindowHandle' : ['cef_window_handle_t', 'kNullWindowHandle'],
     'CefTextInputContext' : ['cef_text_input_context_t' ,'NULL'],
+    'CefPoint' : ['cef_point_t', 'CefPoint()'],
     'CefRect' : ['cef_rect_t', 'CefRect()'],
+    'CefSize' : ['cef_size_t', 'CefSize()'],
+    'CefPageRange' : ['cef_page_range_t', 'CefPageRange()'],
     'CefThreadId' : ['cef_thread_id_t', 'TID_UI'],
     'CefTime' : ['cef_time_t', 'CefTime()'],
-    'CefSize' : ['cef_size_t', 'CefSize()'],
-    'CefPageRange' : ['cef_page_range_t', 'CefPageRange()']
 }
 
 def get_function_impls(content, ident):

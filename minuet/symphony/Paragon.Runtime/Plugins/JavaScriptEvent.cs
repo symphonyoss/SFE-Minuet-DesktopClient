@@ -92,7 +92,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception e)
             {
-                Logger.Error(fmt => fmt("Error invoking plugin callback: " + e));
+                Logger.Error("Error invoking plugin callback: " + e);
             }
         }
 

@@ -14,7 +14,7 @@ namespace Xilium.CefGlue
     {
         private static Dictionary<IntPtr, CefRunFileDialogCallback> _roots = new Dictionary<IntPtr, CefRunFileDialogCallback>();
         
-        private int _refct=0;
+        private int _refct;
         private cef_run_file_dialog_callback_t* _self;
         
         protected object SyncRoot { get { return this; } }
@@ -22,7 +22,7 @@ namespace Xilium.CefGlue
         private cef_run_file_dialog_callback_t.add_ref_delegate _ds0;
         private cef_run_file_dialog_callback_t.release_delegate _ds1;
         private cef_run_file_dialog_callback_t.has_one_ref_delegate _ds2;
-        private cef_run_file_dialog_callback_t.cont_delegate _ds3;
+        private cef_run_file_dialog_callback_t.on_file_dialog_dismissed_delegate _ds3;
         
         protected CefRunFileDialogCallback()
         {
@@ -34,8 +34,8 @@ namespace Xilium.CefGlue
             _self->_base._release = Marshal.GetFunctionPointerForDelegate(_ds1);
             _ds2 = new cef_run_file_dialog_callback_t.has_one_ref_delegate(has_one_ref);
             _self->_base._has_one_ref = Marshal.GetFunctionPointerForDelegate(_ds2);
-            _ds3 = new cef_run_file_dialog_callback_t.cont_delegate(cont);
-            _self->_cont = Marshal.GetFunctionPointerForDelegate(_ds3);
+            _ds3 = new cef_run_file_dialog_callback_t.on_file_dialog_dismissed_delegate(on_file_dialog_dismissed);
+            _self->_on_file_dialog_dismissed = Marshal.GetFunctionPointerForDelegate(_ds3);
         }
         
         ~CefRunFileDialogCallback()
@@ -64,7 +64,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private bool release(cef_run_file_dialog_callback_t* self)
+        private int release(cef_run_file_dialog_callback_t* self)
         {
             lock (SyncRoot)
             {
@@ -72,14 +72,15 @@ namespace Xilium.CefGlue
                 if (result == 0)
                 {
                     lock (_roots) { _roots.Remove((IntPtr)_self); }
+                    return 1;
                 }
-                return result <= 0;
+                return 0;
             }
         }
         
-        private bool has_one_ref(cef_run_file_dialog_callback_t* self)
+        private int has_one_ref(cef_run_file_dialog_callback_t* self)
         {
-            return _refct > 0;
+            lock (SyncRoot) { return _refct == 1 ? 1 : 0; }
         }
         
         internal cef_run_file_dialog_callback_t* ToNative()

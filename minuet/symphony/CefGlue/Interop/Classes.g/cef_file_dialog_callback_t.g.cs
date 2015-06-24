@@ -26,19 +26,19 @@ namespace Xilium.CefGlue.Interop
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        private delegate bool release_delegate(cef_file_dialog_callback_t* self);
+        private delegate int release_delegate(cef_file_dialog_callback_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        private delegate bool has_one_ref_delegate(cef_file_dialog_callback_t* self);
+        private delegate int has_one_ref_delegate(cef_file_dialog_callback_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        private delegate void cont_delegate(cef_file_dialog_callback_t* self, cef_string_list* file_paths);
+        private delegate void cont_delegate(cef_file_dialog_callback_t* self, int selected_accept_filter, cef_string_list* file_paths);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
@@ -67,7 +67,7 @@ namespace Xilium.CefGlue.Interop
         private static IntPtr _p1;
         private static release_delegate _d1;
         
-        public static bool release(cef_file_dialog_callback_t* self)
+        public static int release(cef_file_dialog_callback_t* self)
         {
             release_delegate d;
             var p = self->_base._release;
@@ -80,11 +80,11 @@ namespace Xilium.CefGlue.Interop
             return d(self);
         }
         
-        // GetRefCt
+        // HasOneRef
         private static IntPtr _p2;
         private static has_one_ref_delegate _d2;
         
-        public static bool has_one_ref(cef_file_dialog_callback_t* self)
+        public static int has_one_ref(cef_file_dialog_callback_t* self)
         {
             has_one_ref_delegate d;
             var p = self->_base._has_one_ref;
@@ -101,7 +101,7 @@ namespace Xilium.CefGlue.Interop
         private static IntPtr _p3;
         private static cont_delegate _d3;
         
-        public static void cont(cef_file_dialog_callback_t* self, cef_string_list* file_paths)
+        public static void cont(cef_file_dialog_callback_t* self, int selected_accept_filter, cef_string_list* file_paths)
         {
             cont_delegate d;
             var p = self->_cont;
@@ -111,7 +111,7 @@ namespace Xilium.CefGlue.Interop
                 d = (cont_delegate)Marshal.GetDelegateForFunctionPointer(p, typeof(cont_delegate));
                 if (_p3 == IntPtr.Zero) { _d3 = d; _p3 = p; }
             }
-            d(self, file_paths);
+            d(self, selected_accept_filter, file_paths);
         }
         
         // Cancel

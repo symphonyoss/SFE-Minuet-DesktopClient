@@ -8,7 +8,7 @@ using System.Security.Permissions;
 
 namespace Paragon.Runtime.Win32
 {
-    internal sealed class ProcessPerfInfo : IDisposable
+    public sealed class ProcessPerfInfo : IDisposable
     {
         private bool _disposed;
         private DateTime _lastCpuCheck;
@@ -78,8 +78,7 @@ namespace Paragon.Runtime.Win32
                     ref createTime, ref exitTime, ref kernelTime, ref userTime);
 
                 var cpuTime = new TimeSpan(kernelTime + userTime);
-                // TODO : Make sure that this works
-                CpuTime = string.Format(@"{0:hh\:mm\:ss}", cpuTime);
+                CpuTime = string.Format(@"{0:00}:{1:00}:{2:00}", cpuTime.TotalHours, cpuTime.Minutes, cpuTime.Seconds);
 
                 var latestProcTime = cpuTime - _previousTotalProcTime;
                 var latestWallTime = (now - _lastCpuCheck).TotalMilliseconds;

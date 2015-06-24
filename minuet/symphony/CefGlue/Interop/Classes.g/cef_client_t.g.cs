@@ -18,6 +18,7 @@ namespace Xilium.CefGlue.Interop
         internal IntPtr _get_display_handler;
         internal IntPtr _get_download_handler;
         internal IntPtr _get_drag_handler;
+        internal IntPtr _get_find_handler;
         internal IntPtr _get_focus_handler;
         internal IntPtr _get_geolocation_handler;
         internal IntPtr _get_jsdialog_handler;
@@ -38,13 +39,13 @@ namespace Xilium.CefGlue.Interop
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        internal delegate bool release_delegate(cef_client_t* self);
+        internal delegate int release_delegate(cef_client_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        internal delegate bool has_one_ref_delegate(cef_client_t* self);
+        internal delegate int has_one_ref_delegate(cef_client_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
@@ -75,6 +76,12 @@ namespace Xilium.CefGlue.Interop
         [SuppressUnmanagedCodeSecurity]
         #endif
         internal delegate cef_drag_handler_t* get_drag_handler_delegate(cef_client_t* self);
+        
+        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
+        #if !DEBUG
+        [SuppressUnmanagedCodeSecurity]
+        #endif
+        internal delegate cef_find_handler_t* get_find_handler_delegate(cef_client_t* self);
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG

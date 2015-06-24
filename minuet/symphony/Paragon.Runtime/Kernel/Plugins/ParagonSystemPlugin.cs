@@ -1,6 +1,7 @@
 ﻿using System;
 using Paragon.Plugins;
 using Paragon.Runtime.Annotations;
+using Paragon.Runtime.Desktop;
 using Paragon.Runtime.Kernel.Windowing;
 using Paragon.Runtime.Win32;
 
@@ -28,6 +29,13 @@ namespace Paragon.Runtime.Kernel.Plugins
         public ScreenInfo[] GetScreenInfo()
         {
             return DisplaySettings.GetScreenInfo();
+        }
+
+        [JavaScriptPluginMember, UsedImplicitly]
+        public void CreateMemoryDump(ProcessDumpType processDumpType)
+        {
+            var appInfo = ParagonDesktop.GetAppInfo(Application.Metadata.InstanceId);
+            MemoryDump.CreateMemoryDump(appInfo, processDumpType);
         }
 
         protected override void OnInitialize()

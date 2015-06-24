@@ -187,6 +187,6 @@ namespace Paragon.Runtime
 
         void SetZoomLevel(double level);
 
-        void RunFileDialog(CefFileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, CefRunFileDialogCallback callback);
+        void RunFileDialog(CefFileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, int selectedAcceptFilter, CefRunFileDialogCallback callback);
     }
 }

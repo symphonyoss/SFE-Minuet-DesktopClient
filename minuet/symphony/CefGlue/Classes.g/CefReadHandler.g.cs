@@ -14,7 +14,7 @@ namespace Xilium.CefGlue
     {
         private static Dictionary<IntPtr, CefReadHandler> _roots = new Dictionary<IntPtr, CefReadHandler>();
         
-        private int _refct=0;
+        private int _refct;
         private cef_read_handler_t* _self;
         
         protected object SyncRoot { get { return this; } }
@@ -76,7 +76,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private bool release(cef_read_handler_t* self)
+        private int release(cef_read_handler_t* self)
         {
             lock (SyncRoot)
             {
@@ -84,15 +84,15 @@ namespace Xilium.CefGlue
                 if (result == 0)
                 {
                     lock (_roots) { _roots.Remove((IntPtr)_self); }
-                    
+                    return 1;
                 }
-                return result <= 0;
+                return 0;
             }
         }
         
-        private bool has_one_ref(cef_read_handler_t* self)
+        private int has_one_ref(cef_read_handler_t* self)
         {
-            return _refct > 0;
+            lock (SyncRoot) { return _refct == 1 ? 1 : 0; }
         }
         
         internal cef_read_handler_t* ToNative()

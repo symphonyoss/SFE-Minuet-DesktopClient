@@ -64,7 +64,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private bool release(cef_domevent_listener_t* self)
+        private int release(cef_domevent_listener_t* self)
         {
             lock (SyncRoot)
             {
@@ -74,13 +74,13 @@ namespace Xilium.CefGlue
                     lock (_roots) { _roots.Remove((IntPtr)_self); }
                     
                 }
-                return result <= 0;
+                return result <= 0 ? 1 : 0;
             }
         }
         
-        private bool has_one_ref(cef_domevent_listener_t* self)
+        private int has_one_ref(cef_domevent_listener_t* self)
         {
-            return _refct > 0;
+            return _refct > 0 ? 1 : 0;
         }
         
         internal cef_domevent_listener_t* ToNative()

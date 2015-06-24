@@ -42,7 +42,7 @@ namespace Paragon.Runtime.Plugins
                     var current = descriptor;
                     if (!_plugins.TryAdd(current.PluginId, new RemoteV8Plugin(_router, this, current)))
                     {
-                        Logger.Warn(fmt => fmt("Error adding remote plugin with ID: " + current.PluginId));
+                        Logger.Warn("Error adding remote plugin with ID: " + current.PluginId);
                     }
                 }
             }
@@ -52,7 +52,7 @@ namespace Paragon.Runtime.Plugins
                 var current = plugin;
                 if (!_plugins.TryAdd(current.Descriptor.PluginId, new LocalV8Plugin(_router, this, current)))
                 {
-                    Logger.Warn(fmt => fmt("Error adding remote plugin with ID: " + current.Descriptor.PluginId));
+                    Logger.Warn("Error adding remote plugin with ID: " + current.Descriptor.PluginId);
                 }
             }
         }
@@ -67,7 +67,7 @@ namespace Paragon.Runtime.Plugins
             IV8Plugin plugin;
             if (!_plugins.TryGetValue(pluginId, out plugin))
             {
-                Logger.Error(fmt => fmt("Plugin not found: " + pluginId));
+                Logger.Error("Plugin not found: " + pluginId);
             }
 
             return plugin;

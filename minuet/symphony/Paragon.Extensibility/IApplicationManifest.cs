@@ -26,10 +26,20 @@ namespace Paragon.Plugins
         string Description { get; set; }
 
         /// <summary>
+        /// Use the app name as WindowName irrespective of title changes via html code
+        /// </summary>
+        bool UseAppNameAsWindowTitle { get; set; }
+
+        /// <summary>
         /// Gets or sets a flag indicating whether the app is single instance or not.
         /// </summary>
         bool SingleInstance { get; set; }
 
+        /// <summary>
+        /// Indicates the name of the application family. The name should not have any special characters except spaces. Optional. 
+        /// </summary>
+        string FamilyName { get; set; }
+        
         /// <summary>
         /// Application startup information. Required.
         /// </summary>
@@ -114,6 +124,9 @@ namespace Paragon.Plugins
     public interface ILaunchInfo
     {
         string WebUrl { get; set; }
+
+        string Id { get; set; }
+        bool AutoSaveLocation { get; set; }
 
         string Container { get; set; }
 

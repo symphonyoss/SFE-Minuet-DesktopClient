@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Text;
 using Paragon.Plugins;
@@ -114,7 +116,7 @@ namespace Paragon.Runtime.Plugins
                                     }
                                     else
                                     {
-                                        Logger.Warn(string.Format("Render-side JavaScript plugin {0} is empty! " + appPlugin.Name));
+                                        Logger.Warn("Render-side JavaScript plugin {0} is empty! ", appPlugin.Name);
                                     }
                                 }
                             }
@@ -158,7 +160,7 @@ namespace Paragon.Runtime.Plugins
                     // The assembly was not found in the package. This may be ok as the assembly
                     // could be part of the paragon framework in which case it will be loaded further
                     // down the resolve chain.
-                    Logger.Warn(fmt => fmt("Assembly not resolved from app package: " + args.Name));
+                    Logger.Warn("Assembly not resolved from app package: " + args.Name);
                     return null;
                 }
 
@@ -188,7 +190,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception e)
             {
-                Logger.Error(fmt => fmt("Error loading assembly from package: " + e));
+                Logger.Error("Error loading assembly from package: " + e);
                 return null;
             }
         }
@@ -238,22 +240,33 @@ namespace Paragon.Runtime.Plugins
                 return IntPtr.Zero;
             }
 
-            byte[] dllBytes = ReadPart(part);
             IntPtr dll = IntPtr.Zero;
-            if (dllBytes != null && dllBytes.Length > 0)
+
+            try
             {
-                // Load the dll.
-                var path = Path.Combine(Path.GetTempPath(), name);
-                if( !File.Exists(path) )
+                byte[] dllBytes = ReadPart(part);
+                if (dllBytes != null && dllBytes.Length > 0)
                 {
-                    using (FileStream fs = File.Create(path))
+                    // Load the dll.
+                    var path = Path.Combine(Path.GetTempPath(), name);
+                    using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate))
                     {
                         fs.Write(dllBytes, 0, dllBytes.Length);
                         fs.Flush();
                     }
+                    dll = Win32Api.LoadLibrary(path);
+                    if (dll == IntPtr.Zero)
+                    {
+                        var errCode = Marshal.GetLastWin32Error();
+                        throw new Win32Exception(errCode, string.Format("Error loading unmanged dll {0}", path));
+                    }
                 }
-                dll = Win32Api.LoadLibrary(path);
             }
+            catch (Exception ex)
+            {
+                Logger.Error("Error loading unmanaged dll: " + ex.Message);
+            }
+
             return dll;
         }
 
@@ -279,11 +292,11 @@ namespace Paragon.Runtime.Plugins
                 {
                    return _package.GetPart(path);
                 }
-                Logger.Warn(fmt => fmt("Package part not found: " + path));
+                Logger.Warn("Package part not found: " + path);
             }
             catch (Exception e)
             {
-                Logger.Error(fmt => fmt("Failed to get package part. Path:{0}, Exception: {1}", path, e.ToString()));
+                Logger.Error("Failed to get package part. Path:{0}, Exception: {1}", path, e.ToString());
             }
             return null;
         }

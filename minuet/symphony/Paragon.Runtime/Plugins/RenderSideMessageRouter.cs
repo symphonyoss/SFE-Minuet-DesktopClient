@@ -27,12 +27,12 @@ namespace Paragon.Runtime.Plugins
 
         public void BrowserDestroyed(CefBrowser browser)
         {
-            Logger.Info(fmt => fmt("BrowserDestroyed Browser {0}", browser.Identifier));
+            Logger.Info("BrowserDestroyed Browser {0}", browser.Identifier);
         }
 
         public void ContextCreated(CefBrowser browser, CefFrame frame, CefV8Context context)
         {
-            Logger.Info(fmt => fmt("ContextCreated Browser {0} Frame {1}", browser.Identifier, frame.Identifier));
+            Logger.Info("ContextCreated Browser {0} Frame {1}", browser.Identifier, frame.Identifier);
 
             if (!EnsureOnRendererThread())
             {
@@ -47,13 +47,13 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception exception)
             {
-                Logger.Info(fmt => fmt("ContextCreated Failed Browser {0} Frame {1}: {2}", browser.Identifier, frame.Identifier, exception));
+                Logger.Info("ContextCreated Failed Browser {0} Frame {1}: {2}", browser.Identifier, frame.Identifier, exception);
             }
         }
 
         public void ContextReleased(CefBrowser browser, CefFrame frame, CefV8Context context)
         {
-            Logger.Info(fmt => fmt("ContextReleased Browser {0} Frame {1}", browser.Identifier, frame.Identifier));
+            Logger.Info("ContextReleased Browser {0} Frame {1}", browser.Identifier, frame.Identifier);
 
             if (!EnsureOnRendererThread())
             {
@@ -75,7 +75,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception exception)
             {
-                Logger.Info(fmt => fmt("ContextReleased Failed Browser {0} Frame {1}: {2}", browser.Identifier, frame.Identifier, exception));
+                Logger.Info("ContextReleased Failed Browser {0} Frame {1}: {2}", browser.Identifier, frame.Identifier, exception);
             }
         }
 
@@ -102,8 +102,8 @@ namespace Paragon.Runtime.Plugins
 
             var msg = call.RequestMessage;
 
-            Logger.Info(fmt => fmt("LocalCallbackInvoked MsgType {0} Plugin {1} Member {2}",
-                msg.MessageType, msg.PluginId, msg.MemberName));
+            Logger.Info("LocalCallbackInvoked MsgType {0} Plugin {1} Member {2}",
+                msg.MessageType, msg.PluginId, msg.MemberName);
 
             // Already on the render thread (e.g. local plugin event triggered by call into function from JS, or function invoke failed
             try
@@ -124,11 +124,11 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception exception)
             {
-                Logger.Error(fmt => fmt("LocalCallbackInvoked Failed MsgType {0} Plugin {1} Member {2}: {3}",
+                Logger.Error("LocalCallbackInvoked Failed MsgType {0} Plugin {1} Member {2}: {3}",
                     call.RequestMessage.MessageType,
                     call.RequestMessage.PluginId,
                     call.RequestMessage.MemberName,
-                    exception));
+                    exception);
             }
         }
 
@@ -162,7 +162,7 @@ namespace Paragon.Runtime.Plugins
             JArray parameters,
             IV8Callback callback)
         {
-            Logger.Info(fmt => fmt("InvokeFunction Remote Plugin {0} Method {1}", targetPlugin.PluginId, methodDescriptor.MethodName));
+            Logger.Debug("InvokeFunction Remote Plugin {0} Method {1}", targetPlugin.PluginId, methodDescriptor.MethodName);
 
             if (!EnsureOnRendererThread())
             {
@@ -176,8 +176,15 @@ namespace Paragon.Runtime.Plugins
             functionInvokeMessage.MessageType = PluginMessageType.FunctionInvoke;
             functionInvokeMessage.Data = parameters != null ? parameters.ToString() : string.Empty;
 
-            // Add the call info into the pending calls for the browser
-            AddRemoteCallback(functionInvokeMessage, methodDescriptor.HasCallbackParameter ? null : callback);
+            // Add the call info into the pending calls for the browser if the return type
+            // is not void or the method has a callback arg.
+            // TODO: We should verify that the signature of the JavaScript call matches the plugin method and throw an exception for invalid invocations.
+            if (!methodDescriptor.IsVoid 
+                || methodDescriptor.HasCallbackParameter
+                || callback != null)
+            {
+                AddRemoteCallback(functionInvokeMessage, methodDescriptor.HasCallbackParameter ? null : callback);
+            }
 
             try
             {
@@ -192,10 +199,10 @@ namespace Paragon.Runtime.Plugins
                 // If the request could not be sent, remove the call from the list
                 var error = new ResultData {ErrorCode = -1, Error = ex.Message};
                 OnBrowserCallbackInvokeReceived(functionInvokeMessage, error);
-                Logger.Error(fmt => fmt("InvokeFunction Failed Remote Plugin {0} Method {1}: {2}",
+                Logger.Error("InvokeFunction Failed Remote Plugin {0} Method {1}: {2}",
                     targetPlugin.PluginId,
                     methodDescriptor.MethodName,
-                    ex));
+                    ex);
             }
         }
 
@@ -216,7 +223,7 @@ namespace Paragon.Runtime.Plugins
         /// </param>
         public void AddEventListener(CefV8Context context, PluginDescriptor targetPlugin, string eventName, IV8Callback callback)
         {
-            Logger.Info(fmt => fmt("AddEventListener Remote Plugin {0} Event {1}", targetPlugin.PluginId, eventName));
+            Logger.Info("AddEventListener Remote Plugin {0} Event {1}", targetPlugin.PluginId, eventName);
 
             if (!EnsureOnRendererThread())
             {
@@ -246,7 +253,7 @@ namespace Paragon.Runtime.Plugins
                 // If the request could not be sent, remove the call from the list
                 _pendingCallbacks.Remove(info);
                 info.Dispose();
-                Logger.Error(fmt => fmt("AddEventListener Failed Remote Plugin {0} Event {1}: {2}", targetPlugin.PluginId, eventName, ex));
+                Logger.Error("AddEventListener Failed Remote Plugin {0} Event {1}: {2}", targetPlugin.PluginId, eventName, ex);
             }
         }
 
@@ -266,7 +273,7 @@ namespace Paragon.Runtime.Plugins
         /// The callback to remove.</param>
         public void RemoveEventListener(CefV8Context context, PluginDescriptor targetPlugin, string eventName, IV8Callback callback)
         {
-            Logger.Info(fmt => fmt("RemoveEventListener Remote Plugin {0} Event {1}", targetPlugin.PluginId, eventName));
+            Logger.Info("RemoveEventListener Remote Plugin {0} Event {1}", targetPlugin.PluginId, eventName);
 
             if (!EnsureOnRendererThread())
             {
@@ -294,7 +301,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception ex)
             {
-                Logger.Error(fmt => fmt("RemoveEventListener Failed Remote Plugin {0} Event {1}: {2}", targetPlugin.PluginId, eventName, ex));
+                Logger.Error("RemoveEventListener Failed Remote Plugin {0} Event {1}: {2}", targetPlugin.PluginId, eventName, ex);
             }
         }
 
@@ -323,7 +330,7 @@ namespace Paragon.Runtime.Plugins
             IJavaScriptParameters parameters,
             IV8Callback callback)
         {
-            Logger.Info(fmt => fmt("InvokeFunction Local Plugin {0} Method {1}", targetPlugin.Descriptor.PluginId, methodDescriptor.MethodName));
+            Logger.Info("InvokeFunction Local Plugin {0} Method {1}", targetPlugin.Descriptor.PluginId, methodDescriptor.MethodName);
 
             if (!EnsureOnRendererThread())
             {
@@ -332,7 +339,7 @@ namespace Paragon.Runtime.Plugins
 
             if (!targetPlugin.IsValid)
             {
-                Logger.Warn(fmt => fmt("InvokeFunction Local Plugin {0} is invalid", targetPlugin.Descriptor.PluginId));
+                Logger.Warn("InvokeFunction Local Plugin {0} is invalid", targetPlugin.Descriptor.PluginId);
                 if (callback != null)
                 {
                     callback.Invoke(this, context, null, CallInfo.ErrorCodeCallCanceled, CallInfo.ErrorCallCanceled);
@@ -365,10 +372,10 @@ namespace Paragon.Runtime.Plugins
             catch (Exception ex)
             {
                 LocalCallbackInvoked(info, null, -1, ex.Message);
-                Logger.Error(fmt => fmt("InvokeFunction Failed Local Plugin {0} Method {1}: {2}",
+                Logger.Error("InvokeFunction Failed Local Plugin {0} Method {1}: {2}",
                     targetPlugin.Descriptor.PluginId,
                     methodDescriptor.MethodName,
-                    ex));
+                    ex);
             }
         }
 
@@ -389,7 +396,7 @@ namespace Paragon.Runtime.Plugins
         /// </param>
         public void AddEventListener(CefV8Context context, JavaScriptPlugin targetPlugin, string eventName, IV8Callback callback)
         {
-            Logger.Info(fmt => fmt("AddEventListener Local Plugin {0} Event {1}", targetPlugin.Descriptor.PluginId, eventName));
+            Logger.Info("AddEventListener Local Plugin {0} Event {1}", targetPlugin.Descriptor.PluginId, eventName);
 
             if (!EnsureOnRendererThread())
             {
@@ -398,7 +405,7 @@ namespace Paragon.Runtime.Plugins
 
             if (!targetPlugin.IsValid)
             {
-                Logger.Warn(fmt => fmt("AddEventListener Local Plugin {0} is invalid", targetPlugin.Descriptor.PluginId));
+                Logger.Warn("AddEventListener Local Plugin {0} is invalid", targetPlugin.Descriptor.PluginId);
                 if (callback != null)
                 {
                     callback.Invoke(this, context, null, CallInfo.ErrorCodeCallCanceled, CallInfo.ErrorCallCanceled);
@@ -422,14 +429,14 @@ namespace Paragon.Runtime.Plugins
                 // Remove listener from calls cache
                 _pendingCallbacks.Remove(info);
                 info.Dispose();
-                Logger.Error(fmt => fmt("AddEventListener Failed Local Plugin {0} Event {1}: {2}", targetPlugin.Descriptor.PluginId, eventName, ex));
+                Logger.Error("AddEventListener Failed Local Plugin {0} Event {1}: {2}", targetPlugin.Descriptor.PluginId, eventName, ex);
             }
         }
 
         public void RemoveEventListener(JavaScriptPlugin targetPlugin, string eventName,
             IV8Callback callback)
         {
-            Logger.Info(fmt => fmt("RemoveEventListener Local Plugin {0} Event {1}", targetPlugin.Descriptor.PluginId, eventName));
+            Logger.Info("RemoveEventListener Local Plugin {0} Event {1}", targetPlugin.Descriptor.PluginId, eventName);
 
             if (!EnsureOnRendererThread())
             {
@@ -445,10 +452,10 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception exception)
             {
-                Logger.Error(fmt => fmt("RemoveEventListener Failed Local Plugin {0} Event {1}: {2}",
+                Logger.Error("RemoveEventListener Failed Local Plugin {0} Event {1}: {2}",
                     targetPlugin.Descriptor.PluginId,
                     eventName,
-                    exception));
+                    exception);
             }
         }
 
@@ -482,7 +489,7 @@ namespace Paragon.Runtime.Plugins
                 return;
             }
 
-            Logger.Info(fmt => fmt("PluginRemoved ID {0}", handler.Descriptor.PluginId));
+            Logger.Info("PluginRemoved ID {0}", handler.Descriptor.PluginId);
 
             // Only remove event listeners and parameter callbacks - locking inside JavaScriptPlugin means any 
             // inflight calls will still complete, so leave those to be removed and disposed as per usual
@@ -587,7 +594,7 @@ namespace Paragon.Runtime.Plugins
         {
             if (_pluginContext == null)
             {
-                Logger.Error(fmt => fmt("Could not locate plugin context for V8. Browser {0} Frame {1}", browser.Identifier, frame.Identifier));
+                Logger.Error("Could not locate plugin context for V8. Browser {0} Frame {1}", browser.Identifier, frame.Identifier);
                 return;
             }
 
@@ -648,10 +655,10 @@ namespace Paragon.Runtime.Plugins
         /// <param name="result"></param>
         private void OnBrowserCallbackInvokeReceived(PluginMessage pluginMessage, ResultData result)
         {
-            Logger.Info(fmt => fmt("BrowserCallbackInvokeReceived MsgType {0} Plugin {1} Member {2}",
+            Logger.Debug("BrowserCallbackInvokeReceived MsgType {0} Plugin {1} Member {2}",
                 pluginMessage.MessageType,
                 pluginMessage.PluginId,
-                pluginMessage.MemberName));
+                pluginMessage.MemberName);
 
             try
             {
@@ -670,11 +677,11 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception exception)
             {
-                Logger.Error(fmt => fmt("BrowserCallbackInvokeReceived Failed MsgType {0} Plugin {1} Member {2}: {3}",
+                Logger.Error("BrowserCallbackInvokeReceived Failed MsgType {0} Plugin {1} Member {2}: {3}",
                     pluginMessage.MessageType,
                     pluginMessage.PluginId,
                     pluginMessage.MemberName,
-                    exception));
+                    exception);
             }
         }
 
@@ -700,7 +707,7 @@ namespace Paragon.Runtime.Plugins
             }
             catch (Exception exception)
             {
-                Logger.Error(fmt => fmt("InvokeV8Callback Failed: {0}", exception));
+                Logger.Error("InvokeV8Callback Failed: {0}", exception);
             }
         }
 
@@ -816,7 +823,7 @@ namespace Paragon.Runtime.Plugins
         {
             if (!CefRuntime.CurrentlyOn(CefThreadId.Renderer))
             {
-                Logger.Error(fmt => fmt("Current thread is not the render thread"));
+                Logger.Error("Current thread is not the render thread");
                 return false;
             }
             return true;

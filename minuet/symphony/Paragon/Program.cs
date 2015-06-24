@@ -5,20 +5,29 @@ using System.Linq;
 using System.Web;
 using System.Windows;
 using Paragon.Plugins;
+using Paragon.Properties;
 using Paragon.Runtime;
 using Paragon.Runtime.Kernel.Applications;
 using Paragon.Runtime.Win32;
 
 namespace Paragon
 {
-    internal static class Program
+    static class Program
     {
         [STAThread]
         public static void Main()
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             // Create command line args parser.
             var cmdLine = new ParagonCommandLineParser(Environment.GetCommandLineArgs());
+
+            /*
+             * Following statement is due to the Chromium bug: https://code.google.com/p/chromium/issues/detail?id=125614
+             * This statement can be removed once we know for sure that the issue has been fixed by Chrome. 
+             * For now, we are disabling any system setting/command line setting for the TZ variable.
+             */
+            Environment.SetEnvironmentVariable("TZ", null);
 
             // Launch a debugger if a --debug flag was passed.
             if (cmdLine.HasFlag("debug"))
@@ -29,7 +38,7 @@ namespace Paragon
             // Extract app package.
             ApplicationMetadata appMetadata;
             IApplicationPackage appPackage;
-            if (!ResolveMetadataAndPackage(cmdLine, out appMetadata, out appPackage))
+            if (!ApplicationManager.ResolveMetadataAndPackage(cmdLine, out appMetadata, out appPackage))
             {
                 Environment.ExitCode = 1;
                 return;
@@ -37,35 +46,55 @@ namespace Paragon
 
             try
             {
+                ApplicationManager appManager = ApplicationManager.GetInstance();
+                
                 // Bail if the app is a singleton and an instance is already running. Cmd line args from
                 // this instance will be sent to the singleton isntance by the SingleInstance utility.
-                if (AppIsSingletonAndInstanceIsAlreadyRunning(appMetadata, appPackage))
+                if (appManager.RedirectApplicationLaunchIfNeeded(appPackage, appMetadata.Environment))
                 {
                     return;
                 }
 
                 // Initialize the app.
                 App app;
+                WorkingSetMonitor workingSetMonitor;
+
                 using (AutoStopwatch.TimeIt("Initializing Paragon.App"))
                 {
-                    // Extract any arguments passed via --args at the cmd line.
-                    // Args are passed in URL query string format (ex: --args=abc=100&xyz=hello).
-                    Dictionary<string, object> args = null;
-                    string appArgs;
-                    if (cmdLine.GetValue("args", out appArgs))
-                    {
-                        var query = HttpUtility.ParseQueryString(appArgs);
-                        args = query.Keys.Cast<string>().ToDictionary<string, string, object>(key => key, key => query[key]);
-                    }
-
-                    // Extract the protocol URL if the app was started from a protocol invocation.
-                    string protocolUri;
-                    cmdLine.GetValue("url", out protocolUri);
-
-                    // Create and initialize the app.
-                    app = new App(args, appMetadata, appPackage, cmdLine.HasFlag("no-splash"), protocolUri);
+                    app = new App();
                     app.InitializeComponent();
-                    app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                    app.Startup += delegate
+                    {
+                        appManager.Initialize(
+                                    (name, version, iconStream, styleStream) =>
+                                    {
+                                        return new ParagonSplashScreen(name, version, iconStream, styleStream);
+                                    },
+                                    (package, metadata, args) =>
+                                    {
+                                        var bootstrapper = new Bootstrapper();
+                                        var appFactory = bootstrapper.Resolve<ApplicationFactory>();
+                                        return appFactory.CreateApplication(metadata, package, args);
+                                    },
+                                    (string args) =>
+                                    {
+                                        var query = HttpUtility.ParseQueryString(args);
+                                        return query.Keys.Cast<string>().ToDictionary<string, string, object>(key => key, key => query[key]);
+                                    },
+                                    Environment.ExpandEnvironmentVariables(Settings.Default.CacheDirectory),
+                                    true,
+                                    appPackage.Manifest.DisableSpellChecking
+                                );
+
+                        appManager.AllApplicationsClosed += delegate
+                        {
+                            appManager.Shutdown("All applications closed");
+                            app.Shutdown();
+                        };
+
+                        appManager.RunApplication(cmdLine, appPackage, appMetadata);
+                        workingSetMonitor = new WorkingSetMonitor(100, 160);
+                    };
                 }
 
                 // Run the app (this is a blocking call).
@@ -77,12 +106,8 @@ namespace Paragon
                     ? ex.InnerException.Message : ex.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
                 Environment.ExitCode = 1;
-            }
 
-            // If the app is a singleton, cleanup the singleton instance.
-            if (appPackage != null && appPackage.Manifest != null && appPackage.Manifest.SingleInstance)
-            {
-                SingleInstance.Cleanup();
+                throw;
             }
         }
 
@@ -91,64 +116,6 @@ namespace Paragon
             Exception ex = e.ExceptionObject as Exception;
             string errString = "The application will now exit. Please email the following message to your tech support team." + ex.Message + "\n" + ex.StackTrace;
             MessageBox.Show(errString + "\n", "Unhandled Exception", MessageBoxButton.OK);
-        }
-
-        private static bool ResolveMetadataAndPackage(ParagonCommandLineParser cmdLine, 
-            out ApplicationMetadata appMetadata, out IApplicationPackage appPackage)
-        {
-            appMetadata = null;
-            appPackage = null;
-
-            try
-            {
-                using (AutoStopwatch.TimeIt("Parsing application metadata"))
-                {
-                    appMetadata = cmdLine.ParseApplicationMetadata();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(string.Format("Error parsing command line : {0}", ex.Message), 
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
-                return false;
-            }
-
-            try
-            {
-                using (AutoStopwatch.TimeIt("Gettting application package"))
-                {
-                    appPackage = appMetadata.GetApplicationPackage();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(string.Format("Error parsing manifest file : {0}", ex.Message), 
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
-                return false;
-            }
-
-            return true;
-        }
-
-        private static bool AppIsSingletonAndInstanceIsAlreadyRunning(
-            ApplicationMetadata appMetadata, IApplicationPackage appPackage)
-        {
-            var uniqueAppId = string.Concat(Enum.GetName(typeof(ApplicationEnvironment),
-                appMetadata.Environment), ":", appPackage.Manifest.Id);
-
-            using (AutoStopwatch.TimeIt("Checking for single instance constraints"))
-            {
-                if (appPackage.Manifest.SingleInstance
-                    && !SingleInstance.InitializeAsFirstInstance(uniqueAppId))
-                {
-                    // App is marked as single instance and an instance is already running.
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

@@ -6,6 +6,7 @@ namespace Paragon.Plugins
     public interface IApplication : IDisposable
     {
         ILogger Logger { get; }
+        IApplicationManager ApplicationManager { get; }
         Dictionary<string, object> Args { get; }
         ApplicationState State { get; }
         IApplicationPackage Package { get; }
@@ -26,6 +27,6 @@ namespace Paragon.Plugins
         void OnProtocolInvoke(string uri);
 
         bool SetCookie(string name, string value, string domain, string path,
-            bool httpOnly, bool secure, DateTime expires, bool global);
+            bool httpOnly, bool secure, DateTime? expires, bool global);
     }
 }

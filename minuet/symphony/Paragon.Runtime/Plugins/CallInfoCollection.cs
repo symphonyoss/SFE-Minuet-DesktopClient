@@ -37,7 +37,7 @@ namespace Paragon.Runtime.Plugins
             var pluginMessage = info.RequestMessage;
             if (!_pendingCallbacks.TryAdd(pluginMessage.MessageId, info))
             {
-                _logger.Error(fmt => fmt("Duplicate callback encountered"));
+                _logger.Error("Duplicate callback encountered");
             }
         }
 
@@ -52,7 +52,7 @@ namespace Paragon.Runtime.Plugins
             TCallInfo callback;
             if (!_pendingCallbacks.TryRemove(callId, out callback))
             {
-                _logger.Warn(fmt => fmt("Callback not found"));
+                _logger.Warn("Callback not found");
             }
 
             return callback;
@@ -82,7 +82,7 @@ namespace Paragon.Runtime.Plugins
             TCallInfo call;
             if (!_pendingCallbacks.TryGetValue(callId, out call))
             {
-                _logger.Warn(fmt => fmt("Callback not found"));
+                _logger.Warn("Callback not found");
             }
 
             return call;
