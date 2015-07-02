@@ -44,11 +44,8 @@ paragon.app.runtime.onLaunched.addListener(function() {
                         console.error('Error loading settings from local storage.', errMsg);
                         resolve({});
                     } else {
-                        isMinimizeOnCloseChecked = value.isMinimizeOnCloseChecked;
-
-                        if (typeof isMinimizeOnCloseChecked === 'undefined') {
-                            isMinimizeOnCloseChecked = Boolean(config.isMinimizeOnCloseChecked);
-                        }
+                        // Ignoring value.isMinimizeOnCloseChecked for now and so, the value is always read from the config file;
+                        isMinimizeOnCloseChecked = Boolean(config.isMinimizeOnCloseChecked);
                         
                         var systemMenu = {
                             refresh: 1011,
