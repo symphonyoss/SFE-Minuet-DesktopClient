@@ -45,7 +45,7 @@ paragon.app.runtime.onLaunched.addListener(function() {
                         resolve({});
                     } else {
                         // Ignoring value.isMinimizeOnCloseChecked for now and so, the value is always read from the config file;
-                        isMinimizeOnCloseChecked = (config.isMinimizeOnCloseChecked === 'true');
+                        isMinimizeOnCloseChecked = (config.isMinimizeOnCloseChecked === 'true' || config.isMinimizeOnCloseChecked === true);
                         
                         var systemMenu = {
                             refresh: 1011,
