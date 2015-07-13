@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Media;
 using Paragon.Plugins.Notifications.Contracts;
+using Paragon.Runtime;
 
 namespace Paragon.Plugins.Notifications.Models
 {
@@ -49,23 +50,35 @@ namespace Paragon.Plugins.Notifications.Models
 
         private static SolidColorBrush ConvertToColor(string text)
         {
+            SolidColorBrush fallback = new SolidColorBrush(Colors.Black);
+
             if (string.IsNullOrEmpty(text))
-            {
-                return new SolidColorBrush(Colors.Transparent);
-            }
+                return fallback;
 
             if (!text.StartsWith("#"))
-            {
-                text = "#AA" + text;
-            }
+                text = "#" + text;
+
+            SolidColorBrush brush = null;
 
             var converter = new BrushConverter();
-            var brush = converter.ConvertFromString(text) as SolidColorBrush;
+            if (converter.CanConvertFrom(typeof (string)))
+            {
+                try
+                {
+                    brush = (SolidColorBrush)converter.ConvertFrom(text);
+                } 
+                catch (Exception e)
+                {
+                    ILogger Logger = ParagonLogManager.GetLogger();
+                    Logger.Error("error ConvertFrom when converting color:" + text + ", exception: " + e.ToString());
+
+                    // fallback in case of exception
+                    brush = fallback;
+                }
+            }
 
             if (brush == null)
-            {
-                throw new NotSupportedException("Invalid color code: " + text);
-            }
+                brush = fallback;
 
             return brush;
         }
