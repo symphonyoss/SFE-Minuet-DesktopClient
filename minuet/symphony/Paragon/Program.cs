@@ -114,8 +114,24 @@ namespace Paragon
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = e.ExceptionObject as Exception;
+
+            ILogger Logger = ParagonLogManager.GetLogger();
+
+            Logger.Error("--exception info start--");
+            while (ex != null)
+            {
+                Logger.Error("exception: " + ex.Message);
+                Logger.Error("exception stack trace:" + ex.StackTrace);
+                Logger.Error("exception source:" + ex.Source);
+                Logger.Error("exception targetSite:" + ex.TargetSite);
+                Logger.Error("exception type:" + ex.GetType());
+                Logger.Error("exception toString:" + ex.ToString());
+                ex = ex.InnerException;
+            }
+            Logger.Error("--exception info end--");
+           
             string errString = "The application will now exit. Please email the following message to your tech support team." + ex.Message + "\n" + ex.StackTrace;
             MessageBox.Show(errString + "\n", "Unhandled Exception", MessageBoxButton.OK);
-        }
+        }  
     }
 }
