@@ -42,6 +42,19 @@ Function Build([string]$config, [string]$platform)
 	}
 }
 
+# update manifest.json with build version
+$manifestFile = 'Symphony\Symphony\manifest.json'
+if ((Test-Path $manifestFile) -eq $False) {
+	echo 'abort: manifest.json file does not exist: ' $manifestFile
+	exit -1
+}
+$newVer=(get-childitem env:WRAPPER_VER).Value
+$newVersion='"version": "' + $newVer + '",'
+$content = (Get-Content $manifestFile)
+# replace line with "version":
+$newContent = $content -replace '^\s*"version"\s*:.*$', $newVersion
+Set-Content $manifestFile $newContent
+
 # build stuff
 Build "Release" "x86"
 
