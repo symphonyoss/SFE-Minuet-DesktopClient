@@ -1,6 +1,9 @@
 ﻿﻿using System;
 ﻿using Paragon.Plugins;
 using Xilium.CefGlue;
+using Paragon.Runtime.WinForms;
+using System.Windows.Forms;
+
 
 namespace Paragon.Runtime
 {
@@ -47,5 +50,23 @@ namespace Paragon.Runtime
             Logger.Error("Failed to load resource due to an invalid certificate: " + requestUrl);
             return base.OnCertificateError(browser, certError, requestUrl, sslInfo, callback);
         }
+        protected override bool GetAuthCredentials(CefBrowser browser, CefFrame frame, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback)
+        {
+            LoginAuthenticationForm NewLogin = new LoginAuthenticationForm(host);
+            DialogResult Result = NewLogin.ShowDialog();
+            switch (Result)
+            {
+                case DialogResult.OK:
+                    String userName = NewLogin.getUserName();
+                    String passwd = NewLogin.getPasswd();
+                    callback.Continue(userName, passwd);
+                    return true;
+                case DialogResult.Cancel:
+                    NewLogin.Close();
+                    break;
+            }
+            return false;
+        }
+
     }
 }
