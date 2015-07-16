@@ -54,6 +54,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Threading">
@@ -289,6 +290,9 @@
     <Compile Include="WPF\ParagonWindow.cs" />
     <Compile Include="WPF\ProgressRing.cs" />
     <Compile Include="WPF\SourceStringVisitor.cs" />
+    <Compile Include="WPF\LoginAuthenticationForm.xaml.cs">
+      <DependentUpon>LoginAuthenticationForm.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WPF\WindowButton.cs" />
     <Compile Include="WPF\WindowCommands.cs" />
     <Compile Include="WPF\WindowInteropHelperExtensions.cs" />
@@ -333,6 +337,10 @@
     <Page Include="WPF\JavaScriptDialogWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WPF\LoginAuthenticationForm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>

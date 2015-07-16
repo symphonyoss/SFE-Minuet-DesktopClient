@@ -1,7 +1,7 @@
 ﻿﻿using System;
 ﻿using Paragon.Plugins;
 using Xilium.CefGlue;
-using Paragon.Runtime.WinForms;
+using Paragon.Runtime.WPF;
 using System.Windows.Forms;
 
 
@@ -53,15 +53,17 @@ namespace Paragon.Runtime
         protected override bool GetAuthCredentials(CefBrowser browser, CefFrame frame, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback)
         {
             LoginAuthenticationForm NewLogin = new LoginAuthenticationForm(host);
-            DialogResult Result = NewLogin.ShowDialog();
+            
+            //NewLogin.Owner = System.Windows.Application.Current.MainWindow;
+            var Result = NewLogin.ShowDialog();
             switch (Result)
             {
-                case DialogResult.OK:
-                    String userName = NewLogin.getUserName();
-                    String passwd = NewLogin.getPasswd();
+                case true:
+                    String userName = NewLogin.UserName;
+                    String passwd = NewLogin.Password;
                     callback.Continue(userName, passwd);
                     return true;
-                case DialogResult.Cancel:
+                case false:
                     NewLogin.Close();
                     break;
             }
