@@ -268,6 +268,12 @@
     <Compile Include="Win32\WindowPropertyStore.cs" />
     <Compile Include="WindowsVersion.cs" />
     <Compile Include="WinForms\ContainerWindowMoveListener.cs" />
+    <Compile Include="WinForms\LoginAuthenticationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WinForms\LoginAuthenticationForm.Designer.cs">
+      <DependentUpon>LoginAuthenticationForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="WinForms\WidgetWindowZOrderHandler.cs" />
     <Compile Include="WinForms\NativeApplicationWindow.cs" />
     <Compile Include="WorkingSetMonitor.cs" />
@@ -349,6 +355,11 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="WinForms\LoginAuthenticationForm.resx">
+      <DependentUpon>LoginAuthenticationForm.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

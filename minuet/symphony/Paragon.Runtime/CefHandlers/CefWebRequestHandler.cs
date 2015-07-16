@@ -3,10 +3,33 @@
 using Xilium.CefGlue;
 using Paragon.Runtime.WPF;
 using System.Windows.Forms;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Interop;
 
 
 namespace Paragon.Runtime
 {
+    public class WindowWrapper : System.Windows.Forms.IWin32Window
+    {
+        public WindowWrapper(IntPtr handle)
+        {
+            _hwnd = handle;
+        }
+
+        public WindowWrapper(Window window)
+        {
+            _hwnd = new WindowInteropHelper(window).Handle;
+        }
+
+        public IntPtr Handle
+        {
+            get { return _hwnd; }
+        }
+
+        private IntPtr _hwnd;
+    }
+
     internal sealed class CefWebRequestHandler : CefRequestHandler
     {
         private static readonly ILogger Logger = ParagonLogManager.GetLogger();
@@ -52,10 +75,18 @@ namespace Paragon.Runtime
         }
         protected override bool GetAuthCredentials(CefBrowser browser, CefFrame frame, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback)
         {
+            string strFriendlyName = AppDomain.CurrentDomain.FriendlyName;
+            Process[] pro = Process.GetProcessesByName(strFriendlyName.Substring(0, strFriendlyName.LastIndexOf('.')));
+            System.Windows.Forms.IWin32Window handle = new WindowWrapper(pro[0].MainWindowHandle);
+
             LoginAuthenticationForm NewLogin = new LoginAuthenticationForm(host);
+<<<<<<< HEAD
             
             //NewLogin.Owner = System.Windows.Application.Current.MainWindow;
             var Result = NewLogin.ShowDialog();
+=======
+            DialogResult Result = NewLogin.ShowDialog(handle);
+>>>>>>> 0dfd0522c1a4eddf66ce73048f63e236db77ba82
             switch (Result)
             {
                 case true:
