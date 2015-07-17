@@ -80,13 +80,10 @@ namespace Paragon.Runtime
             System.Windows.Forms.IWin32Window handle = new WindowWrapper(pro[0].MainWindowHandle);
 
             LoginAuthenticationForm NewLogin = new LoginAuthenticationForm(host);
-<<<<<<< HEAD
-            
-            //NewLogin.Owner = System.Windows.Application.Current.MainWindow;
+            WindowInteropHelper wih = new WindowInteropHelper(NewLogin);
+            wih.Owner = browser.GetHost().GetWindowHandle(); 
+
             var Result = NewLogin.ShowDialog();
-=======
-            DialogResult Result = NewLogin.ShowDialog(handle);
->>>>>>> 0dfd0522c1a4eddf66ce73048f63e236db77ba82
             switch (Result)
             {
                 case true:
