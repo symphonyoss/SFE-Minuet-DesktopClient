@@ -2,9 +2,6 @@
 ﻿using Paragon.Plugins;
 using Xilium.CefGlue;
 using Paragon.Runtime.WPF;
-using System.Windows.Forms;
-using System.Diagnostics;
-using System.Windows;
 using System.Windows.Interop;
 
 
@@ -56,20 +53,20 @@ namespace Paragon.Runtime
         }
         protected override bool GetAuthCredentials(CefBrowser browser, CefFrame frame, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback)
         {
-            LoginAuthenticationForm NewLogin = new LoginAuthenticationForm(host);
-            WindowInteropHelper wih = new WindowInteropHelper(NewLogin);
-            wih.Owner = browser.GetHost().GetWindowHandle(); 
+            LoginAuthenticationForm AuthForm = new LoginAuthenticationForm(host);
+            WindowInteropHelper wih = new WindowInteropHelper(AuthForm);
+            wih.Owner = browser.GetHost().GetWindowHandle();
 
-            var Result = NewLogin.ShowDialog();
+            var Result = AuthForm.ShowDialog();
             switch (Result)
             {
                 case true:
-                    String userName = NewLogin.UserName;
-                    String passwd = NewLogin.Password;
+                    String userName = AuthForm.UserName;
+                    String passwd = AuthForm.Password;
                     callback.Continue(userName, passwd);
                     return true;
                 case false:
-                    NewLogin.Close();
+                    AuthForm.Close();
                     break;
             }
             return false;
