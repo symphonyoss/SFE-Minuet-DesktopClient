@@ -10,25 +10,6 @@ using System.Windows.Interop;
 
 namespace Paragon.Runtime
 {
-    public class WindowWrapper : System.Windows.Forms.IWin32Window
-    {
-        public WindowWrapper(IntPtr handle)
-        {
-            _hwnd = handle;
-        }
-
-        public WindowWrapper(Window window)
-        {
-            _hwnd = new WindowInteropHelper(window).Handle;
-        }
-
-        public IntPtr Handle
-        {
-            get { return _hwnd; }
-        }
-
-        private IntPtr _hwnd;
-    }
 
     internal sealed class CefWebRequestHandler : CefRequestHandler
     {
@@ -75,10 +56,6 @@ namespace Paragon.Runtime
         }
         protected override bool GetAuthCredentials(CefBrowser browser, CefFrame frame, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback)
         {
-            string strFriendlyName = AppDomain.CurrentDomain.FriendlyName;
-            Process[] pro = Process.GetProcessesByName(strFriendlyName.Substring(0, strFriendlyName.LastIndexOf('.')));
-            System.Windows.Forms.IWin32Window handle = new WindowWrapper(pro[0].MainWindowHandle);
-
             LoginAuthenticationForm NewLogin = new LoginAuthenticationForm(host);
             WindowInteropHelper wih = new WindowInteropHelper(NewLogin);
             wih.Owner = browser.GetHost().GetWindowHandle(); 
