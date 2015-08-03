@@ -9,7 +9,7 @@ namespace Paragon.Plugins.Notifications.Models
 {
     public class NotificationCollection
     {
-        private const int MaxNotifications = 5;
+        private const int MaxNotifications = 11;
         private readonly ObservableCollection<Notification> collection;
         private readonly TaskScheduler taskScheduler;
 
@@ -36,7 +36,7 @@ namespace Paragon.Plugins.Notifications.Models
             {
                 var activeNotifications = ActiveNotifications();
 
-                if (!activeNotifications.Any())
+                if (activeNotifications.Any())
                 {
                     var firstNonPersistantNotification = activeNotifications.FirstOrDefault(item => !item.IsPersistent);
                     var firstPersistantNotification = activeNotifications.FirstOrDefault(item => item.IsPersistent);
