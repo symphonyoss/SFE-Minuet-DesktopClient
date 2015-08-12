@@ -1,0 +1,91 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Paragon.Runtime.WPF;assembly=Paragon.Runtime">
+    <Style TargetType="{x:Type Window}" x:Key="CustomSplashScreenStyle">
+        <Setter Property="Template">
+          <Setter.Value>
+              <ControlTemplate TargetType="{x:Type Window}">
+                  <Grid Background="Transparent" Margin="15">
+                      <Grid.Resources>
+                          <SolidColorBrush x:Key="CustomBackgroundBrush" Color="#333333"/>
+                          <SolidColorBrush x:Key="FontColor" Color="#FFFFFF"/>
+                          <FontFamily x:Key="FontFamily">Alright Sans</FontFamily>
+                      </Grid.Resources>
+
+                      <Border BorderBrush="{DynamicResource GlowBrush}" BorderThickness="3" Margin="-10">
+                          <Border.Effect>
+                              <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="{DynamicResource GlowColor}"/>
+                          </Border.Effect>
+                      </Border>
+
+                      <Grid Background="{DynamicResource CustomBackgroundBrush}" Margin="-10">
+                          <Grid Margin="30">
+                              <Grid.RowDefinitions>
+                                  <RowDefinition Height="Auto" />
+                                  <RowDefinition Height="*" />
+                              </Grid.RowDefinitions>
+
+                              <Grid.ColumnDefinitions>
+                                  <ColumnDefinition Width="Auto"/>
+                                  <ColumnDefinition Width="*"/>
+                                  <ColumnDefinition Width="Auto"/>
+                              </Grid.ColumnDefinitions>
+
+                              <!-- ShellIcon points to the 128x128 icon in the package -->
+                              <Image Width="72" Height="72" Grid.Row="0" Grid.Column="0" Margin="0,0,20,0"
+                                          Source="{Binding ShellIcon}"
+                                          Stretch="Fill"/>
+
+                              <Grid Grid.Row="0" Grid.Column="1" Margin="0,12,0,0">
+                                  <Grid.RowDefinitions>
+                                      <RowDefinition Height="Auto"/>
+                                      <RowDefinition Height="Auto"/>
+                                      <RowDefinition Height="Auto"/>
+                                  </Grid.RowDefinitions>
+
+                                  <!-- ShellName points to the Name property in the application manifest -->
+                                  <Viewbox Grid.Row="0" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Left">
+                                      <TextBlock Margin="0" FontSize="24" VerticalAlignment="Top"
+                                                    Text="SYMPHONY"
+                                                    Foreground="{DynamicResource FontColor}"
+                                                    FontFamily="{DynamicResource FontFamily}"
+                                                    FontWeight="Bold" />
+                                  </Viewbox>
+
+                                      <!--<TextBlock Grid.Row="1" 
+                                             Text="Powered by Minuet"
+                                             FontSize="12"
+                                             Foreground="{DynamicResource FontColor}"
+                                             FontFamily="{DynamicResource FontFamily}"/>-->
+
+                                      <!--<TextBlock Grid.Row="2">
+                                          <Run Text="Version"/>
+                                  </TextBlock>-->
+                              </Grid>
+
+                              <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Background="Transparent">
+                                  <Grid.OpacityMask>
+                                      <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                          <GradientStop Color="Transparent" Offset="0.30"/>
+                                          <GradientStop Color="WhiteSmoke" Offset="0.45"/>
+                                          <GradientStop Color="WhiteSmoke" Offset="0.65"/>
+                                          <GradientStop Color="Transparent" Offset="0.75"/>
+                                      </LinearGradientBrush>
+                                  </Grid.OpacityMask>
+
+                                  <!-- StatusText points to the current status of he application launch process -->
+                                  <TextBlock x:Name="StatusText" TextAlignment="Left" FontSize="16" FontWeight="Normal"
+                                                Foreground="{DynamicResource FontColor}"
+                                                FontFamily="{DynamicResource FontFamily}"
+                                                Text="{Binding Text, FallbackValue='Initializing...'}" 
+                                                TextWrapping="Wrap" VerticalAlignment="Bottom" Margin="0,0,0,35"
+                                                HorizontalAlignment="Stretch"/>
+                              </Grid>
+                          </Grid>
+                      </Grid>
+                  </Grid>
+              </ControlTemplate>
+          </Setter.Value>
+      </Setter>
+   </Style>
+</ResourceDictionary>

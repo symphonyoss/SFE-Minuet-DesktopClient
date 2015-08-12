@@ -33,6 +33,7 @@ namespace Paragon.Runtime
         private static string _logDirectory;
         private static bool _stopped;
         private static string _pid;
+        private static bool _loggingConfigured;
 
         public static string LogDirectory
         {
@@ -49,76 +50,87 @@ namespace Paragon.Runtime
             get { return _paragonTraceListener.FullLogFileName; }
         }
 
-        [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public static void ConfigureLogging(string logsDir, LogContext context, int maxRolledFiles)
+        public static void AddApplicationTraceListener(string appId)
         {
-            // Init trace sources specific to the browser or render context
-            // that is currently running.
-            _logDirectory = Environment.ExpandEnvironmentVariables(logsDir);
-
-            _pid = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture).PadLeft(5);
-
             // Max file size for log files is 10MB (the default is 5MB if not explicitly set).
             const int maxFileSize = 10 * 1024 * 1024;
 
-            switch (context)
+            _appTraceListener = new FileLogTraceListener
             {
-                case LogContext.Browser:
-                    CleanupCefLog();
+                AutoFlush = true,
+                Location = LogFileLocation.Custom,
+                CustomLocation = _logDirectory,
+                LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
+                BaseFileName = "application-" + appId,
+                DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
+                MaxFileSize = maxFileSize
+            };
 
-                    // Write default trace source messages to a paragon log file.
-                    _paragonTraceListener = new FileLogTraceListener
-                    {
-                        AutoFlush = true,
-                        Location = LogFileLocation.Custom,
-                        CustomLocation = _logDirectory,
-                        LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
-                        BaseFileName = "paragon",
-                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
-                        MaxFileSize = maxFileSize
-                    };
+            // Write app trace source messages to an application log file.
+            ParagonTraceSources.App.Listeners.Add(_appTraceListener);
+        }
 
-                    ParagonTraceSources.Default.Listeners.Add(_paragonTraceListener);
+        [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
+        public static void ConfigureLogging(string logsDir, LogContext context, int maxRolledFiles)
+        {
+            if (!_loggingConfigured)
+            {
+                // Init trace sources specific to the browser or render context
+                // that is currently running.
+                _logDirectory = Environment.ExpandEnvironmentVariables(logsDir);
 
-                    _appTraceListener = new FileLogTraceListener
-                    {
-                        AutoFlush = true,
-                        Location = LogFileLocation.Custom,
-                        CustomLocation = _logDirectory,
-                        LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
-                        BaseFileName = "application",
-                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
-                        MaxFileSize = maxFileSize
-                    };
+                _pid = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture).PadLeft(5);
 
-                    // Write app trace source messages to an application log file.
-                    ParagonTraceSources.App.Listeners.Add(_appTraceListener);
+                // Max file size for log files is 10MB (the default is 5MB if not explicitly set).
+                const int maxFileSize = 10*1024*1024;
 
-                    CleanupLogFiles(_logDirectory, maxRolledFiles, "paragon", "application");
-                    break;
+                switch (context)
+                {
+                    case LogContext.Browser:
+                        CleanupCefLog();
 
-                case LogContext.Renderer:
-                    _rendererTraceListener = new FileLogTraceListener
-                    {
-                        AutoFlush = true,
-                        Location = LogFileLocation.Custom,
-                        CustomLocation = _logDirectory,
-                        LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
-                        BaseFileName = "renderer",
-                        DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
-                        MaxFileSize = maxFileSize
-                    };
+                        // Write default trace source messages to a paragon log file.
+                        _paragonTraceListener = new FileLogTraceListener
+                        {
+                            AutoFlush = true,
+                            Location = LogFileLocation.Custom,
+                            CustomLocation = _logDirectory,
+                            LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
+                            BaseFileName = "paragon",
+                            DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
+                            MaxFileSize = maxFileSize
+                        };
 
-                    // Write default trace source messages to a renderer log file.
-                    ParagonTraceSources.Default.Listeners.Add(_rendererTraceListener);
-                    CleanupLogFiles(_logDirectory, maxRolledFiles, "renderer");
-                    break;
+                        ParagonTraceSources.Default.Listeners.Add(_paragonTraceListener);
+
+                        CleanupLogFiles(_logDirectory, maxRolledFiles, "paragon", "application-*");
+                        break;
+
+                    case LogContext.Renderer:
+                        _rendererTraceListener = new FileLogTraceListener
+                        {
+                            AutoFlush = true,
+                            Location = LogFileLocation.Custom,
+                            CustomLocation = _logDirectory,
+                            LogFileCreationSchedule = LogFileCreationScheduleOption.Daily,
+                            BaseFileName = "renderer",
+                            DiskSpaceExhaustedBehavior = DiskSpaceExhaustedOption.DiscardMessages,
+                            MaxFileSize = maxFileSize
+                        };
+
+                        // Write default trace source messages to a renderer log file.
+                        ParagonTraceSources.Default.Listeners.Add(_rendererTraceListener);
+                        CleanupLogFiles(_logDirectory, maxRolledFiles, "renderer");
+                        break;
+                }
+
+                _loggingConfigured = true;
             }
         }
 
         public static string[] GetAppLogFiles()
         {
-            return Directory.GetFiles(_logDirectory, "application*.log").ToArray();
+            return Directory.GetFiles(_logDirectory, "application-*.log").ToArray();
         }
 
         public static ILogger GetAppLogger(string appId)
@@ -237,7 +249,6 @@ namespace Paragon.Runtime
             }
             catch (Exception e)
             {
-
                 logger.Error("Error performing log file cleanup", e);
             }
             finally
@@ -360,13 +371,14 @@ namespace Paragon.Runtime
             {
                 _loggerName = loggerName;
                 _writer = writer;
+                Level = ParagonTraceSources.Default.Switch.Level;
             }
        
             #region ILogger Members
 
             public void Debug(string message, string caller = null)
             {
-                Write(TraceEventType.Verbose, "DEBUG", message);
+                Write(SourceLevels.Verbose, "DEBUG", message);
             }
 
             public void Debug(FormatMessageCallback formatter, string caller = null)
@@ -376,12 +388,13 @@ namespace Paragon.Runtime
 
             public void Debug(string format, params object[] args)
             {
-                Write(TraceEventType.Verbose, "DEBUG", () => string.Format(format, args));
+                format = EscapeCurlyBraces(format, args);
+                Write(SourceLevels.Verbose, "DEBUG", () => string.Format(format, args));
             }
 
             public void Info(string message, string caller = null)
             {
-                Write(TraceEventType.Information, "INFO ", message);
+                Write(SourceLevels.Information, "INFO ", message);
             }
 
             public void Info(FormatMessageCallback formatter, string caller = null)
@@ -391,12 +404,13 @@ namespace Paragon.Runtime
 
             public void Info(string format, params object[] args)
             {
-                Write(TraceEventType.Information, "INFO ", () => string.Format(format, args));
+                format = EscapeCurlyBraces(format, args);
+                Write(SourceLevels.Information, "INFO ", () => string.Format(format, args));
             }
 
             public void Warn(string message, string caller = null)
             {
-                Write(TraceEventType.Warning, "WARN ", message);
+                Write(SourceLevels.Warning, "WARN ", message);
             }
 
             public void Warn(FormatMessageCallback formatter, string caller = null)
@@ -406,17 +420,18 @@ namespace Paragon.Runtime
 
             public void Warn(string format, params object[] args)
             {
-                Write(TraceEventType.Warning, "WARN ", () => string.Format(format, args));
+                format = EscapeCurlyBraces(format, args);
+                Write(SourceLevels.Warning, "WARN ", () => string.Format(format, args));
             }
 
             public void Error(string message, string caller = null)
             {
-                Write(TraceEventType.Error, "ERROR", message);
+                Write(SourceLevels.Error, "ERROR", message);
             }
 
             public void Error(string message, Exception exception, string caller = null)
             {
-                Write(TraceEventType.Error, "ERROR", message, exception);
+                Write(SourceLevels.Error, "ERROR", message, exception);
             }
 
             public void Error(FormatMessageCallback formatter, string caller = null)
@@ -431,12 +446,13 @@ namespace Paragon.Runtime
 
             public void Error(string format, params object[] args)
             {
-                Write(TraceEventType.Error, "ERROR", () => string.Format(format, args));
+                format = EscapeCurlyBraces(format, args);
+                Write(SourceLevels.Error, "ERROR", () => string.Format(format, args));
             }
 
             public void Fatal(string message, string caller = null)
             {
-                Write(TraceEventType.Critical, "FATAL", message);
+                Write(SourceLevels.Critical, "FATAL", message);
             }
 
             public void Fatal(FormatMessageCallback formatter, string caller = null)
@@ -446,20 +462,40 @@ namespace Paragon.Runtime
 
             public void Fatal(string format, params object[] args)
             {
-                   Write(TraceEventType.Critical, "FATAL", () => string.Format(format, args));
+                format = EscapeCurlyBraces(format, args);
+                Write(SourceLevels.Critical, "FATAL", () => string.Format(format, args));
             }
+
+            public SourceLevels Level { get; set; }
 
             #endregion
 
-            private void Write(TraceEventType eventType, string level, string message, Exception exception = null)
+            /// <summary>
+            /// If we try to log JSON we would get an error message due to the curly braces being
+            /// passed to string.Format. We therefore escape curly braces that we know not to be
+            /// placeholders within the format string.
+            /// </summary>
+            /// <param name="formatString"></param>
+            /// <param name="args"></param>
+            /// <returns></returns>
+            private string EscapeCurlyBraces(string formatString, params object[] args)
             {
-                Write(eventType, level, () => message, exception);
+                if (args.Length == 0)
+                {
+                    formatString = formatString.Replace("{", "{{").Replace("}", "}}");
+                }
+                // else maybe count args and don't escape braces where {n < args.Length}
+                return formatString;
             }
 
-            private void Write(TraceEventType eventType, string level, Func<string> getMsg, Exception exception = null)
+            private void Write(SourceLevels msgLevel, string msgLevelPrefix, string message, Exception exception = null)
             {
-                var levelFlag = (TraceEventType)ParagonTraceSources.Default.Switch.Level;
-                if ((levelFlag & eventType) != eventType)
+                Write(msgLevel, msgLevelPrefix, () => message, exception);
+            }
+
+            private void Write(SourceLevels msgLevel, string msgLevelPrefix, Func<string> getMsg, Exception exception = null)
+            {
+                if ((Level & msgLevel) != msgLevel)
                 {
                     return;
                 }
@@ -491,7 +527,7 @@ namespace Paragon.Runtime
                         ts.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                         _pid,
                         threadId,
-                        level,
+                        msgLevelPrefix,
                         _loggerName,
                         text);
                 });

@@ -43,8 +43,8 @@ namespace Paragon.Runtime
         public static event EventHandler<RenderProcessInitEventArgs> RenderProcessInitialize;
 
         public static void Initialize(string cachePath = null,
-                                      string paragonPath = null, 
-                                      string spellCheckLanguage = null,
+                                      string paragonPath = null,
+                                      string browserLanguage = null,
                                       bool disableSpellChecking = false,
                                       bool ignoreCertificateErrors = false,
                                       bool persistSessionCookies = false)
@@ -101,20 +101,20 @@ namespace Paragon.Runtime
                     var settings = new CefSettings
                     {
                         SingleProcess = false,
-                        LocalesDirPath = binPath,
                         MultiThreadedMessageLoop = true,
                         IgnoreCertificateErrors = ignoreCertificateErrors,
                         LogSeverity = CefLogSeverity.Default,
                         LogFile = logPath,
                         BrowserSubprocessPath = rendererPath,
+                        Locale = browserLanguage,
                         CachePath = cachePath,
                         PersistSessionCookies = persistSessionCookies,
-                        ProductVersion = string.Format( "Paragon/{0} Chrome/{1}", Assembly.GetExecutingAssembly().GetName().Version, CefRuntime.ChromeVersion)
+                        ProductVersion = string.Format("Paragon/{0} Chrome/{1}", Assembly.GetExecutingAssembly().GetName().Version, CefRuntime.ChromeVersion)
                     };
 
                     var args = new CefMainArgs(new[] {"--process-per-tab"});
 
-                    _cefApp = new CefBrowserApplication(disableSpellChecking, spellCheckLanguage);
+                    _cefApp = new CefBrowserApplication(disableSpellChecking, browserLanguage);
                     _cefApp.RenderProcessInitialize += OnRenderProcessInitialize;
                     
                     if (BeforeCefInitialize != null)

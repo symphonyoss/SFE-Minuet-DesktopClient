@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using Newtonsoft.Json;
 using Paragon.Plugins;
 
@@ -20,6 +21,8 @@ namespace Paragon.Runtime.PackagedApplication
         public List<NativeService> NativeServices { get; set; }
 
         public List<ApplicationPlugin> ApplicationPlugins { get; set; }
+
+        public string[] CORSBypassList{ get; set; }
 
         /// <summary>
         /// Id of the application. Required.
@@ -90,7 +93,20 @@ namespace Paragon.Runtime.PackagedApplication
         }
 
         // Optional
-        public string FamilyName { get; set; }
+        private string _processGroup = string.Empty;
+
+        public string ProcessGroup 
+        {
+            get
+            {
+                // By default use the application Id as the ProcessGroup, which means all instances of the same application share a browser process.
+                return string.IsNullOrEmpty(_processGroup) ? Id : _processGroup;
+            }
+            set
+            {
+                _processGroup = value;
+            }
+        }
 
         public string[] Permissions { get; set; }
 
@@ -100,9 +116,9 @@ namespace Paragon.Runtime.PackagedApplication
 
         public bool DisableSpellChecking { get; set; }
 
-        public string SpellCheckLanguage { get; set; }
+        public string BrowserLanguage { get; set; }
 
-        public string SplashScreenStyle { get; set; }
+        public string CustomTheme { get; set; }
 
         IIconInfo IApplicationManifest.Icons
         {
@@ -119,6 +135,28 @@ namespace Paragon.Runtime.PackagedApplication
         {
             get { return ApplicationPlugins != null ? ApplicationPlugins.ToArray() : new IPluginInfo[0]; }
         }
+
+        /*
+        ICORSBypassEntry[] IApplicationManifest.CORSBypassList
+        {
+            get
+            {
+                return CORSBypassList;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    var list = new List<CORSBypassEntry>();
+                    foreach (var e in value)
+                    {
+                        list.Add(new CORSBypassEntry() { SourceUrl = e.SourceUrl, TargetDomain = e.TargetDomain, Protocol = e.Protocol, AllowTargetSubdomains = e.AllowTargetSubdomains });
+                    }
+                    CORSBypassList = list.ToArray();
+                }
+            }
+        }
+        */
 
         public static ApplicationType GetApplicationType(IAppInfo appInfo)
         {
@@ -151,11 +189,30 @@ namespace Paragon.Runtime.PackagedApplication
         public string Icon16 { get; set; }
     }
 
+    public class CORSBypassEntry : ICORSBypassEntry
+    {
+        [JsonProperty(Required = Required.Always)]
+        public string SourceUrl { get; set; }
+        [JsonProperty(Required = Required.Always)]
+        public string TargetDomain { get; set; }
+        [JsonProperty(Required = Required.Always)]
+        public string Protocol { get; set; }
+        [DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling=DefaultValueHandling.Populate)]
+        public bool AllowTargetSubdomains { get; set; }
+    }
+
     public class ApplicationPlugin : IPluginInfo
     {
+        [JsonProperty(Required = Required.Always)]
         public string Name { get; set; }
+        [DefaultValue("")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public string Path { get; set; }
+        [JsonProperty(Required = Required.Always)]
         public string Assembly { get; set; }
+        [DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool RunInRenderer { get; set; }
         public List<string> UnmanagedDlls { get; set; }
     }

@@ -11,12 +11,12 @@ namespace Paragon.Plugins
         event EventHandler AllApplicationsClosed;
 
         bool ExplicitShutdown { get; }
-        string ApplicationFamilyName { get; }
+        string ProcessGroup { get; }
         string CacheFolder { get; }
         ApplicationEnvironment Environment { get; }
         IApplication[] AllApplicaions { get; }
         bool IsInitialized { get; }
         string BrowserLanguage { get; }
-        bool SpellCheckingEnabled { get; }
+        bool DisableSpellChecking { get; }
     }
 }

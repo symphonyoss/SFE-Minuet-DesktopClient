@@ -3,7 +3,7 @@ using Microsoft.Windows.Shell;
 
 namespace Paragon.Runtime.WPF
 {
-    internal class WindowButton : Button
+    public class WindowButton : Button
     {
         public WindowButton()
         {

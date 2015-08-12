@@ -64,5 +64,5 @@
             "assembly": "Symphony.dll"
         }
     ],
-    "splashScreenStyle" : "SplashScreenStyle.xaml"
+    "customTheme" : "SymphonyTheme.xaml"
 }
