@@ -159,9 +159,9 @@ namespace Paragon.Runtime.WPF
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public void Flash(bool clear = false, bool autoclear = false)
+        public void Flash(bool clear = false, bool autoclear = false, int maxFlashes = 5, int timeOut = 0)
         {
-            Win32Api.FlashWindow(_hwnd.Value, clear, autoclear);
+            Win32Api.FlashWindow(_hwnd.Value, clear, autoclear, maxFlashes, timeOut);
         }
 
         private void CloseClick(object sender, RoutedEventArgs e)
