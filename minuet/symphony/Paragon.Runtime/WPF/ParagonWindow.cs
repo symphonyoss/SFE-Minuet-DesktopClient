@@ -28,8 +28,8 @@ namespace Paragon.Runtime.WPF
 
         static ParagonWindow()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(
-                typeof (ParagonWindow), new FrameworkPropertyMetadata(typeof (ParagonWindow)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof (ParagonWindow), new FrameworkPropertyMetadata(typeof (ParagonWindow)));
+            BorderThicknessProperty.OverrideMetadata(typeof(ParagonWindow), new FrameworkPropertyMetadata(new PropertyChangedCallback(OnBorderThicknessChanged)));
         }
 
         public ParagonWindow()
@@ -116,6 +116,11 @@ namespace Paragon.Runtime.WPF
 
         public override void OnApplyTemplate()
         {
+            if (Application.Current.Resources.Contains("CustomFrameWindowStyle"))
+            {
+                Style = Application.Current.Resources["CustomFrameWindowStyle"] as Style;
+            }
+
             var minimizeButton = GetTemplateChild("minimizeButton") as Button;
             if (minimizeButton != null)
             {
@@ -230,6 +235,16 @@ namespace Paragon.Runtime.WPF
                     _glowBehavior.Detach();
                     _glowBehavior = null;
                 }
+            }
+        }
+
+        private static void OnBorderThicknessChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
+        {
+            var window = (ParagonWindow)dependencyObject;
+            // If border thickness changed, when Glow is disabled let the window chrome handle the resizing
+            if (!window.GlowEnabled && window.CustomChromeEnabled)
+            {
+                WindowChrome.GetWindowChrome(window).ResizeBorderThickness = (Thickness)e.NewValue;
             }
         }
     }

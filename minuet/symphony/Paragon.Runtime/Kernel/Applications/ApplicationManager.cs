@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,10 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using Paragon.Plugins;
+using Paragon.Runtime.Properties;
+using Paragon.Runtime.Win32;
+using System.Diagnostics;
+using System.Windows.Markup;
 
 namespace Paragon.Runtime.Kernel.Applications
 {
@@ -35,7 +40,7 @@ namespace Paragon.Runtime.Kernel.Applications
         private IpcServerChannel _appManagerChannel;
         private Mutex _mutex;
 
-        private Func<string, string, Stream, Stream, IParagonSplashScreen> _createSplashScreen;
+        private Func<string, string, Stream, IParagonSplashScreen> _createSplashScreen;
         private Func<IApplicationPackage, IApplicationMetadata, Dictionary<string, object>, IApplication> _createApplication;
         private Func<string, Dictionary<string, object>> _appArgumentParser;
         private List<string> _pendingSingleInstanceAppLaunches = new List<string>();
@@ -51,9 +56,9 @@ namespace Paragon.Runtime.Kernel.Applications
         {
             Logger.Info("construct application manager");
             ExplicitShutdown = false;
-            ApplicationFamilyName = string.Empty;
+            ProcessGroup = string.Empty;
             BrowserLanguage = "en-US";
-            SpellCheckingEnabled = true;
+            DisableSpellChecking = false;
         }
 
         /// <summary>
@@ -80,9 +85,9 @@ namespace Paragon.Runtime.Kernel.Applications
         /// </summary>
         public bool ExplicitShutdown { get; private set; }
         /// <summary>
-        /// Applicatio family name, if not empty indicates that there could be more than one paragon application running in this browser process.
+        /// Process Group, if not empty indicates that there could be more than one paragon application running in this browser process.
         /// </summary>
-        public string ApplicationFamilyName { get; private set;  }
+        public string ProcessGroup { get; private set;  }
 
         /// <summary>
         /// Browser Cache folder for all the running applications in this process
@@ -102,7 +107,7 @@ namespace Paragon.Runtime.Kernel.Applications
         /// <summary>
         /// Indicates whether spell checking is enabled.
         /// </summary>
-        public bool SpellCheckingEnabled { get; private set; }
+        public bool DisableSpellChecking { get; private set; }
         
         /// <summary>
         /// All the running paragon applications
@@ -138,7 +143,7 @@ namespace Paragon.Runtime.Kernel.Applications
         /// <param name="paragonFolder"></param>
         /// <param name="explicitShutdown"></param>
         /// <param name="disableSpellChecking"></param>
-        public void Initialize(Func<string, string, Stream, Stream, IParagonSplashScreen> createSplashScreen, 
+        public void Initialize(Func<string, string, Stream, IParagonSplashScreen> createSplashScreen, 
                                Func<IApplicationPackage, IApplicationMetadata, Dictionary<string, object>, IApplication> createApplication, 
                                Func<string, Dictionary<string,object>> appArgumentParser,
                                string paragonFolder,
@@ -160,6 +165,17 @@ namespace Paragon.Runtime.Kernel.Applications
 
             _paragonFolder = paragonFolder;
             ExplicitShutdown = explicitShutdown;
+        }
+
+        public void InitializeLogger(string paragonFolder, IApplicationPackage appPackage)
+        {
+            var cachePath = Path.Combine(paragonFolder, string.IsNullOrEmpty(appPackage.Manifest.ProcessGroup) ? appPackage.Manifest.Id : appPackage.Manifest.ProcessGroup);
+            ParagonLogManager.ConfigureLogging(cachePath, LogContext.Browser, Settings.Default.MaxRolledLogFiles);
+        }
+
+        public void ShutdownLogger()
+        {
+            ParagonLogManager.Shutdown();
         }
 
         /// <summary>
@@ -203,12 +219,39 @@ namespace Paragon.Runtime.Kernel.Applications
                 throw new Exception("Application manger is already initialized");
 
             var manifest = package.Manifest;
-
+    
             // Initialize the following from the first application manifest
-            ApplicationFamilyName = manifest.FamilyName ?? string.Empty;
-            CacheFolder = Path.Combine(_paragonFolder, string.IsNullOrEmpty(manifest.FamilyName) ? manifest.Id : manifest.FamilyName);
+            ProcessGroup = manifest.ProcessGroup ?? string.Empty;
+            CacheFolder = Path.Combine(_paragonFolder, string.IsNullOrEmpty(manifest.ProcessGroup) ? manifest.Id : manifest.ProcessGroup);
             Environment = metadata.Environment;
-            SpellCheckingEnabled = manifest.DisableSpellChecking;
+            DisableSpellChecking = manifest.DisableSpellChecking;
+
+            // set browser language from manifest - default is en-US
+            // "automatic" will set browser language to os culture info
+            if (!string.IsNullOrEmpty(manifest.BrowserLanguage))
+            {
+                if (string.Equals(manifest.BrowserLanguage, "Automatic", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    BrowserLanguage = CultureInfo.CurrentCulture.Name;
+                }
+                else
+                {
+                    //verify specified culture
+                    CultureInfo cultureInfo = null;
+                    try
+                    {
+                        cultureInfo = new CultureInfo(manifest.BrowserLanguage);
+                    }
+                    catch (Exception)
+                    {
+                        Logger.Error("Manifest browser language is not valid. Using default browser language en-US");
+                    }
+
+                    BrowserLanguage = (cultureInfo != null) ? (cultureInfo.Name) : (BrowserLanguage);
+                }
+
+                Logger.Info(string.Format("Browser language being used is {0}", BrowserLanguage));
+            }
 
             // Initialize CEF
             using (AutoStopwatch.TimeIt("CEF initialization"))
@@ -217,7 +260,7 @@ namespace Paragon.Runtime.Kernel.Applications
                     CacheFolder,
                     null,
                     BrowserLanguage,
-                    !SpellCheckingEnabled,
+                    DisableSpellChecking,
                     Environment == ApplicationEnvironment.Development);
             }
 
@@ -241,13 +284,25 @@ namespace Paragon.Runtime.Kernel.Applications
             var manifest = package.Manifest;
             try
             {
+                ParagonLogManager.AddApplicationTraceListener(manifest.Id);
+
+                // Load custom WPF theme for the application
+                var stylePart = !string.IsNullOrEmpty(manifest.CustomTheme) ? package.GetPart(manifest.CustomTheme) : null;
+                var styleStream = stylePart != null ? stylePart.GetStream() : null;
+                if (styleStream != null)
+                {
+                    var theme = XamlReader.Load(styleStream) as ResourceDictionary;
+                    if (theme != null)
+                    {
+                        Application.Current.Resources.MergedDictionaries.Add(theme);
+                    }
+                }
+
                 // Create and show the splash screen if needed
                 if (cmdLine != null && !cmdLine.HasFlag("no-splash") && _createSplashScreen != null)
                 {
-                    var stylePart = !string.IsNullOrEmpty(manifest.SplashScreenStyle) ? package.GetPart(manifest.SplashScreenStyle) : null;
-                    var styleStream = stylePart != null ? stylePart.GetStream() : null;
 
-                    splash = _createSplashScreen(manifest.Name, manifest.Version, package.GetIcon(), styleStream);
+                    splash = _createSplashScreen(manifest.Name, manifest.Version, package.GetIcon());
                     splashWindow = (Window)splash;
                     metadata.UpdateLaunchStatus = s =>
                     {
@@ -261,10 +316,24 @@ namespace Paragon.Runtime.Kernel.Applications
 
                 // Extract the application arguments from the command line
                 Dictionary<string, object> args = null;
-                string appArgs;
-                if (cmdLine != null && cmdLine.GetValue("args", out appArgs) && _appArgumentParser != null)
+                if (cmdLine != null && _appArgumentParser != null)
                 {
-                    args = _appArgumentParser(appArgs);
+                    string appArgs, appUrl;
+                    if (cmdLine.GetValue("args", out appArgs))
+                    {
+                        args = _appArgumentParser(appArgs);
+                    }
+                    else if (cmdLine.GetValue("url", out appUrl))
+                    {
+                        Uri uri;
+                        if (Uri.TryCreate(appUrl, UriKind.Absolute, out uri))
+                        {
+                            if (!string.IsNullOrEmpty(uri.Query))
+                            {
+                                args = _appArgumentParser(uri.Query.Substring(1));
+                            }
+                        }
+                    }
                 }
 
                 //Create and register application
@@ -329,10 +398,10 @@ namespace Paragon.Runtime.Kernel.Applications
             bool shouldRedirect = false;
             var manifest = package.Manifest;
 
-            if (manifest.SingleInstance || !string.IsNullOrEmpty(manifest.FamilyName))
+            if (manifest.SingleInstance || !string.IsNullOrEmpty(manifest.ProcessGroup))
             {
                 var mutexName = string.Format("{0}:{1}:{2}",
-                                    (string.IsNullOrEmpty(manifest.FamilyName) ? manifest.Id : manifest.FamilyName), 
+                                    (string.IsNullOrEmpty(manifest.ProcessGroup) ? manifest.Id : manifest.ProcessGroup), 
                                     environment, 
                                     System.Environment.UserName);
                 string channelName = mutexName + ":LaunchRedirectorService";
@@ -347,6 +416,8 @@ namespace Paragon.Runtime.Kernel.Applications
                 else
                 {
                     _mutex = mutex;
+                    if (!_pendingSingleInstanceAppLaunches.Contains(manifest.Id))
+                        _pendingSingleInstanceAppLaunches.Add(manifest.Id);
                     StartApplicationLaunchRedirectionService(channelName);
                 }
             }
@@ -403,35 +474,44 @@ namespace Paragon.Runtime.Kernel.Applications
 
             if (redirectService != null)
             {
-                redirectService.LaunchApplication(System.Environment.CommandLine);
+                redirectService.LaunchApplication(System.Environment.GetCommandLineArgs());
             }
         }
 
-        private void HandleLaunchRedirect(string args)
+        private void HandleLaunchRedirect(string[] args)
         {
+            var cmdLine = new ParagonCommandLineParser(args);
             ApplicationMetadata appMetadata;
             IApplicationPackage appPackage;
-            var cmdLine = new ParagonCommandLineParser(args);
-
-            if (ResolveMetadataAndPackage(cmdLine, out appMetadata, out appPackage))
+            if (!ResolveMetadataAndPackage(cmdLine, out appMetadata, out appPackage))
             {
-                if (appPackage.Manifest.SingleInstance)
-                {
-                    bool isSingleInstaneLaunched = false;
-                    var app = GetSingleApplicationInstance(appMetadata.Id, appPackage.Manifest.FamilyName, out isSingleInstaneLaunched);
-                    if (app != null || isSingleInstaneLaunched)
-                    {
-                        if (app != null && app.WindowManager.AllWindows.Length > 0)
-                        {
-                            var w = app.WindowManager.AllWindows[0];
-                            w.BringToFront();
-                            w.FocusWindow();
-                        }
-                        return;
-                    }
-                }
-                ParagonRuntime.MainThreadContext.Post(delegate { RunApplicationInternal(cmdLine, appPackage, appMetadata); }, null);
+                return;
             }
+
+            if (appPackage.Manifest.SingleInstance)
+            {
+                var isSingleInstanceLaunched = false;
+                var app = GetSingleApplicationInstance(appMetadata.Id, appPackage.Manifest.ProcessGroup, out isSingleInstanceLaunched);
+                if (app != null || isSingleInstanceLaunched)
+                {
+                    string protocolUrl;
+                    if (app != null && cmdLine.GetValue("url", out protocolUrl))
+                    {
+                        app.OnProtocolInvoke(protocolUrl);
+                    }
+
+                    if (app != null && app.WindowManager.AllWindows.Length > 0)
+                    {
+                        var w = app.WindowManager.AllWindows[0];
+                        w.ShowWindow(false);
+                        w.BringToFront();
+                    }
+
+                    return;
+                }
+            }
+
+            ParagonRuntime.MainThreadContext.Post(delegate { RunApplicationInternal(cmdLine, appPackage, appMetadata); }, null);
         }
 
         /// <summary>
@@ -451,7 +531,6 @@ namespace Paragon.Runtime.Kernel.Applications
             {
                 if (AllApplicationsClosed != null)
                     AllApplicationsClosed(this, EventArgs.Empty);
-
                 if (!ExplicitShutdown)
                 {
                     Shutdown("All applications have closed");
@@ -475,23 +554,24 @@ namespace Paragon.Runtime.Kernel.Applications
         /// If the application is not running it saves marker indicating that the first instance is about to be launched
         /// </remarks>
         /// <param name="appId">applicationId</param>
-        /// <param name="familyName">familyName</param>
+        /// <param name="processGroup">the name given to a group of applications that run in the same browser process</param>
+        /// <param name="isSingleInstanceLaunched"></param>
         /// <returns></returns>
-        private IApplication GetSingleApplicationInstance(string appId, string familyName, out bool isSingleInstaneLaunched)
+        private IApplication GetSingleApplicationInstance(string appId, string processGroup, out bool isSingleInstanceLaunched)
         {
             IApplication app = null;
-            isSingleInstaneLaunched = true;
+            isSingleInstanceLaunched = true;
             lock (Lock)
             {
                 app = AllApplicaions.FirstOrDefault((a) => a.Metadata.Id == appId);
-                if (app == null && !string.IsNullOrEmpty(familyName))
+                if (app == null && !string.IsNullOrEmpty(processGroup))
                 {
                     if (_pendingSingleInstanceAppLaunches.Contains(appId))
                     {
                         Logger.Info("An instance of the single instance application '" + appId + "' is already being launched");
                         return null;
                     }
-                    isSingleInstaneLaunched = false;
+                    isSingleInstanceLaunched = false;
                     // Add a marker to indicate that the "one and only" instance is being launched
                     _pendingSingleInstanceAppLaunches.Add(appId);
                 }
@@ -538,10 +618,10 @@ namespace Paragon.Runtime.Kernel.Applications
         class ApplicationLaunchRedirectionService : MarshalByRefObject
         {
             /// <summary>
-            /// Forwar the the launch redirect to Applicatoin Manager
+            /// Forward the the launch redirect to Application Manager
             /// </summary>
             /// <param name="args"></param>
-            public void LaunchApplication(string args)
+            public void LaunchApplication(string[] args)
             {
                 ApplicationManager.GetInstance().HandleLaunchRedirect(args);
             }

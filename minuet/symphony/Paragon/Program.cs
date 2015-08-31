@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Windows;
@@ -8,12 +8,13 @@ using Paragon.Plugins;
 using Paragon.Properties;
 using Paragon.Runtime;
 using Paragon.Runtime.Kernel.Applications;
-using Paragon.Runtime.Win32;
 
 namespace Paragon
 {
     static class Program
     {
+        private static ApplicationManager _appManager;
+
         [STAThread]
         public static void Main()
         {
@@ -46,18 +47,20 @@ namespace Paragon
 
             try
             {
-                ApplicationManager appManager = ApplicationManager.GetInstance();
-                
+                _appManager = ApplicationManager.GetInstance();
+
+                //initialize logger earlier in the start up sequence
+                _appManager.InitializeLogger(Environment.ExpandEnvironmentVariables(Settings.Default.CacheDirectory), appPackage);
+
                 // Bail if the app is a singleton and an instance is already running. Cmd line args from
                 // this instance will be sent to the singleton isntance by the SingleInstance utility.
-                if (appManager.RedirectApplicationLaunchIfNeeded(appPackage, appMetadata.Environment))
+                if (_appManager.RedirectApplicationLaunchIfNeeded(appPackage, appMetadata.Environment))
                 {
                     return;
                 }
 
                 // Initialize the app.
                 App app;
-                WorkingSetMonitor workingSetMonitor;
 
                 using (AutoStopwatch.TimeIt("Initializing Paragon.App"))
                 {
@@ -65,18 +68,16 @@ namespace Paragon
                     app.InitializeComponent();
                     app.Startup += delegate
                     {
-                        appManager.Initialize(
-                                    (name, version, iconStream, styleStream) =>
-                                    {
-                                        return new ParagonSplashScreen(name, version, iconStream, styleStream);
-                                    },
+                        _appManager.Initialize(
+                                    (name, version, iconStream) => 
+                                        new ParagonSplashScreen(name, version, iconStream),
                                     (package, metadata, args) =>
                                     {
                                         var bootstrapper = new Bootstrapper();
                                         var appFactory = bootstrapper.Resolve<ApplicationFactory>();
                                         return appFactory.CreateApplication(metadata, package, args);
                                     },
-                                    (string args) =>
+                                    (args) =>
                                     {
                                         var query = HttpUtility.ParseQueryString(args);
                                         return query.Keys.Cast<string>().ToDictionary<string, string, object>(key => key, key => query[key]);
@@ -86,23 +87,25 @@ namespace Paragon
                                     appPackage.Manifest.DisableSpellChecking
                                 );
 
-                        appManager.AllApplicationsClosed += delegate
+                        _appManager.AllApplicationsClosed += delegate
                         {
-                            appManager.Shutdown("All applications closed");
+                            _appManager.Shutdown("All applications closed");
                             app.Shutdown();
                         };
 
-                        appManager.RunApplication(cmdLine, appPackage, appMetadata);
-                        workingSetMonitor = new WorkingSetMonitor(100, 160);
+                        _appManager.RunApplication(cmdLine, appPackage, appMetadata);
                     };
                 }
 
-                // Run the app (this is a blocking call).
-                app.Run();
+                using (new WorkingSetMonitor(100, 160))
+                {
+                    // Run the app (this is a blocking call).
+                    app.Run();
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(string.Format("Error launching application : {0}", ex.InnerException != null 
+                MessageBox.Show(string.Format("Error launching application : {0}", ex.InnerException != null
                     ? ex.InnerException.Message : ex.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
                 Environment.ExitCode = 1;
@@ -111,27 +114,23 @@ namespace Paragon
             }
         }
 
-        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Exception ex = e.ExceptionObject as Exception;
+            var logger = ParagonLogManager.GetLogger();
+            logger.Error(string.Format("An unhandled domain exception has occurred: {0}", e.ExceptionObject ?? string.Empty));
 
-            ILogger Logger = ParagonLogManager.GetLogger();
-
-            Logger.Error("--exception info start--");
-            while (ex != null)
+            var errMessage = "A fatal error has occurred.";
+            if (_appManager != null && _appManager.AllApplicaions != null)
             {
-                Logger.Error("exception: " + ex.Message);
-                Logger.Error("exception stack trace:" + ex.StackTrace);
-                Logger.Error("exception source:" + ex.Source);
-                Logger.Error("exception targetSite:" + ex.TargetSite);
-                Logger.Error("exception type:" + ex.GetType());
-                Logger.Error("exception toString:" + ex.ToString());
-                ex = ex.InnerException;
+                var apps = _appManager.AllApplicaions.Select(app => app.Name).ToArray();
+                if (apps.Length > 0)
+                {
+                    errMessage += "\n\nThe following applications will be closed: \n    " + string.Join(", ", apps);
+                }
             }
-            Logger.Error("--exception info end--");
-           
-            string errString = "The application will now exit. Please email the following message to your tech support team." + ex.Message + "\n" + ex.StackTrace;
-            MessageBox.Show(errString + "\n", "Unhandled Exception", MessageBoxButton.OK);
-        }  
+
+            errMessage += "\n\nPlease contact Technology Client Services if you require assistance.\n";
+            MessageBox.Show(errMessage, "Unhandled Exception", MessageBoxButton.OK);
+        }
     }
 }

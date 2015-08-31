@@ -30,10 +30,14 @@ namespace Paragon
         private Storyboard _showboard;
         private Storyboard _hideboard;
         private FrameworkElement _statusText;
-        ResourceDictionary _styleRd;
         private static readonly ILogger Logger = ParagonLogManager.GetLogger();
 
-        public ParagonSplashScreen(string shellName, string version, Stream shellIconStream, Stream styleStream)
+        static ParagonSplashScreen()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(ParagonSplashScreen), new FrameworkPropertyMetadata(typeof(ParagonSplashScreen)));
+        }
+
+        public ParagonSplashScreen(string shellName, string version, Stream shellIconStream)
         {
             InitializeComponent();
             ShellName = shellName;
@@ -78,36 +82,18 @@ namespace Paragon
 
             if (ShellIcon == null)
                 ShellIcon = new IconImage(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "window.ico")).ImageSource;
-
-            if (styleStream != null)
-            {
-                try
-                {
-                    System.Windows.Markup.XamlReader reader = new System.Windows.Markup.XamlReader();
-                    _styleRd = (ResourceDictionary)reader.LoadAsync(styleStream);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error("Error reading splash screen xaml: ", ex);
-                }
-            }
         }
 
         public override void OnApplyTemplate()
         {
-            if (Style == null)
+            if (Application.Current.Resources.Contains("CustomSplashScreenStyle"))
             {
-                if (_styleRd != null)
-                {
-                    if (_styleRd.Contains("Custom"))
-                        Style = _styleRd["Custom"] as Style;
-                }
-                else
-                    Style = Application.Current.Resources["Default"] as Style;
+                Style = Application.Current.Resources["CustomSplashScreenStyle"] as Style;
             }
 
             base.OnApplyTemplate();
-            if (this.Template != null)
+
+            if (Template != null)
             {
                 _showboard = Style.Resources["ShowStoryBoard"] as Storyboard;
                 _hideboard = Style.Resources["HideStoryBoard"] as Storyboard;
@@ -123,9 +109,8 @@ namespace Paragon
 
         public void ShowText(string text)
         {
-            // TODO : Cleanu this up
             if( _statusText == null )
-                _statusText = this.Template.FindName("StatusText", this) as FrameworkElement;
+                _statusText = GetTemplateChild("StatusText") as FrameworkElement;
 
             PreviousText = Text;
             Text = text;

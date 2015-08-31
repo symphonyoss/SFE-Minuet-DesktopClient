@@ -36,9 +36,9 @@ namespace Paragon.Plugins
         bool SingleInstance { get; set; }
 
         /// <summary>
-        /// Indicates the name of the application family. The name should not have any special characters except spaces. Optional. 
+        /// Indicates the process group name the application belongs to. The name should not have any special characters except spaces. Optional. 
         /// </summary>
-        string FamilyName { get; set; }
+        string ProcessGroup { get; set; }
         
         /// <summary>
         /// Application startup information. Required.
@@ -55,11 +55,13 @@ namespace Paragon.Plugins
 
         string[] ExternalUrlWhitelist { get; set; }
 
+        string[] CORSBypassList { get; set; }
+
         string[] CustomProtocolWhitelist { get; set; }
 
         bool DisableSpellChecking { get; set; }
 
-        string SpellCheckLanguage { get; set; }
+        string BrowserLanguage { get; set; }
 
         IIconInfo Icons { get; set; }
 
@@ -67,7 +69,10 @@ namespace Paragon.Plugins
 
         IPluginInfo[] ApplicationPlugins { get; }
 
-        string SplashScreenStyle { get; set; }
+        /// <summary>
+        /// Gets or sets the custom theme for the application.
+        /// </summary>
+        string CustomTheme { get; set; }
     }
 
     public interface INativeServiceInfo
@@ -114,6 +119,14 @@ namespace Paragon.Plugins
         string Assembly { get; set; }
         bool RunInRenderer { get; set; }
         List<string> UnmanagedDlls { get; set; }
+    }
+
+    public interface ICORSBypassEntry
+    {
+        string SourceUrl { get; set; }
+        string TargetDomain { get; set; }
+        string Protocol { get; set; }
+        bool AllowTargetSubdomains { get; set; }
     }
 
     public interface IBackgroundInfo

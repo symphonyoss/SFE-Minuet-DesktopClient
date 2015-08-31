@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Paragon.Runtime.WPF;assembly=Paragon.Runtime"
                     xmlns:paragon="clr-namespace:Paragon">
-    <Style TargetType="{x:Type paragon:ParagonSplashScreen}" x:Key="Default">
+    <Style TargetType="{x:Type paragon:ParagonSplashScreen}">
         <Style.Resources>
             <Storyboard x:Key="ShowStoryBoard">
                 <ThicknessAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Margin)"
@@ -54,19 +54,16 @@
                                     </Grid.RowDefinitions>
                                     <Viewbox Grid.Row="0" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Left">
                                         <TextBlock Margin="0" FontSize="26" VerticalAlignment="Top"
-                                  Text="{Binding ShellName, FallbackValue='Paragon'}"
+                                  Text="{Binding ShellName, FallbackValue='Dash Native'}"
                                   Foreground="{DynamicResource WhiteBrush}" FontWeight="Bold" />
                                     </Viewbox>
 
-                                    <TextBlock Foreground="{DynamicResource WhiteBrush}" Grid.Row="1">
-                       <Run Text="Version"/>
-                        <!--
-                       <Run Text="{Binding Version, FallbackValue='1.0.0.0'}"/>
-                        -->
-                                    </TextBlock>
+                                    <TextBlock Foreground="{DynamicResource WhiteBrush}" Grid.Row="1" 
+                                               DataContext="{Binding Version, FallbackValue='1.0.0.0'}" 
+                                               Text="{Binding StringFormat='Version {0}'}"/>
 
                                     <TextBlock Foreground="{DynamicResource WhiteBrush}" Grid.Row="2"
-                              Text="Powered by Paragon" />
+                              Text="Powered by Dash Native" />
                                 </Grid>
 
                                 <controls:ProgressRing IsActive="True" Width="45" Height="45"
