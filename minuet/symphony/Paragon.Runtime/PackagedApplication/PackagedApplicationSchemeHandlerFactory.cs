@@ -101,17 +101,31 @@ namespace Paragon.Runtime.PackagedApplication
         private void Register()
         {
             var hostName = new Regex("[^a-zA-Z0-9]").Replace(_package.Manifest.Name, "") + "." + Domain;
-            var baseUrl = SchemeName + "://" + hostName;
-            baseUrl = baseUrl.ToLower();
-            CefRuntime.AddCrossOriginWhitelistEntry(baseUrl, "http", Domain, true);
-            CefRuntime.AddCrossOriginWhitelistEntry(baseUrl, "https", Domain, true);
+            var packageUrl = SchemeName + "://" + hostName;
+
+            // Set up by-passes between the package url and gs.com domain
+            CefRuntime.AddCrossOriginWhitelistEntry(packageUrl, "http", Domain, true);
+            CefRuntime.AddCrossOriginWhitelistEntry(packageUrl, "https", Domain, true);
+            CefRuntime.AddCrossOriginWhitelistEntry(packageUrl, "ws", Domain, true);
+            CefRuntime.AddCrossOriginWhitelistEntry(packageUrl, "wss", Domain, true);
+
+            if (_package.Manifest.CORSBypassList != null)
+            {
+                foreach (var bypassEntry in _package.Manifest.CORSBypassList)
+                {
+                    if (!(string.IsNullOrEmpty(bypassEntry.TargetDomain) && bypassEntry.AllowTargetSubdomains))
+                        CefRuntime.AddCrossOriginWhitelistEntry(bypassEntry.SourceUrl, bypassEntry.Protocol, bypassEntry.TargetDomain, bypassEntry.AllowTargetSubdomains);
+                    else
+                        Logger.Warn("CORS bypass from {0} to domain {0} can't be set.", bypassEntry.SourceUrl, bypassEntry.TargetDomain ?? string.Empty);
+                }
+            }
 
             if (!CefRuntime.RegisterSchemeHandlerFactory(SchemeName, hostName.ToLower(), this))
             {
                 Logger.Error(string.Format("Packaged application {0}: could not register scheme handler factory", _package.Manifest.Name));
                 return;
             }
-            _baseUrl = baseUrl;
+            _baseUrl = packageUrl;
         }
     }
 }

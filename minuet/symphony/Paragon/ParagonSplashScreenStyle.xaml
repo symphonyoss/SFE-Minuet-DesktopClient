@@ -95,4 +95,93 @@
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <Style x:Key="AlarmSplashScreenStyle" TargetType="{x:Type paragon:ParagonSplashScreen}">
+        <Style.Resources>
+            <Storyboard x:Key="ShowStoryBoard">
+                <ThicknessAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Margin)"
+                                    Storyboard.TargetName="StatusText">
+                    <LinearThicknessKeyFrame KeyTime="0:0:0" Value="0,0,0,0"/>
+                    <LinearThicknessKeyFrame KeyTime="0:0:0.6" Value="0,0,0,35"/>
+                </ThicknessAnimationUsingKeyFrames>
+            </Storyboard>
+
+            <Storyboard x:Key="HideStoryBoard">
+                <ThicknessAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Margin)"
+                                    Storyboard.TargetName="PreviousStatusText">
+                    <LinearThicknessKeyFrame KeyTime="0:0:0" Value="0,0,0,35"/>
+                    <LinearThicknessKeyFrame KeyTime="0:0:0.6" Value="0,0,0,80"/>
+                </ThicknessAnimationUsingKeyFrames>
+            </Storyboard>
+        </Style.Resources>
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type paragon:ParagonSplashScreen}">
+                    <Grid Background="Transparent" Margin="15">
+                        <Border BorderBrush="{DynamicResource AlarmGlowBrush}" BorderThickness="3" Margin="-10">
+                            <Border.Effect>
+                                <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="{DynamicResource AlarmGlowColor}"/>
+                            </Border.Effect>
+                        </Border>
+                        <Grid Margin="-9" Background="{DynamicResource SplashScreenBackgroundBrush}">
+                            <Grid Margin="30">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Image Width="70" Height="70" Grid.Row="0" Grid.Column="0" Margin="0,0,20,0" Source="{Binding ShellIcon}" Stretch="Fill"/>
+
+                                <Grid Grid.Row="0" Grid.Column="1" Margin="0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Viewbox Grid.Row="0" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Left">
+                                        <TextBlock Margin="0" FontSize="26" VerticalAlignment="Top"
+                                  Text="{Binding ShellName, FallbackValue='Dash Native'}"
+                                  Foreground="{DynamicResource AlarmGlowBrush}" FontWeight="Bold" />
+                                    </Viewbox>
+
+                                    <TextBlock Foreground="{DynamicResource WhiteBrush}" Grid.Row="1" 
+                                               DataContext="{Binding Version, FallbackValue='1.0.0.0'}" 
+                                               Text="{Binding StringFormat='Version {0}'}"/>
+
+                                    <TextBlock Foreground="{DynamicResource WhiteBrush}" Grid.Row="2" Text="Powered by Dash Native" />
+                                </Grid>
+
+                                <controls:ProgressRing IsActive="True" Width="45" Height="45" Foreground="{DynamicResource WhiteBrush}" Grid.Row="0" Grid.Column="2"/>
+
+                                <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Background="Transparent">
+                                    <Grid.OpacityMask>
+                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                            <GradientStop Color="Transparent" Offset="0.30"/>
+                                            <GradientStop Color="WhiteSmoke" Offset="0.45"/>
+                                            <GradientStop Color="WhiteSmoke" Offset="0.65"/>
+                                            <GradientStop Color="Transparent" Offset="0.75"/>
+                                        </LinearGradientBrush>
+                                    </Grid.OpacityMask>
+                                    <TextBlock x:Name="StatusText" TextAlignment="Left" FontSize="16" FontWeight="Normal"
+                                          Foreground="{DynamicResource WhiteBrush}"  Text="{Binding Text, FallbackValue='Initializing...'}"  
+                                          TextWrapping="Wrap" VerticalAlignment="Bottom" Margin="0,0,0,35"
+                                          HorizontalAlignment="Stretch"/>
+                                    <TextBlock x:Name="PreviousStatusText" TextAlignment="Left" FontSize="16" FontWeight="Normal"
+                                        Foreground="{DynamicResource WhiteBrush}"  Text="{Binding PreviousText}"  
+                                        TextWrapping="Wrap" VerticalAlignment="Bottom" Margin="0,0,0,35"
+                                        HorizontalAlignment="Stretch"/>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

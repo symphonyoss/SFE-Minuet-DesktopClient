@@ -69,8 +69,7 @@ namespace Paragon
                     app.Startup += delegate
                     {
                         _appManager.Initialize(
-                                    (name, version, iconStream) => 
-                                        new ParagonSplashScreen(name, version, iconStream),
+                                    (name, version, iconStream) => new ParagonSplashScreen(name, version, iconStream),
                                     (package, metadata, args) =>
                                     {
                                         var bootstrapper = new Bootstrapper();
@@ -90,6 +89,7 @@ namespace Paragon
                         _appManager.AllApplicationsClosed += delegate
                         {
                             _appManager.Shutdown("All applications closed");
+                            _appManager.ShutdownLogger();
                             app.Shutdown();
                         };
 
@@ -97,11 +97,8 @@ namespace Paragon
                     };
                 }
 
-                using (new WorkingSetMonitor(100, 160))
-                {
-                    // Run the app (this is a blocking call).
-                    app.Run();
-                }
+                // Run the app (this is a blocking call).
+                app.Run();
             }
             catch (Exception ex)
             {

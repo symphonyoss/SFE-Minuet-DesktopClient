@@ -169,6 +169,17 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
+        /// Print the current browser contents to the PDF file specified by |path| and
+        /// execute |callback| on completion. The caller is responsible for deleting
+        /// |path| when done. For PDF printing to work on Linux you must implement the
+        /// CefPrintHandler::GetPdfPaperSize method.
+        /// </summary>
+        public void PrintToPDF(cef_string_t* path, cef_pdf_print_settings_t* settings, cef_pdf_print_callback_t* callback)
+        {
+            throw new NotImplementedException(); // TODO: CefBrowserHost.PrintToPDF
+        }
+        
+        /// <summary>
         /// Search for |searchText|. |identifier| can be used to have multiple searches
         /// running simultaniously. |forward| indicates whether to search forward or
         /// backward within the page. |matchCase| indicates whether the search should
@@ -363,6 +374,30 @@ namespace Xilium.CefGlue
         public void NotifyMoveOrResizeStarted()
         {
             throw new NotImplementedException(); // TODO: CefBrowserHost.NotifyMoveOrResizeStarted
+        }
+        
+        /// <summary>
+        /// Returns the maximum rate in frames per second (fps) that CefRenderHandler::
+        /// OnPaint will be called for a windowless browser. The actual fps may be
+        /// lower if the browser cannot generate frames at the requested rate. The
+        /// minimum value is 1 and the maximum value is 60 (default 30). This method
+        /// can only be called on the UI thread.
+        /// </summary>
+        public int GetWindowlessFrameRate()
+        {
+            throw new NotImplementedException(); // TODO: CefBrowserHost.GetWindowlessFrameRate
+        }
+        
+        /// <summary>
+        /// Set the maximum rate in frames per second (fps) that CefRenderHandler::
+        /// OnPaint will be called for a windowless browser. The actual fps may be
+        /// lower if the browser cannot generate frames at the requested rate. The
+        /// minimum value is 1 and the maximum value is 60 (default 30). Can also be
+        /// set at browser creation via CefBrowserSettings.windowless_frame_rate.
+        /// </summary>
+        public void SetWindowlessFrameRate(int frame_rate)
+        {
+            throw new NotImplementedException(); // TODO: CefBrowserHost.SetWindowlessFrameRate
         }
         
         /// <summary>

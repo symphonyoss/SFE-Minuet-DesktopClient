@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using Paragon.Plugins;
 using Paragon.Runtime.Annotations;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Global
@@ -9,11 +10,12 @@ namespace Paragon.Runtime.Win32
 {
     public class SystemCpuInfo
     {
-        private static readonly PerformanceCounter CpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+        private static readonly ILogger _logger = ParagonLogManager.GetLogger();
         private static readonly string ArchitectureVal;
         private static readonly string CpuNameVal;
         private static readonly int ProcessorCountVal;
         private static readonly string PlatformVal;
+        private static PerformanceCounter CpuCounter;
 
         static SystemCpuInfo()
         {
@@ -22,11 +24,12 @@ namespace Paragon.Runtime.Win32
             CpuNameVal = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER");
             PlatformVal = Environment.GetEnvironmentVariable("BuildPlatform");
             ProcessorCountVal = Environment.ProcessorCount;
+            InitializePerformanceCounters();
         }
 
         public SystemCpuInfo()
         {
-            CpuUsage = Math.Round(CpuCounter.NextValue());
+            CpuUsage = (CpuCounter != null) ? (Math.Round(CpuCounter.NextValue())) : (0);
         }
 
         public double CpuUsage { get; set; }
@@ -53,6 +56,18 @@ namespace Paragon.Runtime.Win32
         public int ProcessorCount
         {
             get { return ProcessorCountVal; }
+        }
+
+        private static void InitializePerformanceCounters()
+        {
+            try
+            {
+                CpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Failed to initialize performance counters: {0}", ex.ToString()));
+            }
         }
     }
 }

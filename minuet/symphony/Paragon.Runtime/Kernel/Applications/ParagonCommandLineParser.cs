@@ -23,12 +23,6 @@ namespace Paragon.Runtime.Kernel.Applications
         private static readonly ILogger Logger = ParagonLogManager.GetLogger();
         private readonly List<string> _args;
 
-        public 
-            ParagonCommandLineParser(string commandLine)
-        {
-            _args = new List<string>(commandLine.Split(' '));
-        }
-
         public ParagonCommandLineParser(IEnumerable<string> args)
         {
             _args = args.ToList();

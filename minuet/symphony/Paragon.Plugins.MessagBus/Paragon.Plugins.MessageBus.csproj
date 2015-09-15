@@ -54,6 +54,7 @@
     <Compile Include="IMessageInterceptor.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageBroker.cs" />
+    <Compile Include="MessageBrokerConfiguration.cs" />
     <Compile Include="MessageBrokerWatcher.cs" />
     <Compile Include="MessageBusPlugin.cs" />
     <Compile Include="Properties\Annotations.cs" />
@@ -75,9 +76,6 @@
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>Copy $(SolutionDir)cbkbuild\ReferencedAssemblies\messagebus.jar $(SolutionDir)bin\paragon</PostBuildEvent>
-  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

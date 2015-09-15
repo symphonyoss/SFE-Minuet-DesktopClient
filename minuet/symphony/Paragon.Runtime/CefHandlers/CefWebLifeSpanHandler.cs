@@ -1,4 +1,6 @@
-﻿using Xilium.CefGlue;
+﻿using System;
+using Paragon.Runtime.Win32;
+using Xilium.CefGlue;
 
 namespace Paragon.Runtime
 {
@@ -28,6 +30,7 @@ namespace Paragon.Runtime
             {
                 if (_core != null)
                 {
+                    Win32Api.SetParent(browser.GetHost().GetWindowHandle(), IntPtr.Zero);
                     OnBeforeClose(browser);
                 }
 

@@ -873,6 +873,11 @@
             This method is only used when window rendering is disabled.
             </summary>
         </member>
+        <member name="M:Xilium.CefGlue.CefBrowserHost.PrintToPDF(System.String,Xilium.CefGlue.CefPdfPrintSettings,Xilium.CefGlue.CefPdfPrintCallback)">
+            <summary>
+            Print to PDF
+            </summary>
+        </member>
         <member name="P:Xilium.CefGlue.CefBrowserHost.IsMouseCursorChangeDisabled">
             <summary>
             Returns true if mouse cursor change is disabled.
@@ -1403,6 +1408,18 @@
             no cookies are found.
             </summary>
         </member>
+        <member name="T:Xilium.CefGlue.CefDeleteCookiesCallback">
+            <summary>
+            Interface to implement to be notified of asynchronous completion via
+            CefCookieManager::DeleteCookies().
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefDeleteCookiesCallback.OnComplete(System.Int32)">
+            <summary>
+            Method that will be called upon completion. |num_deleted| will be the
+            number of cookies that were deleted or -1 if unknown.
+            </summary>
+        </member>
         <member name="T:Xilium.CefGlue.CefDialogHandler">
             <summary>
             Implement this interface to handle dialog events. The methods of this class
@@ -1625,6 +1642,20 @@
             <summary>
             Called to display a console message. Return true to stop the message from
             being output to the console.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefDisplayHandler.on_fullscreen_mode_change(Xilium.CefGlue.Interop.cef_display_handler_t*,Xilium.CefGlue.Interop.cef_browser_t*,System.Int32)">
+            <summary>
+            Called when the page icon changes.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefDisplayHandler.OnFullscreenModeChange(Xilium.CefGlue.CefBrowser,System.Boolean)">
+            <summary>
+            Called when web content in the page has toggled fullscreen mode. If
+            |fullscreen| is true the content will automatically be sized to fill the
+            browser content area. If |fullscreen| is false the content will
+            automatically return to its original size and position. The client is
+            responsible for resizing the browser if desired.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefDomDocument">
@@ -2189,6 +2220,15 @@
             contains the drag event data and |mask| represents the type of drag
             operation. Return false for default drag handling behavior or true to
             cancel the drag event.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefDragHandler.OnDraggableRegionsChanged(Xilium.CefGlue.CefBrowser,Xilium.CefGlue.CefDraggableRegion[])">
+            <summary>
+            Called whenever draggable regions for the browser window change. These can
+            be specified using the '-webkit-app-region: drag/no-drag' CSS-property. If
+            draggable regions are never defined in a document this function will also
+            never be called. If the last draggable region is removed from a document
+            this function will be called with an NULL vector.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefEndTracingCallback">
@@ -3150,12 +3190,6 @@
             Returns true if this navigation includes post data.
             </summary>
         </member>
-        <member name="P:Xilium.CefGlue.CefNavigationEntry.FrameName">
-            <summary>
-            Returns the name of the sub-frame that navigated or an empty value if the
-            main frame navigated.
-            </summary>
-        </member>
         <member name="P:Xilium.CefGlue.CefNavigationEntry.CompletionTime">
             <summary>
             Returns the time for the last known successful navigation completion. A
@@ -3183,6 +3217,12 @@
             |current| is true if this entry is the currently loaded navigation entry.
             |index| is the 0-based index of this entry and |total| is the total number
             of entries.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefPdfPrintCallback">
+            <summary>
+            Callback interface for CefBrowserHost::PrintToPDF. The methods of this class
+            will be called on the browser process UI thread.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefPostData">
@@ -3325,6 +3365,11 @@
         <member name="M:Xilium.CefGlue.CefPrintHandler.OnPrintReset">
             <summary>
             Reset client state related to printing.
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefPrintHandler.GetPdfPaperSize">
+            <summary>
+            GetPdfPaperSize.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefPrintJobCallback">
@@ -4157,6 +4202,18 @@
             This function may be called on any thread. It should only be called once
             per unique |scheme_name| value. If |scheme_name| is already registered or
             if an error occurs this method will return false.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefSetCookieCallback">
+            <summary>
+            Interface to implement to be notified of asynchronous completion via
+            CefCookieManager::SetCookie().
+            </summary>
+        </member>
+        <member name="M:Xilium.CefGlue.CefSetCookieCallback.OnComplete(System.Boolean)">
+            <summary>
+            Method that will be called upon completion. |success| will be true if the
+            cookie was set successfully.
             </summary>
         </member>
         <member name="T:Xilium.CefGlue.CefSslCertPrincipal">
@@ -5531,6 +5588,94 @@
             Returns true if at end of the file contents.
             </summary>
         </member>
+        <member name="T:Xilium.CefGlue.CefPdfPrintSettings">
+            <summary>
+            Class representing PDF print settings.
+            </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefPdfPrintSettings.HeaderFooterTitle">
+            
+             Page title to display in the header. Only used if |header_footer_enabled|
+             is set to true (1).
+            
+        </member>
+        <member name="P:Xilium.CefGlue.CefPdfPrintSettings.HeaderFooterUrl">
+            
+             URL to display in the footer. Only used if |header_footer_enabled| is set
+             to true (1).
+            
+        </member>
+        <member name="P:Xilium.CefGlue.CefPdfPrintSettings.PageWidth">
+            
+             Output page size in microns. If either of these values is less than or
+             equal to zero then the default paper size (A4) will be used.
+            
+        </member>
+        <member name="P:Xilium.CefGlue.CefPdfPrintSettings.MarginTop">
+            
+             Margins in millimeters. Only used if |margin_type| is set to
+             PDF_PRINT_MARGIN_CUSTOM.
+            
+        </member>
+        <member name="P:Xilium.CefGlue.CefPdfPrintSettings.MarginType">
+            
+             Margin type.
+            
+        </member>
+        <member name="P:Xilium.CefGlue.CefPdfPrintSettings.HeaderFooterEnabled">
+            
+             Set to true to print headers and footers or false (0) to not print
+             headers and footers.
+            
+        </member>
+        <member name="P:Xilium.CefGlue.CefPdfPrintSettings.SelectionOnly">
+            
+             Set to true to print the selection only or false (0) to print all.
+            
+        </member>
+        <member name="P:Xilium.CefGlue.CefPdfPrintSettings.Landscape">
+            
+             Set to true for landscape mode or false (0) for portrait mode.
+            
+        </member>
+        <member name="P:Xilium.CefGlue.CefPdfPrintSettings.BackgroundsEnabled">
+            
+             Set to true to print background graphics or false (0) to not print
+             background graphics.
+            
+        </member>
+        <member name="T:Xilium.CefGlue.CefJsonParserOptions">
+            <summary>
+            Options that can be passed to CefWriteJSON.
+            </summary>
+        </member>
+        <member name="F:Xilium.CefGlue.CefJsonParserOptions.JsonWriterDefault">
+            
+             Default behavior.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.CefJsonParserOptions.JsonWriterOmitBinaryValues">
+            
+             This option instructs the writer that if a Binary value is encountered,
+             the value (and key if within a dictionary) will be omitted from the
+             output, and success will be returned. Otherwise, if a binary value is
+             encountered, failure will be returned.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.CefJsonParserOptions.JsonWriterOmitDoubleTypePresentation">
+            
+             This option instructs the writer to write doubles that have no fractional
+             part as a normal integer (i.e., without using exponential notation
+             or appending a '.0') as long as the value is within the range of a
+             64-bit int.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.CefJsonParserOptions.JsonWriterPrettyPrint">
+            
+             Return a slightly nicer formatted json string (pads with whitespace to
+             help with readability).
+            
+        </member>
         <member name="F:Xilium.CefGlue.CefReturnValue.Cancel">
             
         </member>
@@ -6320,6 +6465,51 @@
             Paint element types.
             </summary>
         </member>
+        <member name="T:Xilium.CefGlue.CefJsonParserError">
+            <summary>
+            Error codes that can be returned from CefParseJSONAndReturnError.
+            </summary>
+        </member>
+        <member name="T:Xilium.CefGlue.CefPdfPrintMarginType">
+            
+             Margin type for PDF printing.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.CefPdfPrintMarginType.PdfPrintMarginDefault">
+            
+             Default margins.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.CefPdfPrintMarginType.PdfPrintMarginNone">
+            
+             No margins.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.CefPdfPrintMarginType.PdfPrintMarginMinimum">
+            
+             Minimum margins.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.CefPdfPrintMarginType.PdfPrintMarginCustom">
+            
+             Custom margins using the |margin_*| values from cef_pdf_print_settings_t.
+            
+        </member>
+        <member name="T:Xilium.CefGlue.Interop.cef_draggable_region_t">
+            
+             Structure representing a draggable region.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_draggable_region_t.bounds">
+            
+             Bounds of the region.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_draggable_region_t.draggable">
+            
+             True (1) this this region is draggable and false (0) otherwise.
+            
+        </member>
         <member name="F:Xilium.CefGlue.Interop.cef_request_context_settings_t.size">
             
         </member>
@@ -6333,6 +6523,62 @@
             
         </member>
         <member name="F:Xilium.CefGlue.Interop.cef_request_context_settings_t.accept_language_list">
+            
+        </member>
+        <member name="T:Xilium.CefGlue.Interop.cef_pdf_print_settings_t">
+            
+             Structure representing PDF print settings.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_pdf_print_settings_t.header_footer_title">
+            
+             Page title to display in the header. Only used if |header_footer_enabled|
+             is set to true (1).
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_pdf_print_settings_t.header_footer_url">
+            
+             URL to display in the footer. Only used if |header_footer_enabled| is set
+             to true (1).
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_pdf_print_settings_t.page_width">
+            
+             Output page size in microns. If either of these values is less than or
+             equal to zero then the default paper size (A4) will be used.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_pdf_print_settings_t.margin_top">
+            
+             Margins in millimeters. Only used if |margin_type| is set to
+             PDF_PRINT_MARGIN_CUSTOM.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_pdf_print_settings_t.margin_type">
+            
+             Margin type.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_pdf_print_settings_t.header_footer_enabled">
+            
+             Set to true (1) to print headers and footers or false (0) to not print
+             headers and footers.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_pdf_print_settings_t.selection_only">
+            
+             Set to true (1) to print the selection only or false (0) to print all.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_pdf_print_settings_t.landscape">
+            
+             Set to true (1) for landscape mode or false (0) for portrait mode.
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_pdf_print_settings_t.backgrounds_enabled">
+            
+             Set to true (1) to print background graphics or false (0) to not print
+             background graphics.
             
         </member>
         <member name="T:Xilium.CefGlue.CefWindowInfo">
@@ -7166,6 +7412,11 @@
              The |rect| and |available_rect| properties are used to determine the
              available surface for rendering popup views.
              </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefDraggableRegion.Draggable">
+            <summary>
+            True this region is draggable and false otherwise.
+            </summary>
         </member>
         <member name="T:Xilium.CefGlue.Wrapper.CefMessageRouterBrowserSide">
             <summary>

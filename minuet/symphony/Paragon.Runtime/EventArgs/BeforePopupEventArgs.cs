@@ -13,8 +13,8 @@ namespace Paragon.Runtime
             CefClient client,
             bool noJavascriptAccess)
         {
-            TargetUrl = targetUrl;
-            TargetFrameName = targetFrameName;
+            TargetUrl = string.IsNullOrEmpty(targetUrl) ? "about:blank" : targetUrl;
+            TargetFrameName = string.IsNullOrEmpty(targetFrameName) ? Guid.NewGuid().ToString() : targetFrameName;
             PopupFeatures = popupFeatures;
             WindowInfo = windowInfo;
             Client = client;

@@ -9,6 +9,7 @@ namespace Paragon.Plugins
     public interface IApplicationWindow
     {
         IntPtr Handle { get; }
+
         event JavaScriptPluginCallback WindowBoundsChanged;
 
         event JavaScriptPluginCallback WindowFullScreened;
@@ -27,6 +28,8 @@ namespace Paragon.Plugins
 
         event EventHandler<DownloadProgressEventArgs> DownloadProgress;
 
+        event EventHandler<BeginDownloadEventArgs> BeginDownload;
+
         string GetId();
 
         string GetTitle();
@@ -43,7 +46,7 @@ namespace Paragon.Plugins
 
         void Restore();
 
-        void DrawAttention(bool autoclear, int maxFlashes, int timeOut);
+        void DrawAttention(bool autoclear);
 
         /// <summary>
         /// Draw attention to the window.

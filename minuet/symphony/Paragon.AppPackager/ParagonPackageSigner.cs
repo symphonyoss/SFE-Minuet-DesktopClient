@@ -1,25 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Packaging;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Paragon.AppPackager
 {
+    [ExcludeFromCodeCoverage]
     public static class ParagonPackageSigner
     {
-        internal static bool Sign(string inputPath, string outputPath, string certificateName)
+        internal static bool Sign(string inputPath, string outputPath, X509Certificate2 certificate)
         {
-            X509Certificate2 certificate = GetCertificate(certificateName);
+            if (string.IsNullOrEmpty(inputPath) || !File.Exists(inputPath))
+                throw new ArgumentException("inputPath");
+            if (string.IsNullOrEmpty(outputPath))
+                throw new Exception("outputPath");
             if (certificate == null)
-            {
-                throw new Exception("Could not locate certificate");
-            }
+                throw new Exception("certificate");
 
-            var innerPackageName = GetInnerPackageName();
             using (Package signedPackage = Package.Open(outputPath, FileMode.Create))
             {
-                var uriString = "/" + innerPackageName + ".pgx";
+                var uriString = "/" + InnerPackageName + ".pgx";
                 var uri = new Uri(uriString, UriKind.Relative);
                 var innerPackagePart = signedPackage.CreatePart(uri, "application/zip");
                 using (var fileStream = File.Open(inputPath, FileMode.Open, FileAccess.Read))
@@ -39,33 +41,25 @@ namespace Paragon.AppPackager
                 var partsToSign = new List<Uri> { innerPackagePart.Uri };
                 var dsm = new PackageDigitalSignatureManager(signedPackage)
                 {
-                    CertificateOption = CertificateEmbeddingOption.InSignaturePart
+                    CertificateOption = CertificateEmbeddingOption.InSignaturePart,
+                    HashAlgorithm = "http://www.w3.org/2001/04/xmlenc#sha256"
                 };
 
-                return dsm.Sign(partsToSign, certificate) != null;
+                if (dsm.Sign(partsToSign, certificate) != null)
+                {
+                    Console.WriteLine("Signed package {0} created.", outputPath);
+                    return true;
+                }
             }
+            return false;
         }
 
-        static X509Certificate2 GetCertificate(string certificateName)
+        static string InnerPackageName
         {
-            var store = new X509Store(StoreLocation.CurrentUser);
-            store.Open(OpenFlags.ReadOnly);
-            var certs =
-                store.Certificates.Find(X509FindType.FindBySubjectName, certificateName, false)
-                    .Find(X509FindType.FindByKeyUsage, X509KeyUsageFlags.DigitalSignature, false);
-
-            if (certs.Count != 1)
+            get
             {
-                throw new Exception("Store contained none/more than one certificate of the specified condition");
+                return new Guid("3CBA2BD0-8F00-41E4-AF18-508A4F5CABDB").ToString().Replace("-", "");
             }
-
-            return certs[0];
-        }
-
-
-        static string GetInnerPackageName()
-        {
-            return new Guid("3CBA2BD0-8F00-41E4-AF18-508A4F5CABDB").ToString().Replace("-", "");
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using Newtonsoft.Json;
 using Paragon.Plugins;
 using Paragon.Runtime.PackagedApplication;
@@ -12,12 +14,13 @@ namespace Paragon.Runtime
 {
     internal class CefWebRenderProcessHandler : CefRenderProcessHandler, IDisposable
     {
+        internal const string RENDER_PROC_ID_MESSAGE = "Paragon.Renderer.ProcessId";
+
         private static readonly ILogger Logger = ParagonLogManager.GetLogger();
         private readonly IRenderSideMessageRouter _router;
         private bool _disposed;
         private Dictionary<string, string> _jsExtensions;
         private List<IParagonPlugin> _renderSidePlugins;
-
         public CefWebRenderProcessHandler(IRenderSideMessageRouter router)
             : this(router, null)
         {
@@ -31,6 +34,7 @@ namespace Paragon.Runtime
 
         public void Dispose()
         {
+            Logger.Info("CefWebRenderProcessHandler disposing");
             if (_disposed)
             {
                 return;
@@ -101,7 +105,7 @@ namespace Paragon.Runtime
                             package = (renderPlugins != null && 
                                        !string.IsNullOrEmpty(renderPluginInfo.PackagePath) && 
                                         renderPluginInfo.Plugins != null && 
-                                        renderPluginInfo.Plugins.Count > 0) ? new ApplicationPackage(renderPluginInfo.PackagePath) : null;
+                                        renderPluginInfo.Plugins.Count > 0) ? new ApplicationPackage(renderPluginInfo.PackagePath, p => p) : null;
                             Logger.Info(string.Format("Found {0} render-side plugins in package {1}",
                                         (renderPlugins != null && renderPluginInfo.Plugins != null) ? renderPluginInfo.Plugins.Count : 0,
                                         package != null ? package.PackageFilePath : string.Empty));
@@ -154,13 +158,23 @@ namespace Paragon.Runtime
 
                 extraInfo.Clear();
             }
-
+          
             base.OnRenderThreadCreated(extraInfo);
         }
 
         protected override void OnBrowserCreated(CefBrowser browser)
         {
             Logger.Info("Created Browser {0}", browser.Identifier);
+            try
+            {
+                var msg = CefProcessMessage.Create(RENDER_PROC_ID_MESSAGE);
+                msg.Arguments.SetInt(0, Process.GetCurrentProcess().Id);
+                browser.SendProcessMessage(CefProcessId.Browser, msg);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(string.Format("Error notifying the browser {0} it's corresponding render process Id", browser.Identifier), ex);
+            }
             base.OnBrowserCreated(browser);
         }
 
@@ -172,12 +186,14 @@ namespace Paragon.Runtime
 
         protected override void OnContextCreated(CefBrowser browser, CefFrame frame, CefV8Context context)
         {
+            Logger.Info("Context created");
             _router.ContextCreated(browser, frame, context);
             base.OnContextCreated(browser, frame, context);
         }
 
         protected override void OnContextReleased(CefBrowser browser, CefFrame frame, CefV8Context context)
         {
+            Logger.Info("Context released");
             _router.ContextReleased(browser, frame, context);
             base.OnContextReleased(browser, frame, context);
         }

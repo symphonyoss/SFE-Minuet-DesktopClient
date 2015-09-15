@@ -283,6 +283,8 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Called when the scroll offset has changed.
         /// </summary>
-        protected abstract void OnScrollOffsetChanged(CefBrowser browser, double x, double y);
+        protected virtual void OnScrollOffsetChanged(CefBrowser browser, double x, double y)
+        {
+        }
     }
 }

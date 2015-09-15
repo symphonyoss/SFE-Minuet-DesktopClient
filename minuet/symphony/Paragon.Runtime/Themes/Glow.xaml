@@ -27,7 +27,7 @@
         <Setter Property="Template" Value="{StaticResource GlowTemplate}" />
         <Style.Triggers>
             <Trigger Property="IsGlow" Value="False">
-                <Setter Property="Background" Value="{DynamicResource InactiveGlowBrush}" />
+                <Setter Property="Background" Value="{Binding RelativeSource={RelativeSource Self}, Path=InactiveGlowBrush}" />
             </Trigger>
             <Trigger Property="Orientation" Value="Horizontal">
                 <Setter Property="Width" Value="Auto" />
@@ -36,5 +36,4 @@
             </Trigger>
         </Style.Triggers>
     </Style>
-
 </ResourceDictionary>

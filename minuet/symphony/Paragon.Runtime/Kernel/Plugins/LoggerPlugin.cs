@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using Paragon.Plugins;
+using Paragon.Runtime.Annotations;
 
 namespace Paragon.Runtime.Kernel.Plugins
 {
@@ -12,25 +14,37 @@ namespace Paragon.Runtime.Kernel.Plugins
         private delegate void WriteToLogFormatted(string format, params object[] args);
         private ILogger _logger;
 
-        [JavaScriptPluginMember]
+        [JavaScriptPluginMember, UsedImplicitly]
+        public void SetLevel(int level)
+        {
+            _logger.Level = (SourceLevels) level;
+        }
+
+        [JavaScriptPluginMember, UsedImplicitly]
+        public int GetLevel()
+        {
+            return (int)_logger.Level;
+        }
+
+        [JavaScriptPluginMember, UsedImplicitly]
         public void Debug(object args)
         {
             Write(_logger.Debug, args);
         }
 
-        [JavaScriptPluginMember]
+        [JavaScriptPluginMember, UsedImplicitly]
         public void Error(object args)
         {
             Write(_logger.Error, args);
         }
 
-        [JavaScriptPluginMember]
+        [JavaScriptPluginMember, UsedImplicitly]
         public void Info(object args)
         {
             Write(_logger.Info, args);
         }
 
-        [JavaScriptPluginMember]
+        [JavaScriptPluginMember, UsedImplicitly]
         public void Warn(object args)
         {
             Write(_logger.Warn, args);

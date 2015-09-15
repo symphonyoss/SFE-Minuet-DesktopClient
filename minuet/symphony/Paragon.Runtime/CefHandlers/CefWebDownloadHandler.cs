@@ -1,4 +1,5 @@
-﻿using Xilium.CefGlue;
+﻿using Paragon.Plugins;
+using Xilium.CefGlue;
 
 namespace Paragon.Runtime
 {
@@ -25,7 +26,17 @@ namespace Paragon.Runtime
 
         protected override void OnBeforeDownload(CefBrowser browser, CefDownloadItem downloadItem, string suggestedName, CefBeforeDownloadCallback callback)
         {
-            callback.Continue(string.Empty, true);
+            var args = new BeginDownloadEventArgs(downloadItem.Url, downloadItem.MimeType);
+            _owner.OnBeforeDownload(args);
+
+            if (string.IsNullOrEmpty(args.DownloadPath))
+            {
+                callback.Continue(string.Empty, true);
+            }
+            else
+            {
+                callback.Continue(args.DownloadPath, false);
+            }
         }
     }
 }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Security.Permissions;
 using System.Threading;
 using Microsoft.Win32;
@@ -148,6 +146,7 @@ namespace Paragon.Runtime.Kernel.Applications
         }
 
         public event EventHandler Closed;
+
         public event EventHandler<ProtocolInvocationEventArgs> ProtocolInvoke;
 
         public event EventHandler Launched;
@@ -328,6 +327,14 @@ namespace Paragon.Runtime.Kernel.Applications
             }
         }
 
+        protected int RenderProcessId
+        {
+            get
+            {
+                return _eventPageBrowser != null ? _eventPageBrowser.RenderProcessId : -1;
+            }
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)
@@ -388,10 +395,11 @@ namespace Paragon.Runtime.Kernel.Applications
         private void CloseEventPage(bool closeApp)
         {
             // Fire the closed event
-            if (WindowManager != null)
+            if (_windowManager != null)
             {
                 WindowManager.NoWindowsOpen -= OnWindowManagerNoWindowsOpen;
                 _windowManager.Shutdown();
+                _windowManager = null;
             }
 
             if (_eventPageUnloadTimer != null)
@@ -522,6 +530,7 @@ namespace Paragon.Runtime.Kernel.Applications
                 var renderPluginInfo = ParagonJsonSerializer.Serialize(_renderPlugins);
                 e.InitArgs.SetString(index, renderPluginInfo);
             }
+            ParagonRuntime.RenderProcessInitialize -= OnRenderProcessInitialize;
         }
 
         /// <summary>

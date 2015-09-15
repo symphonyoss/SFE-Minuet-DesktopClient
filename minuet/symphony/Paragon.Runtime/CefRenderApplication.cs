@@ -14,24 +14,7 @@ namespace Paragon.Runtime
 
         public void Dispose()
         {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-
-            if (_renderProcessHandler != null)
-            {
-                _renderProcessHandler.Dispose();
-                _renderProcessHandler = null;
-            }
-
-            if (_router != null)
-            {
-                _router.Dispose();
-                _router = null;
-            }
+            Dispose(true);
         }
 
         protected override void OnBeforeCommandLineProcessing(string processType, CefCommandLine commandLine)
@@ -43,6 +26,33 @@ namespace Paragon.Runtime
                 string.IsNullOrEmpty(processType) ? "Browser" : processType, commandLine.ToString());
 
             base.OnBeforeCommandLineProcessing(processType, commandLine);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            Logger.Info("CefRenderApplication disposing");
+            if (disposing)
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+
+                if (_renderProcessHandler != null)
+                {
+                    _renderProcessHandler.Dispose();
+                    _renderProcessHandler = null;
+                }
+
+                if (_router != null)
+                {
+                    _router.Dispose();
+                    _router = null;
+                }
+            }
         }
 
         protected override CefRenderProcessHandler GetRenderProcessHandler()

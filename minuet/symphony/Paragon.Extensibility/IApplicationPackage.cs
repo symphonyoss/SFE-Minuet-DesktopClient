@@ -10,6 +10,8 @@ namespace Paragon.Plugins
     {
         IApplicationManifest Manifest { get; }
 
+        PackageDigitalSignature Signature { get; }
+
         string PackageFilePath { get; }
 
         Stream GetIcon();

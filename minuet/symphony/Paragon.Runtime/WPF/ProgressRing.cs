@@ -145,23 +145,4 @@ namespace Paragon.Runtime.WPF
             MaxSideLength = width <= 20 ? 20 : width;
         }
     }
-
-    internal class WidthToMaxSideLengthConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is double)
-            {
-                var width = (double) value;
-                return width <= 20 ? 20 : width;
-            }
-
-            return null;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
 }

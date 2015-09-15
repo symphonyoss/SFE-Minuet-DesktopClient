@@ -78,7 +78,7 @@ namespace Paragon.Runtime.Kernel.Plugins
             }
         }
 
-        [JavaScriptPluginMember]
+        [JavaScriptPluginMember, UsedImplicitly]
         public string GetApplicationPackageLocation()
         {
             var currentAppStartData = Application.Metadata.StartData;

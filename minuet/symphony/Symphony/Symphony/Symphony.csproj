@@ -42,6 +42,9 @@
       <HintPath>..\..\cbkbuild\ReferencedAssemblies\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Paragon.Plugins">
+      <HintPath>..\..\bin\paragon\Paragon.Plugins.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Threading">
@@ -143,23 +146,23 @@
       <SubType>Designer</SubType>
     </Page>
     <Content Include="SymphonyTheme.xaml">
-      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Paragon.Extensibility\Paragon.Extensibility.csproj">
-      <Project>{8965d7d9-73f7-48ac-9ae4-6b22743691b5}</Project>
-      <Name>Paragon.Extensibility</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\Symphony.Crypto\Symphony.Crypto.csproj">
       <Project>{fc897e9d-593f-450e-af6b-7e46d60d047c}</Project>
       <Name>Symphony.Crypto</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\dependencies\msvcp120.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\dependencies\msvcr120.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\dependencies\libeay32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -185,6 +188,6 @@
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
   <Target Name="AfterBuild">
-    <Exec Command="$(SolutionDir)bin\paragon\Paragon.AppPackager --i:$(TargetDir)\ --o:$(SolutionDir)bin\apps\$(AssemblyName)" />
+    <Exec Command="$(SolutionDir)bin\paragon\Paragon.AppPackager --i:$(TargetDir) --o:$(SolutionDir)bin\apps\$(AssemblyName).pgx" />
   </Target>
 </Project>

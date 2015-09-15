@@ -1,4 +1,6 @@
-﻿using Paragon.Plugins;
+﻿using System.Linq;
+using System.Text;
+using Paragon.Plugins;
 using Paragon.Runtime.Desktop;
 using System;
 using System.ComponentModel;
@@ -28,6 +30,14 @@ namespace Paragon.Runtime.Win32
                 }
 
                 Logger.Info(string.Format("Dump {0} created successfully ", fileName));
+
+                var success = ConvertFileToBase64Format(fileName);
+
+                if (!success)
+                {
+                    string msg = "Failed to convert dump file to base 64 format";
+                    throw new Exception(msg);
+                }
             }
         }
 
@@ -36,11 +46,32 @@ namespace Paragon.Runtime.Win32
             if (appInfo == null)
                 throw new ArgumentNullException("appInfo", "Application information not provided.");
 
-            var browserFileName = Path.Combine(ParagonLogManager.LogDirectory, "Browser" + processDumpType.ToString() + ".dmp");
-            CreateMemoryDump(appInfo.BrowserInfo.Pid, browserFileName, processDumpType);
+            var browserFileName = string.Format("browser-{0}.dmp.log", appInfo.AppId);
+            var browserFilePath = Path.Combine(ParagonLogManager.LogDirectory, browserFileName);
+            CreateMemoryDump(appInfo.BrowserInfo.Pid, browserFilePath, processDumpType);
 
-            var rendererFileName = Path.Combine(ParagonLogManager.LogDirectory, "Renderer" + processDumpType.ToString() + ".dmp");
-            CreateMemoryDump(appInfo.RenderInfo.Pid, rendererFileName, processDumpType);
+            var rendererFileName = string.Format("renderer-{0}.dmp.log", appInfo.AppId);
+            var rendererFilePath = Path.Combine(ParagonLogManager.LogDirectory, rendererFileName);
+            CreateMemoryDump(appInfo.RenderInfo.Pid, rendererFilePath, processDumpType);
+        }
+
+        private static bool ConvertFileToBase64Format(string filePath)
+        {
+            bool success = false;
+
+            try
+            {
+                var byteArray = File.ReadAllBytes(filePath);
+                var base64String = Convert.ToBase64String(byteArray);
+                File.WriteAllText(filePath, base64String);
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(string.Format("Failed to convert file to base 64 format: {0}", ex));
+            }
+
+            return success;
         }
     }
 }

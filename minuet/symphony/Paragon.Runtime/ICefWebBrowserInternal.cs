@@ -1,10 +1,12 @@
-﻿using Xilium.CefGlue;
+﻿using Paragon.Plugins;
+using Xilium.CefGlue;
 
 namespace Paragon.Runtime
 {
     internal interface ICefWebBrowserInternal
     {
         void OnBrowserAfterCreated(CefBrowser browser);
+        void OnBeforeDownload(BeginDownloadEventArgs args);
         void OnBeforePopup(BeforePopupEventArgs args);
         void OnCertificateError();
         void OnTitleChanged(TitleChangedEventArgs args);
@@ -22,14 +24,10 @@ namespace Paragon.Runtime
         void OnPreviewKeyEvent(CefKeyEvent keyEvent);
         void OnClosed(CefBrowser browser);
 
-        /// <summary>
-        /// Called when an external drag event enters the browser view.
-        /// </summary>
-        /// <param name="args"></param>
-        void OnDragEnter(DragEnterEventArgs args);
-
         void OnProtocolExecution(ProtocolExecutionEventArgs ea);
 
         bool OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool isRedirect);
+
+        bool OnGetAuthCredentials(CefBrowser browser, CefFrame frame, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback);
     }
 }

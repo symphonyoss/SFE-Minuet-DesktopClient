@@ -1,9 +1,7 @@
-using System;
-using System.Configuration;
-using System.IO;
-using System.Reflection;
-using System.Threading;
+using System.Net;
 using Newtonsoft.Json;
+using System;
+using System.Threading;
 using WebSocket4Net;
 
 namespace Paragon.Plugins.MessageBus
@@ -11,9 +9,6 @@ namespace Paragon.Plugins.MessageBus
     public class MessageBroker : IMessageBroker
     {
         public static int DefaultPort = 65534;
-        private const string DefaultBrokerExePath = "\\\\firmwide.corp.gs.com\\appstore\\51\\Production\\14974\\bin\\java.exe";
-        private const string DefaultBrokerLibPath = "\\\\firmwide\\appstore\\1188\\Production\\messagebus.jar";
-        private const string DefaultBrokerLibPath2 = "\\\\firmwide\\appstore\\1188\\Test\\messagebus.jar";
         private static int _idcount = 1;
         private readonly TimeSpan _reconnectFrequency = TimeSpan.FromSeconds(10);
         private long _disconnectRequested;
@@ -25,6 +20,7 @@ namespace Paragon.Plugins.MessageBus
         public event Action<Exception> Error;
         public event Action<string, object> MessageReceived;
         private int _brokerPort = DefaultPort;
+        private string _domain;
 
         public MessageBroker(ILogger logger)
             : this(logger, null)
@@ -42,6 +38,20 @@ namespace Paragon.Plugins.MessageBus
             _watcher = watcher;
             if (brokerPort != DefaultPort)
                 _brokerPort = brokerPort;
+        }
+
+
+        public string Domain
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_domain))
+                {
+                    var hostnameParts = Dns.GetHostEntry("localhost").HostName.Split('.');
+                    _domain = (hostnameParts.Length > 1) ? (hostnameParts[1]) : (string.Empty);
+                }
+                return _domain;
+            }
         }
 
         public void Connect()
@@ -80,7 +90,6 @@ namespace Paragon.Plugins.MessageBus
         {
             if (_socket != null && _socket.State == WebSocketState.Open)
             {
-
                 var payload = new Message { Type = "publish", Topic = topic, Data = msg };
                 var strPayload = JsonConvert.SerializeObject(payload);
                 _socket.Send(strPayload);
@@ -214,68 +223,20 @@ namespace Paragon.Plugins.MessageBus
 
         private MessageBrokerWatcher CreateBrokerWatcher()
         {
-            var appConfig = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location);
-            var brokerLibPath = GetSetting(appConfig,"BrokerLibraryPath");
-            var brokerExePath = GetSetting(appConfig, "BrokerExePath");
-            var brokerLoggingConfig = GetSetting(appConfig, "BrokerLoggingConfigFile");
-            var brokerPort = GetSetting(appConfig, "BrokerPort");
+            var configuration = new MessageBrokerConfiguration(_logger);
 
-            if (!string.IsNullOrEmpty(brokerPort))
-            {
-                int portNum;
-                if (int.TryParse(brokerPort, out portNum))
-                {
-                    _brokerPort = portNum;
-                }
-            }
+            _brokerPort = configuration.GetBrokerPort(_brokerPort);
 
-            if(string.IsNullOrEmpty(brokerExePath) || brokerExePath.Equals("detect", StringComparison.InvariantCultureIgnoreCase) )
-            {
-                brokerExePath = DetectJavaPath();
-            }
+            var brokerExePath = configuration.GetBrokerExePath();
+            _logger.Info(string.Format("Resolved broker exe path: {0}", brokerExePath));
 
-            if (string.IsNullOrEmpty(brokerLibPath) || brokerLibPath.Equals("detect", StringComparison.InvariantCultureIgnoreCase))
-            {
-                brokerLibPath = DetectBrokerLibPath();
-            }
+            var brokerLibPath = configuration.GetBrokerLibPath();
+            _logger.Info(string.Format("Resolved broker lib path: {0}", brokerLibPath));
 
-            if (string.IsNullOrEmpty(brokerLoggingConfig) || brokerLoggingConfig.Equals("detect", StringComparison.InvariantCultureIgnoreCase))
-            {
-                var file = Path.GetDirectoryName(GetType().Assembly.Location) + "\\messagebroker.log4j.xml";
-                if (File.Exists(file))
-                    brokerLoggingConfig = file;
-                else
-                    brokerLoggingConfig = string.Empty;
-            }
-
+            var brokerLoggingConfig = configuration.GetBrokerLoggingConfiguration();
+            _logger.Info(string.Format("Resolved broker logging path: {0}", brokerLoggingConfig));
+            
             return new MessageBrokerWatcher(_logger, "-jar ", brokerLibPath, brokerExePath, brokerLoggingConfig, _brokerPort);
-        }
-
-        private string GetSetting(Configuration config, string key)
-        {
-            try
-            {
-                var entry = config.AppSettings.Settings[key];
-                return entry == null ? null : entry.Value;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        public static string DetectJavaPath()
-        {
-            return DefaultBrokerExePath;
-        }
-
-        public static string DetectBrokerLibPath()
-        {
-            if (File.Exists(DefaultBrokerLibPath))
-                return DefaultBrokerLibPath;
-            if (File.Exists(DefaultBrokerLibPath2))
-                return DefaultBrokerLibPath2;
-            return string.Empty;
         }
     }
 }

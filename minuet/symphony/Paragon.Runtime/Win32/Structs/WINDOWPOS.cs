@@ -14,10 +14,10 @@ namespace Paragon.Runtime.Win32
     {
         public readonly IntPtr hwnd;
         public IntPtr hwndInsertAfter;
-        public readonly int x;
-        public readonly int y;
-        public readonly int cx;
-        public readonly int cy;
+        public int x;
+        public int y;
+        public int cx;
+        public int cy;
         public uint flags;
     };
 }
