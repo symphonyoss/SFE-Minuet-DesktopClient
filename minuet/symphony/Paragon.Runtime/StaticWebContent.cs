@@ -151,6 +151,10 @@ namespace Paragon.Runtime
         {
             const string script = @"
 (function() {
+
+    var Levels = {ALL: -1, OFF: 0, CRITICAL: 1, ERROR: 3, WARNING: 7, INFORMATION: 15, VERBOSE: 31};
+    paragon.log.Levels = Object.freeze(Levels);
+
     var log = console.log,
         debug = console.debug,
         info = console.info,
@@ -159,26 +163,24 @@ namespace Paragon.Runtime
 
     console.log = function() {
         log.apply(this, arguments);
-        if ({DEBUG_ENABLED}) {
-            paragon.log.debug(convertArgs(arguments));
-        }
+        paragon.log.info(convertArgs(arguments));
     };
+
     console.debug = function() {
         debug.apply(this, arguments);
-        if ({DEBUG_ENABLED}) {
-            paragon.log.debug(convertArgs(arguments));
-        }
+        paragon.log.debug(convertArgs(arguments));
     };
+
     console.info = function() {
         info.apply(this, arguments);
-        if ({INFO_ENABLED}) {
-            paragon.log.info(convertArgs(arguments));
-        }
+        paragon.log.info(convertArgs(arguments));
     };
+
     console.warn = function() {
         warn.apply(this, arguments);
         paragon.log.warn(convertArgs(arguments));
     };
+
     console.error = function() {
         error.apply(this, arguments);
         paragon.log.error(convertArgs(arguments));
@@ -190,13 +192,14 @@ namespace Paragon.Runtime
         // circular references. The built-in serializer handles this better.
 
         for (var i = 0, j = args.length; i < j; ++i) {
-            if (typeof args[i] != 'object') {
+            if (typeof args[i] != 'object' || args[i] == null) {
                 continue;
             }
 
-            var typeName = args[i].constructor.name;
+            var typeName = null;
 
             try {
+                typeName = args[i].constructor.name;
                 var arg = typeName + ': ' + JSON.stringify(args[i]);
                 if (arg.length > 255) {
                     arg = arg.substring(0, 252) + '...';
@@ -204,20 +207,18 @@ namespace Paragon.Runtime
 
                 args[i] = arg;
             } catch (exc) {
-                args[i] = typeName +  ' (unable to serialize)';
+                if (typeName != null) {
+                    args[i] = typeName +  ' (unable to serialize)';
+                } else {
+                    args[i] = 'Unable to serialize log argument';
+                }
             }
         }
 
         return args;
     }
 })();";
-
-            var debugEnabled = (ParagonTraceSources.App.Switch.Level & SourceLevels.All) == SourceLevels.All;
-            var infoEnabled = (ParagonTraceSources.App.Switch.Level & SourceLevels.Information) == SourceLevels.Information;
-
-            return script
-                .Replace("{DEBUG_ENABLED}", debugEnabled.ToString().ToLower())
-                .Replace("{INFO_ENABLED}", infoEnabled.ToString().ToLower());
+            return script;
         }
     }
 }

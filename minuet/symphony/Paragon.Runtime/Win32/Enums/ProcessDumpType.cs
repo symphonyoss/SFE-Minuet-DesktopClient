@@ -7,6 +7,7 @@ namespace Paragon.Runtime.Win32
     [Flags]
     public enum ProcessDumpType
     {
+// ReSharper disable UnusedMember.Global
         MiniDumpNormal = 0x00000000,
         MiniDumpWithDataSegs = 0x00000001,
         MiniDumpWithFullMemory = 0x00000002,
@@ -22,5 +23,6 @@ namespace Paragon.Runtime.Win32
         MiniDumpWithFullMemoryInfo = 0x00000800,
         MiniDumpWithThreadInfo = 0x00001000,
         MiniDumpWithCodeSegs = 0x00002000
+// ReSharper restore UnusedMember.Global
     }
 }

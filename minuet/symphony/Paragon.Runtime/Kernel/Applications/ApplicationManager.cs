@@ -16,6 +16,7 @@ using Paragon.Plugins;
 using Paragon.Runtime.Properties;
 using Paragon.Runtime.Win32;
 using System.Diagnostics;
+using System.Security;
 using System.Windows.Markup;
 
 namespace Paragon.Runtime.Kernel.Applications
@@ -282,6 +283,9 @@ namespace Paragon.Runtime.Kernel.Applications
             IApplication application = null;
             Window splashWindow = null;
             var manifest = package.Manifest;
+#if ENFORCE_PACKAGE_SECURITY
+            var isSigned = package.Signature != null;
+#endif
             try
             {
                 ParagonLogManager.AddApplicationTraceListener(manifest.Id);
@@ -294,15 +298,21 @@ namespace Paragon.Runtime.Kernel.Applications
                     var theme = XamlReader.Load(styleStream) as ResourceDictionary;
                     if (theme != null)
                     {
-                        Application.Current.Resources.MergedDictionaries.Add(theme);
+#if ENFORCE_PACKAGE_SECURITY
+                        if( isSigned )
+#endif
+                            Application.Current.Resources.MergedDictionaries.Add(theme);
                     }
                 }
 
                 // Create and show the splash screen if needed
                 if (cmdLine != null && !cmdLine.HasFlag("no-splash") && _createSplashScreen != null)
                 {
-
+#if ENFORCE_PACKAGE_SECURITY
+                    splash = _createSplashScreen(isSigned ? manifest.Name : manifest.Name + " (Unsigned)", manifest.Version, package.GetIcon());
+#else
                     splash = _createSplashScreen(manifest.Name, manifest.Version, package.GetIcon());
+#endif
                     splashWindow = (Window)splash;
                     metadata.UpdateLaunchStatus = s =>
                     {
@@ -311,6 +321,10 @@ namespace Paragon.Runtime.Kernel.Applications
                             splash.ShowText(s);
                         }
                     };
+#if ENFORCE_PACKAGE_SECURITY
+                    if (!isSigned)
+                        splashWindow.Style = Application.Current.Resources["AlarmSplashScreenStyle"] as Style;
+#endif
                     splashWindow.Show();
                 }
 
@@ -435,14 +449,13 @@ namespace Paragon.Runtime.Kernel.Applications
                 using (AutoStopwatch.TimeIt("Parsing application metadata"))
                 {
                     appMetadata = cmdLine.ParseApplicationMetadata();
+                    Logger.Info("The current environment is {0}", appMetadata != null ? appMetadata.Environment : ApplicationEnvironment.Production);
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(string.Format("Error parsing command line : {0}", ex.Message),
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
-                return false;
             }
 
             try
@@ -450,17 +463,22 @@ namespace Paragon.Runtime.Kernel.Applications
                 using (AutoStopwatch.TimeIt("Gettting application package"))
                 {
                     appPackage = appMetadata.GetApplicationPackage();
+                    Logger.Info("The current application package is {0}", 
+                            appPackage == null || appPackage.Signature == null ? "unsigned" : string.Format("digitally signed by {0} on {1}", appPackage.Signature.Signer.Subject, appPackage.Signature.SigningTime));
+                    return appPackage != null;
                 }
+            }
+            catch (SecurityException ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(string.Format("Error parsing manifest file : {0}", ex.Message),
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
-                return false;
             }
 
-            return true;
+            return false;
         }
 
         private void RedirectAplicationLaunch(string channelName)

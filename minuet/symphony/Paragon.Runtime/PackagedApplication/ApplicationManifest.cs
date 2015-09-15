@@ -22,8 +22,8 @@ namespace Paragon.Runtime.PackagedApplication
 
         public List<ApplicationPlugin> ApplicationPlugins { get; set; }
 
-        public string[] CORSBypassList{ get; set; }
-
+        public CORSBypassEntry[] CORSBypassList{ get; set; }
+        
         /// <summary>
         /// Id of the application. Required.
         /// </summary>
@@ -112,6 +112,26 @@ namespace Paragon.Runtime.PackagedApplication
 
         public string[] ExternalUrlWhitelist { get; set; }
 
+        ICORSBypassEntry[] IApplicationManifest.CORSBypassList
+        {
+            get
+            {
+                return CORSBypassList;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    var list = new List<CORSBypassEntry>();
+                    foreach (var e in value)
+                    {
+                        list.Add(new CORSBypassEntry() { SourceUrl = e.SourceUrl, TargetDomain = e.TargetDomain, Protocol = e.Protocol, AllowTargetSubdomains = e.AllowTargetSubdomains });
+                    }
+                    CORSBypassList = list.ToArray();
+                }
+            }
+        }
+
         public string[] CustomProtocolWhitelist { get; set; }
 
         public bool DisableSpellChecking { get; set; }
@@ -135,28 +155,6 @@ namespace Paragon.Runtime.PackagedApplication
         {
             get { return ApplicationPlugins != null ? ApplicationPlugins.ToArray() : new IPluginInfo[0]; }
         }
-
-        /*
-        ICORSBypassEntry[] IApplicationManifest.CORSBypassList
-        {
-            get
-            {
-                return CORSBypassList;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    var list = new List<CORSBypassEntry>();
-                    foreach (var e in value)
-                    {
-                        list.Add(new CORSBypassEntry() { SourceUrl = e.SourceUrl, TargetDomain = e.TargetDomain, Protocol = e.Protocol, AllowTargetSubdomains = e.AllowTargetSubdomains });
-                    }
-                    CORSBypassList = list.ToArray();
-                }
-            }
-        }
-        */
 
         public static ApplicationType GetApplicationType(IAppInfo appInfo)
         {

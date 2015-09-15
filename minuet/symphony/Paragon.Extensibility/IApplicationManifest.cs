@@ -55,7 +55,7 @@ namespace Paragon.Plugins
 
         string[] ExternalUrlWhitelist { get; set; }
 
-        string[] CORSBypassList { get; set; }
+        ICORSBypassEntry[] CORSBypassList { get; set; }
 
         string[] CustomProtocolWhitelist { get; set; }
 

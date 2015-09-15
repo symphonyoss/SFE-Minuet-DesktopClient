@@ -55,8 +55,6 @@ namespace Paragon.Runtime
                 return;
             }
 
-            ParagonLogManager.ConfigureLogging(cachePath, LogContext.Browser, Settings.Default.MaxRolledLogFiles);
-
             using (AutoStopwatch.TimeIt("Initializing runtime"))
             {
                 if (Interlocked.CompareExchange(ref _cefInitializing, 1, 0) == 1)
@@ -199,7 +197,6 @@ namespace Paragon.Runtime
                     _cefApp = null;
 
                     CefRuntime.Shutdown();
-                    ParagonLogManager.Shutdown();
                 }
             };
 

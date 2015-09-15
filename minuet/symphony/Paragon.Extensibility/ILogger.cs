@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Paragon.Plugins
 {
@@ -25,5 +26,6 @@ namespace Paragon.Plugins
         void Fatal(string message, string caller = null);
         void Fatal(FormatMessageCallback formatter, string caller = null);
         void Fatal(string format, params object[] args);
+        SourceLevels Level { get; set; }
     }
 }

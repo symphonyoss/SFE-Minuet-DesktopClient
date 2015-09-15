@@ -45,6 +45,21 @@ namespace Xilium.CefGlue
         /// </summary>
         // protected abstract void OnFaviconURLChange(cef_browser_t* browser, cef_string_list* icon_urls);
         
+        private void on_fullscreen_mode_change(cef_display_handler_t* self, cef_browser_t* browser, int fullscreen)
+        {
+            CheckSelf(self);
+            throw new NotImplementedException(); // TODO: CefDisplayHandler.OnFullscreenModeChange
+        }
+        
+        /// <summary>
+        /// Called when web content in the page has toggled fullscreen mode. If
+        /// |fullscreen| is true the content will automatically be sized to fill the
+        /// browser content area. If |fullscreen| is false the content will
+        /// automatically return to its original size and position. The client is
+        /// responsible for resizing the browser if desired.
+        /// </summary>
+        // protected abstract void OnFullscreenModeChange(cef_browser_t* browser, int fullscreen);
+        
         private int on_tooltip(cef_display_handler_t* self, cef_browser_t* browser, cef_string_t* text)
         {
             CheckSelf(self);

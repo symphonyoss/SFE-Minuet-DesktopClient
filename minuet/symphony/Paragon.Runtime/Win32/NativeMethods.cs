@@ -48,9 +48,6 @@ namespace Paragon.Runtime.Win32
         [SuppressUnmanagedCodeSecurity]
         public static extern bool DestroyWindow(IntPtr hWnd);
 
-        [DllImport("psapi", SetLastError = true)]
-        public static extern bool EmptyWorkingSet(IntPtr hProcess);
-
         [DllImport("user32.dll")]
         [SuppressUnmanagedCodeSecurity]
         public static extern bool EnableMenuItem(IntPtr hMenu, uint uIDEnableItem, uint uEnable);
@@ -74,10 +71,6 @@ namespace Paragon.Runtime.Win32
 
         [DllImport("kernel32.dll")]
         public static extern uint GetCurrentThreadId();
-
-        [DllImport("user32.dll")]
-        [SuppressUnmanagedCodeSecurity]
-        public static extern bool GetCursorPos(out POINT lpPoint);
 
         [DllImport("User32.dll")]
         public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
@@ -129,10 +122,6 @@ namespace Paragon.Runtime.Win32
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         [SuppressUnmanagedCodeSecurity]
         public static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [SuppressUnmanagedCodeSecurity]
-        public static extern bool MoveWindow(IntPtr hWnd, int x, int y, int width, int height, bool repaint);
 
         [DllImport("NTDLL.DLL", SetLastError = true)]
         [SuppressUnmanagedCodeSecurity]
@@ -242,11 +231,6 @@ namespace Paragon.Runtime.Win32
 
         [DllImport("user32.dll")]
         public static extern bool UnhookWindowsHookEx(IntPtr hhook);
-
-        [DllImport("mscoree.dll", CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        public static extern bool StrongNameSignatureVerificationEx([MarshalAs(UnmanagedType.LPWStr)] string wszFilePath,
-            [MarshalAs(UnmanagedType.U1)] bool fForceVerification, [MarshalAs(UnmanagedType.U1)] ref bool pfWasVerified);
 
         [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi)]
         public static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPStr)]string lpFileName);

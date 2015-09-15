@@ -23,8 +23,14 @@ namespace Paragon.Runtime.WPF
             }
             else
             {
-                AssociatedObject.Loaded += AssociatedObjectOnLoaded;
+                AssociatedObject.Activated += AssociatedObjectActivated;
             }
+        }
+
+        void AssociatedObjectActivated(object sender, System.EventArgs e)
+        {
+            Init();
+            AssociatedObject.Activated -= AssociatedObjectActivated;
         }
 
         protected override void OnDetaching()
@@ -40,11 +46,6 @@ namespace Paragon.Runtime.WPF
             _bottom.Close();
         }
 
-        private void AssociatedObjectOnLoaded(object sender, RoutedEventArgs e)
-        {
-            Init();
-            AssociatedObject.Loaded -= AssociatedObjectOnLoaded;
-        }
 
         private void Init()
         {
@@ -137,7 +138,8 @@ namespace Paragon.Runtime.WPF
     public class Glow : Control
     {
         public static readonly DependencyProperty GlowBrushProperty = DependencyProperty.Register("GlowBrush", typeof (SolidColorBrush), typeof (Glow), new UIPropertyMetadata(Brushes.Transparent));
-        public static readonly DependencyProperty IsGlowProperty = DependencyProperty.Register("IsGlow", typeof (bool), typeof (Glow), new UIPropertyMetadata(true));
+        public static readonly DependencyProperty InactiveGlowBrushProperty = DependencyProperty.Register("InactiveGlowBrush", typeof(SolidColorBrush), typeof(Glow), new UIPropertyMetadata(Brushes.Transparent));
+        public static readonly DependencyProperty IsGlowProperty = DependencyProperty.Register("IsGlow", typeof(bool), typeof(Glow), new UIPropertyMetadata(true));
         public static readonly DependencyProperty OrientationProperty = DependencyProperty.Register("Orientation", typeof (Orientation), typeof (Glow), new UIPropertyMetadata(Orientation.Vertical));
 
         static Glow()
@@ -149,6 +151,12 @@ namespace Paragon.Runtime.WPF
         {
             get { return (SolidColorBrush) GetValue(GlowBrushProperty); }
             set { SetValue(GlowBrushProperty, value); }
+        }
+
+        public SolidColorBrush InactiveGlowBrush
+        {
+            get { return (SolidColorBrush)GetValue(InactiveGlowBrushProperty); }
+            set { SetValue(InactiveGlowBrushProperty, value); }
         }
 
         public bool IsGlow

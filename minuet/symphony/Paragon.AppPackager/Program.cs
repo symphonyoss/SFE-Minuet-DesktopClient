@@ -1,69 +1,57 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.IO.Packaging;
+using System.Reflection;
 using Paragon.Runtime.Kernel.Applications;
+using Paragon.Runtime.PackagedApplication;
 
 namespace Paragon.AppPackager
 {
     internal static class Program
     {
-        private const string InputPath  = "i";
-        private const string OutputPath = "o";
-        private const string CertificateName = "c";
-
+        [ExcludeFromCodeCoverage]
         public static void Main(string[] args)
         {
-            var cmdLine = new ParagonCommandLineParser(args);
+            var info = PackagingInfo.Instance;
 
-            // Launch a debugger if a --debug flag was passed.
-            if (cmdLine.HasFlag("debug"))
+            try
             {
-                Debugger.Launch();
-            }
+                if (info == null)
+                    throw new Exception("Input error.");
 
-            string inputPath;
-            cmdLine.GetValue(InputPath, out inputPath);
+                if (info.ShouldPackage && !ParagonAppPackager.Package(info.InputPath, info.UnsignedPackagePath) )
+                    throw new Exception("Error in packaging.");
 
-            string outputPath;
-            cmdLine.GetValue(OutputPath, out outputPath);
-
-            string certificateName;
-            cmdLine.GetValue(CertificateName, out certificateName);
-
-            if (string.IsNullOrEmpty(inputPath))
-            {
-                PrintUsage();
-                Environment.ExitCode = 1;
-                return;
-            }
-
-            if (string.IsNullOrEmpty(certificateName))
-            {
-                if (!ParagonAppPackager.Package(inputPath, outputPath))
+                if (info.ShouldSign)
                 {
-                    Console.WriteLine("Packaging falied.");
-                    Environment.ExitCode = 1;
+                    if (!ParagonPackageSigner.Sign(info.UnsignedPackagePath, info.OutputPackagePath, info.Cert))
+                        throw new Exception("Error in signing package.");
+                }
+                else if (info.ShouldPackage)
+                    File.Copy(info.UnsignedPackagePath, info.OutputPackagePath, true);
+
+                if (info.ShouldVerify)
+                {
+                    using (var signedPackage = Package.Open(info.OutputPackagePath, FileMode.Open, FileAccess.Read))
+                    {
+                        if( signedPackage.Verify() == null )
+                            throw new Exception("Error in verifying the package.");
+                    }
+                    Console.WriteLine("Signed package {0} is verified.", info.OutputPackagePath);
                 }
             }
-            else
+            catch(Exception ex)
             {
-                if (!ParagonAppPackager.PackageAndSign(inputPath, outputPath, certificateName))
-                {
-                    Console.WriteLine("Packaging and Signing falied.");
-                    Environment.ExitCode = 1;
-                }
+                Console.WriteLine("Failed : {0}", ex);
+                Environment.Exit(-1);
             }
-        }
-
-        private static void PrintUsage()
-        {
-            Console.WriteLine(
-    @"Missing required argument.\nTo call AppPackager, specify 4 arguments:
-
-    --i:INPUT PATH - The Input path of the folder to be packaged (REQUIRED)
-
-    --o:OUTPUT PATH - The Output path (with the filename) of the packaged folder and signed package (OPTIONAL)
-    
-    --c:CERTIFICATE NAME - The Certificate name using which the package is signed (OPTIONAL)");
+            finally
+            {
+                if (info.DeleteUnsignedPackage && File.Exists(info.UnsignedPackagePath))
+                    File.Delete(info.UnsignedPackagePath);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO.Packaging;
 
 namespace Paragon.Plugins
 {
@@ -21,6 +22,9 @@ namespace Paragon.Plugins
         Action<string> UpdateLaunchStatus { get; set; }
 
         bool IsStandalone { get; set; }
+
+        Func<Package,Package> PackageSignatureVerifier { get; set; }
+
         IApplicationPackage GetApplicationPackage();
     }
 }

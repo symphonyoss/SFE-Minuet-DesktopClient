@@ -13,7 +13,6 @@ namespace Paragon.Plugins
         string Name { get; }
         string WorkspaceId { get; }
         IApplicationMetadata Metadata { get; }
-
         IApplicationWindowManager WindowManager { get; }
         List<IParagonPlugin> Plugins { get; }
         event EventHandler<ApplicationExitingEventArgs> Exiting;

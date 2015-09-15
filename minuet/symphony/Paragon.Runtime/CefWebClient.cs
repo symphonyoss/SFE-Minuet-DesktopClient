@@ -10,7 +10,6 @@ namespace Paragon.Runtime
         private ICefWebBrowserInternal _core;
         private CefDisplayHandler _displayHandler;
         private CefDownloadHandler _downloadHandler;
-        private CefDragHandler _dragHandler;
         private CefJSDialogHandler _jsDialogHandler;
         private CefKeyboardHandler _keyboardHandler;
         private CefLifeSpanHandler _lifeSpanHandler;
@@ -26,7 +25,6 @@ namespace Paragon.Runtime
             _requestHandler = new CefWebRequestHandler(_core);
             _contextMenuHandler = new CefWebContextMenuHandler(_core);
             _downloadHandler = new CefWebDownloadHandler(_core);
-            _dragHandler = new CefWebDragHandler(_core);
             _jsDialogHandler = new CefWebJSDialogHandler(_core);
             _keyboardHandler = new CefWebKeyboardHandler(_core);
         }
@@ -61,9 +59,6 @@ namespace Paragon.Runtime
 
             dispose(_downloadHandler);
             _downloadHandler = null;
-
-            dispose(_dragHandler);
-            _dragHandler = null;
 
             dispose(_jsDialogHandler);
             _jsDialogHandler = null;
@@ -100,11 +95,6 @@ namespace Paragon.Runtime
         protected override CefDownloadHandler GetDownloadHandler()
         {
             return _downloadHandler;
-        }
-
-        protected override CefDragHandler GetDragHandler()
-        {
-            return _dragHandler;
         }
 
         protected override CefJSDialogHandler GetJSDialogHandler()

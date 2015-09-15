@@ -38,12 +38,12 @@ namespace Paragon.Runtime.Kernel.Windowing
         private bool _isClosed;
         private bool _isClosing;
         private bool _minimizeOnClose;
-        private bool _firstPageLoaded = false;
         private CreateWindowOptions _options;
         private string _title;
         private DeveloperToolsWindow _tools;
         private IApplicationWindowManagerEx _windowManager;
         private JavaScriptPluginCallback _closeHandler;
+        private AutoSaveWindowPositionBehavior _autoSaveWindowPositionBehavior;
 
         public ApplicationWindow()
         {
@@ -54,6 +54,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         public event EventHandler LoadComplete;
         public event EventHandler<DownloadProgressEventArgs> DownloadProgress;
+        public event EventHandler<BeginDownloadEventArgs> BeginDownload;
 
         /// <summary>
         /// Fired when the window is resized.
@@ -135,7 +136,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         /// the window using the window.close() method.
         /// </summary>
         /// <param name="closeHandler"></param>
-        [JavaScriptPluginMember]
+        [JavaScriptPluginMember, UsedImplicitly]
         public void AssumeWindowCloseAuthority(JavaScriptPluginCallback closeHandler)
         {
             _closeHandler = closeHandler;
@@ -147,7 +148,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         /// will just close. The application may still be notified of the closure via the 
         /// windowClosed event.
         /// </summary>
-        [JavaScriptPluginMember]
+        [JavaScriptPluginMember, UsedImplicitly]
         public void RescindWindowCloseAuthority()
         {
             _closeHandler = null;
@@ -163,9 +164,9 @@ namespace Paragon.Runtime.Kernel.Windowing
         /// </summary>
         [JavaScriptPluginMember]
         [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public void DrawAttention(bool autoclear, int maxFlashes, int timeOut)
+        public void DrawAttention(bool autoclear)
         {
-            DispatchIfRequired(() => Flash(false, autoclear, maxFlashes, timeOut), true);
+            DispatchIfRequired(() => Flash(false, autoclear), true);
         }
 
         /// <summary>
@@ -450,7 +451,8 @@ namespace Paragon.Runtime.Kernel.Windowing
                 var virtualSize = new Vector(width, height);
                 var realSize = GetRealSize(virtualSize);
 
-                Win32Api.SetWindowPosition(Handle, IntPtr.Zero, left, top, (int)realSize.Width, (int)realSize.Height, SWP.NOZORDER);           
+                Win32Api.SetWindowPosition(Handle, IntPtr.Zero, left, top, 
+                    (int)realSize.Width, (int)realSize.Height, SWP.NOACTIVATE | SWP.NOZORDER);           
 
                 if (bounds.MinHeight > 0)
                 {
@@ -531,7 +533,6 @@ namespace Paragon.Runtime.Kernel.Windowing
                     _tools = new DeveloperToolsWindow();
                     _tools.Initialize(c, Title, (_options == null || _options.Frame == null || _options.Frame.Type == FrameType.None) ? FrameType.Paragon : _options.Frame.Type);
                     _tools.Closed += ToolsClosed;
-                    _tools.Owner = this;
                     _tools.Show();
                 }
                 else
@@ -676,10 +677,41 @@ namespace Paragon.Runtime.Kernel.Windowing
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         public void SetHotKeys(string name, string modifiers, string keys)
         {
-            _hotKeyService.Remove(name);
-            var modifier = (ModifierKeys)Enum.Parse(typeof(ModifierKeys), modifiers);
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException("name");
+            }
+
+            if (string.IsNullOrEmpty(modifiers))
+            {
+                throw new ArgumentNullException("modifiers");
+            }
+
+            if (string.IsNullOrEmpty(keys))
+            {
+                throw new ArgumentNullException("keys");
+            }
+
+            // The JSON serializer converts flags enum values to a comma delimited list. In 
+            // order to use the ModifierKeysConverter, we need ot replace the comma with a plus.
+            var modifierString = modifiers;
+            if (modifierString.Contains(","))
+            {
+                modifierString = modifierString.Replace(',', '+').Replace(" ", string.Empty);
+            }
+
+            var converter = new ModifierKeysConverter();
+            var value = converter.ConvertFromString(modifierString);
+            if (value == null)
+            {
+                throw new ArgumentException("Invalid modifier key(s)", "modifiers");
+            }
+
+            var modifierKeys = (ModifierKeys)value;
             var key = (Keys)Enum.Parse(typeof(Keys), keys);
-            _hotKeyService.Add(name, modifier, key);
+
+            _hotKeyService.Remove(name);
+            _hotKeyService.Add(name, modifierKeys, key);
         }
 
         [JavaScriptPluginMember(Name = "setHotKeysEnabled"), UsedImplicitly]
@@ -719,7 +751,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                 }
             }
 
-            if (!_isClosed)
+            if (!_isClosed && Content != null)
             {
                 e.Cancel = true;
             }
@@ -776,14 +808,14 @@ namespace Paragon.Runtime.Kernel.Windowing
                 var hwnd = Handle;
                 var appId = _windowManager.Application.Metadata.Id;
                 var instanceId = _windowManager.Application.Metadata.InstanceId;
-                ParagonDesktop.RegisterAppWindow(hwnd, appId, instanceId);
+                ParagonDesktop.RegisterAppWindow(hwnd, appId, _windowManager.Application.Package.Manifest.ProcessGroup, instanceId);
 
                 if (_options != null && 
-                    !string.IsNullOrEmpty(appId) && 
+                    !string.IsNullOrEmpty(_options.Id) && 
                     _options.AutoSaveLocation)
                 {
-                    var autoSaveWindowPositionBehavior = new AutoSaveWindowPositionBehavior();
-                    autoSaveWindowPositionBehavior.Attach(this);
+                    _autoSaveWindowPositionBehavior = new AutoSaveWindowPositionBehavior();
+                    _autoSaveWindowPositionBehavior.Attach(this);
                 }
             }
         }
@@ -832,6 +864,14 @@ namespace Paragon.Runtime.Kernel.Windowing
                     // Hide the window chrome.
                     TitlebarHeight = 0;
                     WindowStyle = WindowStyle.None;
+#if ENFORCE_PACKAGE_SECURITY
+                    if (_windowManager.Application.Package.Signature == null)
+                    {
+                        GlowEnabled = true;
+                        GlowBrush = System.Windows.Application.Current.Resources["AlarmGlowBrush"] as System.Windows.Media.SolidColorBrush;
+                        InactiveGlowBrush = System.Windows.Application.Current.Resources["AlarmInactiveGlowBrush"] as System.Windows.Media.SolidColorBrush;
+                    }
+#endif
                     break;
 
                 case FrameType.WindowsDefault:
@@ -839,6 +879,16 @@ namespace Paragon.Runtime.Kernel.Windowing
                     break;
             }
         }
+
+
+#if ENFORCE_PACKAGE_SECURITY
+        public override void OnApplyTemplate()
+        {
+            if (_windowManager.Application.Package.Signature == null)
+                this.Style = System.Windows.Application.Current.Resources["AlarmParagonWindow"] as Style;
+            base.OnApplyTemplate();
+        }
+#endif
 
         private void ApplyWindowOptions()
         {
@@ -857,6 +907,14 @@ namespace Paragon.Runtime.Kernel.Windowing
                     frameOptions.Type = _windowManager.Application.Package.Manifest.DefaultFrameType;
                 }
 
+#if ENFORCE_PACKAGE_SECURITY
+                if (_windowManager.Application.Package.Signature == null)
+                {
+                    if (frameOptions.Type != FrameType.None)
+                        frameOptions.Type = FrameType.Paragon;
+                }
+#endif
+
                 ApplyFrameStyle(frameOptions.Type);
 
                 if (frameOptions.Icon)
@@ -865,7 +923,14 @@ namespace Paragon.Runtime.Kernel.Windowing
                     {
                         if (stream != null)
                         {
-                            Icon = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                            try
+                            {
+                                Icon = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Error(string.Format("Failed to create a bitmap frame from the stream: {0}", ex.Message));
+                            }
                         }
                     }
                 }
@@ -924,7 +989,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
             if (!string.IsNullOrEmpty(_title))
             {
-                Title = _title;
+                SetTitle(_title);
             }
 
             ResizeMode = _options.Resizable ? ResizeMode.CanResize : ResizeMode.NoResize;
@@ -941,6 +1006,18 @@ namespace Paragon.Runtime.Kernel.Windowing
             InvalidateArrange();
         }
 
+        private void SetTitle(string title)
+        {
+#if ENFORCE_PACKAGE_SECURITY
+            if (_windowManager.Application.Package.Signature == null)
+            {
+                Title = title + " (Unsigned)";
+            }
+            else
+#endif
+            Title = title;
+        }
+
         private void AttachToBrowser()
         {
             _browser.TitleChanged += TitleChanged;
@@ -951,10 +1028,11 @@ namespace Paragon.Runtime.Kernel.Windowing
             _browser.BrowserClosed += OnBrowserClosed;
             _browser.BeforeResourceLoad += OnBeforeResourceLoad;
             _browser.DownloadUpdated += OnDownloadUpdated;
+            _browser.BeforeDownload += OnBeginDownload;
             _browser.ProtocolExecution += OnProtocolExecution;
         }
 
-        private Size GetRealSize(Vector virtualSize)
+        internal Size GetRealSize(Vector virtualSize)
         {
             var realSize = new Size(virtualSize.X, virtualSize.Y);
 
@@ -975,6 +1053,27 @@ namespace Paragon.Runtime.Kernel.Windowing
             return realSize;
         }
 
+        internal Size GetVirtualSize(Vector realSize)
+        {
+            var virtualSize = new Size(realSize.X, realSize.Y);
+
+            try
+            {
+                var source = PresentationSource.FromVisual(this);
+                if (source != null && source.CompositionTarget != null)
+                {
+                    var transformFromDevice = source.CompositionTarget.TransformFromDevice;
+                    virtualSize = (Size)transformFromDevice.Transform((Vector)realSize);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(string.Format("Failed to get virtual size: {0}", ex.Message));
+            }
+
+            return virtualSize;
+        }
+
         private void OnProtocolExecution(object sender, ProtocolExecutionEventArgs e)
         {            
             if(_windowManager.Application.Package.Manifest.CustomProtocolWhitelist != null)
@@ -989,6 +1088,19 @@ namespace Paragon.Runtime.Kernel.Windowing
             if (DownloadProgress != null)
             {
                 DownloadProgress(this, e);
+                if (!e.IsCanceled && e.IsComplete)
+                {
+                    if (_browser.Source.Equals(e.Url, StringComparison.InvariantCultureIgnoreCase))
+                        this.Close();
+                }
+            }
+        }
+
+        private void OnBeginDownload(object sender, BeginDownloadEventArgs e)
+        {
+            if (BeginDownload != null)
+            {
+                BeginDownload(this, e);
             }
         }
 
@@ -1049,6 +1161,7 @@ namespace Paragon.Runtime.Kernel.Windowing
             _browser.BeforeUnloadDialog -= OnUnloadPageDialog;
             _browser.BeforeResourceLoad -= OnBeforeResourceLoad;
             _browser.DownloadUpdated -= OnDownloadUpdated;
+            _browser.BeforeDownload -= OnBeginDownload;
             _browser.ProtocolExecution -= OnProtocolExecution;
         }
 
@@ -1066,6 +1179,11 @@ namespace Paragon.Runtime.Kernel.Windowing
                     _windowManager = null;
                 }
                 Content = null;
+            }
+
+            if (_autoSaveWindowPositionBehavior != null)
+            {
+                _autoSaveWindowPositionBehavior.Detach();
             }
         }
 
@@ -1122,16 +1240,20 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private void OnPageLoaded(object sender, LoadEndEventArgs e)
         {
-            if (!_firstPageLoaded)
+            Logger.Info("OnPageLoaded : Firing PageLoaded");
+            SetBrowserAsContent();
+            if (PageLoaded != null)
+                PageLoaded(e.Url);
+        }
+
+        void SetBrowserAsContent()
+        {
+            if (Content == null && _browser.BrowserWindowHandle != IntPtr.Zero)
             {
-                _firstPageLoaded = true;
                 Content = _browser;
                 LoadComplete.Raise(this, EventArgs.Empty);
                 InvalidateArrange();
             }
-            Logger.Info("OnPageLoaded : Firing PageLoaded");
-            if (PageLoaded != null)
-                PageLoaded(e.Url);
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -1139,6 +1261,7 @@ namespace Paragon.Runtime.Kernel.Windowing
             SizeChanged += OnSizeChanged;
             LocationChanged += OnLocationChanged;
             SystemEvents.SessionEnding += OnSessionEnding;
+            SetBrowserAsContent();
         }
 
         private void OnSessionEnding(object sender, SessionEndingEventArgs e)
@@ -1225,7 +1348,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                     return;
             }
 
-            Title = e.Title;
+            SetTitle(e.Title ?? string.Empty);
             PropertyChanged.Raise(() => new object[] { "title", e.Title });
         }
 

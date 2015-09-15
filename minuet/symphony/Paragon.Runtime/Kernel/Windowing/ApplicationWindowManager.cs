@@ -112,7 +112,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                 options.Focused = true;
                 options.Hidden = false;
             }
-            var request = new CreateWindowRequest(eventArgs.TargetUrl, options, null, eventArgs.TargetUrl);
+            var request = new CreateWindowRequest(eventArgs.TargetUrl, options, null, eventArgs.TargetFrameName);
             lock (_pendingWindowCreations)
             {
                 _pendingWindowCreations.Add(request);
@@ -123,7 +123,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         public void ShowApplicationWindowPopup(IApplicationWindowEx applicationWindow, ShowPopupEventArgs eventArgs)
         {
-            CreateWindowInternal(eventArgs, request => request.RequestId == eventArgs.PopupBrowser.Source);
+            CreateWindowInternal(eventArgs, request => request.RequestId == eventArgs.PopupBrowser.BrowserName);
             Logger.Debug("Application window with ID {0} shown.", applicationWindow.GetId());
         }
 
@@ -149,20 +149,24 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         public void Shutdown()
         {
-            if (_rootBrowser != null)
-            {
-                _rootBrowser.BeforePopup -= OnRootBrowserBeforePopup;
-                _rootBrowser.ShowPopup -= OnRootBrowserShowPopup;
-            }
-
             lock (_lock)
             {
+                _getRootBrowser = null;
+                _pendingWindowCreations.Clear();
+
                 foreach (var applicationWindow in _windows)
                 {
                     // TODO: Detach events
                     applicationWindow.CloseWindow();
                 }
                 _windows.Clear();
+            }
+
+            if (_rootBrowser != null)
+            {
+                _rootBrowser.BeforePopup -= OnRootBrowserBeforePopup;
+                _rootBrowser.ShowPopup -= OnRootBrowserShowPopup;
+                _rootBrowser = null;
             }
 
             Logger.Debug("Shutdown");
@@ -231,6 +235,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         protected virtual IApplicationWindowEx CreateWindow(ICefWebBrowser browser, string startUrl, CreateWindowOptions options)
         {
             var window = CreateNewApplicationWindow();
+            
             window.Initialize(this, browser, startUrl, Application.Package.Manifest.Name, options);
             AddWindow(window);
             return window;

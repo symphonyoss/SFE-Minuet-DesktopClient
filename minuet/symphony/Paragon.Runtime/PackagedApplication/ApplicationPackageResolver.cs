@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Packaging;
 using System.Net;
 using Newtonsoft.Json;
 using Paragon.Plugins;
@@ -8,125 +9,76 @@ namespace Paragon.Runtime.PackagedApplication
 {
     public static class ApplicationPackageResolver
     {
-        public static IApplicationPackage Load(string packageUri, out string resolvedUri)
+        public static IApplicationPackage Load(string packageUri, Func<Package,Package> packageValidator, out string resolvedUri)
         {
-            ApplicationPackage package;
+            ApplicationPackage package = null;
             bool isHosted;
 
-            if (!Download(packageUri, out resolvedUri, out isHosted))
+            resolvedUri = Download(packageUri, out isHosted);
+
+            if (!string.IsNullOrEmpty(resolvedUri))
             {
-                return null;
+                package = new ApplicationPackage(resolvedUri, packageValidator);
             }
 
-            if (isHosted)
-            {
-                // This is a URL to a hosted application
-                const string json = "{{ 'name' : 'Unknown', 'type' : 'Hosted', 'id' : '{0}', 'version' : '1.0.0.0', 'app' : {{ 'launch' : {{ 'web_url' : '{1}' }} }} }}";
-                var formattedJson = string.Format(json, Guid.NewGuid(), packageUri);
-                var manifest = JsonConvert.DeserializeObject<ApplicationManifest>(formattedJson);
-                package = new ApplicationPackage(null, manifest);
-            }
-            else
-            {
-                package = new ApplicationPackage(resolvedUri);
-            }
-
-            return package.Manifest.Type == ApplicationType.Hosted 
-                ? package.ToPackagedApplicationPackage() 
-                : package;
+            return package != null && package.Manifest.Type == ApplicationType.Hosted 
+                    ? package.ToPackagedApplicationPackage() 
+                    : package;
         }
 
-        private static bool Download(string packageUri, out string resolvedUri, out bool isHosted)
+        private static string Download(string packageUri, out bool isHosted)
         {
-            var uri = new Uri(packageUri);
-            if (uri.IsFile || uri.IsUnc)
-            {
-                // The URI is to a file on a local or UNC drive. Use that for the resolved URI.
-                resolvedUri = packageUri;
-                isHosted = false;
-                return true;
-            }
+            isHosted = false;
 
             try
             {
-                var request = WebRequest.Create(packageUri);
-
-                using (var resp = request.GetResponse())
+                var uri = new Uri(packageUri);
+                if (!uri.IsFile && !uri.IsUnc)
                 {
-                    var contentType = resp.ContentType;
-                    if (contentType == null)
-                    {
-                        resolvedUri = packageUri;
-                        isHosted = true;
-                        return true;
-                    }
+                    var request = WebRequest.Create(packageUri);
 
-                    string filePath;
-                    if (contentType.Equals("application/json", StringComparison.InvariantCultureIgnoreCase))
+                    using (var resp = request.GetResponse())
                     {
-                        filePath = Path.Combine(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString().Replace("-", "")), "manifest.json");
-                    }
-                    else if (contentType.Equals("application/zip", StringComparison.InvariantCultureIgnoreCase) ||
+                        var contentType = resp.ContentType;
+
+                        string filePath = null;
+                        if (!string.IsNullOrEmpty(contentType) &&
+                            (contentType.Equals("application/zip", StringComparison.InvariantCultureIgnoreCase) ||
                              contentType.Equals("application/x-zip", StringComparison.InvariantCultureIgnoreCase) ||
                              contentType.Equals("application/octet-stream", StringComparison.InvariantCultureIgnoreCase) ||
-                             contentType.Equals("application/x-zip-compressed", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        filePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString().Replace("-", "") + ".pgx");
-                    }
-                    else
-                    {
-                        resolvedUri = packageUri;
-                        isHosted = true;
-                        return true;
-                    }
-
-                    // Download the package or manifest
-                    using (var responseStream = resp.GetResponseStream())
-                    {
-                        if (responseStream == null)
+                             contentType.Equals("application/x-zip-compressed", StringComparison.InvariantCultureIgnoreCase)))
                         {
-                            resolvedUri = null;
-                            isHosted = false;
-                            return false;
+                            filePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString().Replace("-", "") + ".pgx");
                         }
 
-                        var parentDir = Path.GetDirectoryName(filePath);
-                        if (string.IsNullOrEmpty(parentDir))
+                        // Download the package or manifest
+                        using (var responseStream = resp.GetResponseStream())
                         {
-                            resolvedUri = null;
-                            isHosted = false;
-                            return false;
-                        }
+                            var parentDir = Path.GetDirectoryName(filePath);
 
-                        if (!Directory.Exists(parentDir))
-                        {
-                            Directory.CreateDirectory(parentDir);
-                        }
-
-                        using (var outStream = File.Create(filePath))
-                        {
-                            var buffer = new byte[1024];
-                            int bytesRead;
-                            while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+                            using (var outStream = File.Create(filePath))
                             {
-                                outStream.Write(buffer, 0, bytesRead);
+                                var buffer = new byte[1024];
+                                int bytesRead;
+                                while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+                                {
+                                    outStream.Write(buffer, 0, bytesRead);
+                                }
+
+                                outStream.Flush();
                             }
-
-                            outStream.Flush();
                         }
-                    }
 
-                    resolvedUri = filePath;
-                    isHosted = true;
-                    return true;
+                        return filePath;
+                    }
                 }
             }
-            catch (Exception)
+            catch
             {
-                resolvedUri = packageUri;
-                isHosted = true;
-                return true;
+                return string.Empty;
             }
+
+            return packageUri;
         }
     }
 }

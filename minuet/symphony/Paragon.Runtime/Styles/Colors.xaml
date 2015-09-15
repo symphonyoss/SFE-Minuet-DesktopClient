@@ -10,6 +10,10 @@
     <Color x:Key="GlowColor">#FF7399C6</Color>
     <Color x:Key="InactiveGlowColor">#CC424245</Color>
 
+    <Color x:Key="AlarmGlowColor">Red</Color>
+    <Color x:Key="AlarmWindowTitleColor">Red</Color>
+    <Color x:Key="AlarmWindowTitleTextColor">White</Color>
+
     <!-- Brushes- -->
     <SolidColorBrush x:Key="BlackBrush" Color="{DynamicResource BlackColor}" />
     <SolidColorBrush x:Key="WhiteBrush" Color="{DynamicResource WhiteColor}" />
@@ -22,4 +26,10 @@
     <SolidColorBrush x:Key="WindowButtonForegroundBrush" Color="{DynamicResource WindowButtonForegroundColor}"/>
     <SolidColorBrush x:Key="WindowTitleBrush" Color="{DynamicResource WindowTitleColor}"/>
     <SolidColorBrush x:Key="WindowTitleTextBrush" Color="{DynamicResource WindowTitleTextColor}"/>
+
+    <SolidColorBrush x:Key="AlarmGlowBrush" Color="{DynamicResource AlarmGlowColor}"/>
+    <SolidColorBrush x:Key="AlarmWindowTitleTextBrush" Color="{DynamicResource AlarmWindowTitleTextColor}"/>
+    <SolidColorBrush x:Key="AlarmWindowTitleBrush" Color="{DynamicResource AlarmWindowTitleColor}"/>
+    <SolidColorBrush x:Key="AlarmInactiveGlowBrush" Color="{DynamicResource AlarmGlowColor}"/>
+
 </ResourceDictionary>

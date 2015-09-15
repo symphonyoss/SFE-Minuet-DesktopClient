@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
+using System.Net;
 using System.Security.Permissions;
 using System.Text;
 using System.Threading;
@@ -18,15 +19,24 @@ namespace Paragon.Runtime.PackagedApplication
         private readonly string _packageFilePath;
         private readonly Func<Package> _packageFunc;
         private readonly Timer _closeTimer;
+        PackageDigitalSignature _signature;
         private Package _package;
+        private Func<Package,Package> _packageSignatureValidator;
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public ApplicationPackage(string packageFilePath)
+        public ApplicationPackage(string packageFilePath, Func<Package, Package> packageSignatureValidator)
         {
             if (string.IsNullOrEmpty(packageFilePath))
             {
                 throw new ArgumentNullException("packageFilePath");
             }
+
+            if (packageSignatureValidator == null)
+            {
+                throw new ArgumentNullException("packageSignatureValidator");
+            }
+
+            _packageSignatureValidator = packageSignatureValidator;
 
             //packageFilePath argument passed must be a manifest file, path to a directory which has the manifest file or a pgx package
             var localPath = new Uri(packageFilePath).LocalPath;
@@ -71,6 +81,9 @@ namespace Paragon.Runtime.PackagedApplication
             {
                 throw new InvalidOperationException("Application package not found: " + packageFilePath);
             }
+
+            if (Package == null)
+                throw new Exception("Could not resolve application package");
 
             var manifestFile = GetPart(PackagedAppManifestFileName);
 
@@ -121,7 +134,9 @@ namespace Paragon.Runtime.PackagedApplication
             {
                 if (_package == null)
                 {
-                    _package = _packageFunc();
+                    var p = _packageFunc();
+                    _signature = p.GetSignature();
+                    _package = _packageSignatureValidator(p);
                 }
 
                 if (_closeTimer != null)
@@ -141,15 +156,87 @@ namespace Paragon.Runtime.PackagedApplication
             }
         }
 
+        public PackageDigitalSignature Signature
+        {
+            get
+            {
+                return _signature;
+            }
+        }
+
         public IApplicationManifest Manifest { get; private set; }
 
         public Stream GetIcon()
         {
-            if (Manifest.Icons != null)
+            try
             {
-                return GetStream(!string.IsNullOrEmpty(Manifest.Icons.Icon128)
+                if (Manifest.Icons == null)
+                {
+                    Logger.Info("No icons specified in the app manifest");
+                    return null;
+                }
+
+                var iconPath = !string.IsNullOrEmpty(Manifest.Icons.Icon128)
                     ? Manifest.Icons.Icon128
-                    : Manifest.Icons.Icon16);
+                    : Manifest.Icons.Icon16;
+
+                if (string.IsNullOrEmpty(iconPath))
+                {
+                    Logger.Warn("Icon entry in the manifest has a null or empty path");
+                    return null;
+                }
+
+                Uri iconUri;
+                if (!Uri.TryCreate(iconPath, UriKind.RelativeOrAbsolute, out iconUri))
+                {
+                    Logger.Warn("Invalid icon URI: " + iconPath);
+                    return null;
+                }
+
+                if (!iconUri.IsAbsoluteUri)
+                {
+                    // If the icon is a relative URL, we assume that, it is a file in the package. 
+                    return GetStream(iconPath);
+                }
+
+                if (iconUri.Scheme.Equals("data", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var p = iconUri.PathAndQuery;
+                    var data = p.Substring(p.IndexOf(',') + 1);
+                    return new MemoryStream(Convert.FromBase64String(data));
+                }
+
+                var webRequest = (HttpWebRequest)WebRequest.Create(iconUri);
+                webRequest.Method = WebRequestMethods.Http.Get;
+
+                using (var webResponse = webRequest.GetResponse())
+                {
+                    if (((HttpWebResponse) webResponse).StatusCode == HttpStatusCode.OK)
+                    {
+                        using (var stream = webResponse.GetResponseStream())
+                        {
+                            if (stream == null)
+                            {
+                                return null;
+                            }
+
+                            var targetStream = new MemoryStream();
+                            const int bufSize = 0x1000;
+                            var buf = new byte[bufSize];
+                            int bytesRead;
+                            while ((bytesRead = stream.Read(buf, 0, bufSize)) > 0)
+                            {
+                                targetStream.Write(buf, 0, bytesRead);
+                            }
+
+                            return targetStream;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Error retrieving icon", ex);
             }
             return null;
         }
@@ -209,6 +296,20 @@ namespace Paragon.Runtime.PackagedApplication
                 throw new Exception("Missing application launch information");
             }
 
+            if (manifest.Type == ApplicationType.Hosted)
+            {
+                Uri result = null;
+                if (Uri.TryCreate(app.Launch.WebUrl, UriKind.RelativeOrAbsolute, out result))
+                {
+                    if (!result.IsAbsoluteUri)
+                        throw new Exception("Missing absolute uri in the manifest");
+                }
+                else
+                {
+                    throw new Exception("Invalid app launch web url in the manifest");
+                }
+            }
+
             var bounds = new BoundsSpecification
             {
                 Width = launch.Width >= 0 ? launch.Width : 1000,
@@ -251,16 +352,19 @@ namespace Paragon.Runtime.PackagedApplication
                 sr.Flush();
                 partStream.Flush();
             }
-
             // Create icons in package
-            if (manifest.Icons != null && !String.IsNullOrEmpty(manifest.Icons.Icon16))
+            if (manifest.Icons != null)
             {
-                CreatePartFromStream(GetStream(manifest.Icons.Icon16), newPackage, "image/png", manifest.Icons.Icon16);
+                CreateIconPart(newPackage, manifest.Icons.Icon16);
+                CreateIconPart(newPackage, manifest.Icons.Icon128);
             }
-
-            if (manifest.Icons != null && !String.IsNullOrEmpty(manifest.Icons.Icon128))
+            else
             {
-                CreatePartFromStream(GetStream(manifest.Icons.Icon128), newPackage, "image/png", manifest.Icons.Icon128);
+                // Set up the favicon as the icon for the application
+                var uri = new Uri(app.Launch.WebUrl);
+                var path = string.IsNullOrEmpty(uri.Query) ? uri.PathAndQuery : uri.PathAndQuery.Substring(0, uri.PathAndQuery.IndexOf(uri.Query));
+                path += path.EndsWith("/") ? "favicon.ico" : "/favicon.ico";
+                manifest.Icons = new IconInfo() { Icon128 = string.Format("{0}://{1}{2}{3}", uri.Scheme, uri.Host, uri.IsDefaultPort ? string.Empty : (":" + uri.Port.ToString()), path) };
             }
 
             newPackage.Flush();
@@ -274,6 +378,39 @@ namespace Paragon.Runtime.PackagedApplication
                 Scripts = new[] { "background.js" }
             };
             return new ApplicationPackage(newPackage, manifest);
+        }
+
+        private void CreateIconPart(Package package, string iconPath)
+        {
+            // No icon defined.
+            if (string.IsNullOrEmpty(iconPath))
+            {
+                return;
+            }
+
+            // Icon path exists, try to parse it to a URI.
+            Uri iconUri;
+            if (!Uri.TryCreate(iconPath, UriKind.RelativeOrAbsolute, out iconUri))
+            {
+                Logger.Error("Invalid icon URI: " + iconPath);
+                return;
+            }
+
+            // The URI is a path to an external icon, skip creating the part.
+            if (iconUri.IsAbsoluteUri)
+            {
+                return;
+            }
+
+            // We have a valid relative icon URI, get the stream for the icon.
+            var stream = GetStream(iconPath);
+            if (stream == null)
+            {
+                Logger.Error("Icon not found at: " + iconPath);
+                return;
+            }
+
+            CreatePartFromStream(stream, package, "image/png", iconPath);
         }
 
         private void SetManifestDefaults()

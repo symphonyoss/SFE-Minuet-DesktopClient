@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
@@ -14,39 +15,23 @@ namespace Paragon.AppPackager
     {
         private static Dictionary<string, string> _contentTypesGiven = new Dictionary<string, string>();
 
-        public static bool Package(string inputFolder, string outputPath)
+        public static bool Package(string sourceFolder, string destinationPath)
         {
-            var sourceFolder = PathValidation.GetValidInputFolder(inputFolder);
-            if (sourceFolder == null)
+            if (string.IsNullOrEmpty(sourceFolder) || !Directory.Exists(sourceFolder) || !File.Exists(Path.Combine(sourceFolder, "manifest.json")))
             {
-                throw new Exception("Unable to validate given InputPath.");
+                throw new ArgumentException("Invalid input folder.");
             }
 
             if (!JsonContentValidation.ValidateJsonFileContent(Path.Combine(sourceFolder, "manifest.json")))
             {
-                throw new Exception("Unable to validate contents of the json file. Please add the required fields in the file, and try again");
-            }
-
-            var destinationPath = outputPath;
-            if (string.IsNullOrEmpty(destinationPath))
-            {
-                destinationPath = sourceFolder;
-            }
-
-            if (!Path.IsPathRooted(destinationPath))
-            {
-                destinationPath = Path.Combine(Environment.CurrentDirectory, destinationPath);
+                throw new Exception("Application manifest is invalid");
             }
 
             var packageDir = Directory.GetParent(destinationPath).FullName;
+
             if (!Directory.Exists(packageDir))
             {
                 Directory.CreateDirectory(packageDir);
-            }
-
-            if (!destinationPath.EndsWith(".pgx"))
-            {
-                destinationPath += ".pgx";
             }
 
             if (File.Exists(destinationPath))
@@ -54,8 +39,7 @@ namespace Paragon.AppPackager
                 File.Delete(destinationPath);
             }
 
-            Console.WriteLine("Input path: " + sourceFolder);
-            Console.WriteLine("Output path: " + destinationPath);
+            Console.WriteLine("Input folder: " + sourceFolder);
 
             using (var package = System.IO.Packaging.Package.Open(destinationPath, FileMode.Create))
             {
@@ -71,11 +55,8 @@ namespace Paragon.AppPackager
 
                         _contentTypesGiven = doc.Root.Elements().ToDictionary(a => "." + (string) a.Attribute("Extension"), a => (string) a.Attribute("ContentType"));
                     }
-
-                    else
+                    else if( !destinationPath.Equals(currentFile) )
                     {
-                        Console.WriteLine("Packing " + currentFile);
-
                         var uri = GetRelativeUri(currentFile.Replace(sourceFolder, string.Empty));
                         var contentType = GetContentType(currentFile);
                         var packagePart = package.CreatePart(uri, contentType, CompressionOption.Maximum);
@@ -94,10 +75,12 @@ namespace Paragon.AppPackager
                 }
             }
 
-            Console.WriteLine("Packaging completed");
+            Console.WriteLine("Unsigned package {0} created.", destinationPath);
             return true;
         }
 
+        //Yet to implement this perfectly; excluding from code coverage
+        [ExcludeFromCodeCoverage]
         public static bool PackageAndSign(string inputPath, string outputPath, string certName)
         {
             var unsignedPackagePath = Path.Combine(Path.GetDirectoryName(outputPath), Path.GetTempFileName() + ".pgx");
@@ -106,7 +89,7 @@ namespace Paragon.AppPackager
             {
                 if (Package(inputPath, unsignedPackagePath))
                 {
-                    return ParagonPackageSigner.Sign(unsignedPackagePath, outputPath, certName);
+                    return ParagonPackageSigner.Sign(unsignedPackagePath, outputPath, PackagingInfo.FindCertificate(certName, true));
                 }
             }
             finally

@@ -46,4 +46,4 @@ namespace Paragon.Runtime.WPF
             return helper.Handle;
         }
     }
-}
+} 

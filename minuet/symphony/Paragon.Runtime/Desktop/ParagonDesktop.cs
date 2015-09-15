@@ -48,18 +48,6 @@ namespace Paragon.Runtime.Desktop
         }
 
         /// <summary>
-        /// Find app windows based on the specified search criteria.
-        /// </summary>
-        /// <param name="setOptions">Delegate used to set search criteria</param>
-        /// <returns>App windows that match the specified criteria</returns>
-        public static IEnumerable<WindowInfo> FindWindows(Action<WindowSearchOptions> setOptions)
-        {
-            var opts = new WindowSearchOptions();
-            setOptions(opts);
-            return GetAllWindows().Where(opts.IsMatch);
-        }
-
-        /// <summary>
         /// Get all running apps.
         /// </summary>
         /// <returns>All running applications</returns>
@@ -80,37 +68,6 @@ namespace Paragon.Runtime.Desktop
             return RunningProcessTable.AppInformation;
         }
 
-        /// <summary>
-        /// Get all open app windows.
-        /// </summary>
-        /// <returns>All open app windows</returns>
-        public static IEnumerable<WindowInfo> GetAllWindows()
-        {
-            if (!WindowsVersion.IsWin7OrNewer)
-            {
-                return Enumerable.Empty<WindowInfo>();
-            }
-
-            // Every Paragon app has a hidden message window associated with it with 
-            // a ParagonApp window classname. This allows us to quickly build a list 
-            // of all running apps without having to resort to cross-process messaging.
-            var msgHwnds = Win32Api.GetWindowsByClass("ParagonApp").ToList();
-
-            // Construct a list of AppInfo objects using the ParagonApp window handles
-            // retrieved from the above query.
-            var apps = msgHwnds.Select(h => new AppInfo(h));
-
-            // Resolve all of the browser process ID's for Paragon apps found via the above query.
-            var pids = apps.Select(a => a.BrowserPid).ToArray();
-
-            // Get all windows associated with the browser processes. We need to exclude the
-            // ParagonApp windows here as GetProcessWindows will return hidden windows as well.
-            return Win32Api.GetProcessWindows(pids)
-                .Except(msgHwnds)
-                .Select(h => new WindowInfo(h)) 
-                .Where(i => i.IsParagonWindow);
-        }
-
         public static IParagonAppInfo GetApp(string instanceId)
         {
             return FindApps(opts => opts.InstanceId = instanceId).FirstOrDefault();
@@ -119,22 +76,6 @@ namespace Paragon.Runtime.Desktop
         public static AppInfo GetAppInfo(string instanceId)
         {
             return FindAppInfos(opts => opts.InstanceId = instanceId).FirstOrDefault();
-        }
-
-        /// <summary>
-        /// Get an app window from a window handle.
-        /// </summary>
-        /// <param name="hwnd">The window handle</param>
-        /// <returns>The app window associated with the handle or null if no window was found</returns>
-        public static WindowInfo GetWindow(IntPtr hwnd)
-        {
-            if (!WindowsVersion.IsWin7OrNewer)
-            {
-                return null;
-            }
-
-            var windowInfo = new WindowInfo(hwnd);
-            return windowInfo.IsParagonWindow ? windowInfo : null;
         }
 
         /// <summary>
@@ -163,7 +104,7 @@ namespace Paragon.Runtime.Desktop
         /// <param name="appId">The app identifier</param>
         /// <param name="instanceId">The app instance identifier</param>
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public static void RegisterAppWindow(IntPtr hwnd, string appId, string instanceId)
+        public static void RegisterAppWindow(IntPtr hwnd, string appId, string processGroup, string instanceId)
         {
             if (!WindowsVersion.IsWin7OrNewer)
             {
@@ -172,7 +113,7 @@ namespace Paragon.Runtime.Desktop
 
             var props = new AppWindowProperties {AppInstanceId = instanceId};
             WindowPropertyStore.SetComment(hwnd, props.ToString());
-            WindowPropertyStore.SetAppId(hwnd, appId);
+            WindowPropertyStore.SetAppId(hwnd, string.IsNullOrEmpty(processGroup) ? appId : processGroup);
             WindowPropertyStore.PreventTaskbarPinning(hwnd);
         }
 
@@ -298,12 +239,54 @@ namespace Paragon.Runtime.Desktop
 
                     if (newApps.Count > 0)
                     {
-                        var newAppLookup = newApps.ToDictionary(a => a.BrowserPid, a => a);
+                        IDictionary<int, List<AppInfo>> newAppLookup = null;
+                        foreach(var newApp in newApps)
+                        {
+                            if (newAppLookup == null)
+                            {
+                                newAppLookup = new Dictionary<int, List<AppInfo>>();
+                                newAppLookup.Add(newApp.BrowserPid, new List<AppInfo>{newApp});
+                            }
+                            else
+                            {
+                                if(newAppLookup.ContainsKey(newApp.BrowserPid))
+                                {
+                                    var list = newAppLookup[newApp.BrowserPid];
+                                    list.Add(newApp);
+                                    newAppLookup[newApp.BrowserPid]=list;
+                                }
+                                else newAppLookup.Add(newApp.BrowserPid, new List<AppInfo>{newApp});
+                            }
+                        }
 
-                        var callback = new Win32Api.EnumChildProcsDelegate(
-                            (pid, childPid) => newAppLookup[pid].InitPerfInfo(childPid));
-
-                        Win32Api.EnumChildProcs(callback, newAppLookup.Keys.ToArray());
+                        
+                        foreach (KeyValuePair<int, List<AppInfo>> entry in newAppLookup)
+                        {
+                            var list = entry.Value;
+                            Win32Api.EnumChildProcsDelegate callback = null;
+                            foreach (var app in list)
+                            {
+                                callback = new Win32Api.EnumChildProcsDelegate(
+                                (pid, childPid) =>
+                                {
+                                    var flag = false;
+                                    foreach (var appexists in list)
+                                    {
+                                        if (appexists.RenderInfo!=null)
+                                        {
+                                            if (appexists.RenderInfo.Pid == childPid)
+                                            {
+                                                flag = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if(!flag) 
+                                        app.InitPerfInfo(childPid);
+                                });
+                                Win32Api.EnumChildProcs(callback, entry.Key);
+                            }
+                        }
                         _apps.AddRange(newApps);
                     }
 
@@ -342,39 +325,6 @@ namespace Paragon.Runtime.Desktop
                 {
                     _updateTimer.Change(1000, Timeout.Infinite);
                 }
-            }
-        }
-
-        public class WindowSearchOptions
-        {
-            public WindowSearchOptions()
-            {
-                WindowsToExclude = new List<IntPtr>();
-            }
-
-            public string AppId { get; set; }
-            public string InstanceId { get; set; }
-            public WindowVisibility? WindowVisibility { get; set; }
-            public List<IntPtr> WindowsToExclude { get; private set; }
-
-            internal bool IsMatch(WindowInfo windowInfo)
-            {
-                if (WindowVisibility.HasValue
-                    && WindowVisibility.Value != windowInfo.WindowVisibility)
-                {
-                    // Skip any windows that don't match the visiblity option.
-                    return false;
-                }
-
-                if (!string.IsNullOrEmpty(AppId)
-                    && !AppId.Equals(windowInfo.AppId, StringComparison.OrdinalIgnoreCase))
-                {
-                    // Skip windows that don't match the specified app ID.
-                    return false;
-                }
-
-                return string.IsNullOrEmpty(InstanceId) || InstanceId.Equals(windowInfo.AppInstanceId,
-                    StringComparison.OrdinalIgnoreCase);
             }
         }
     }

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Interop;
-using Paragon.Plugins;
 using Paragon.Runtime.Win32;
 
 namespace Paragon.Runtime.WinForms
@@ -53,10 +51,17 @@ namespace Paragon.Runtime.WinForms
                     _bounds = new RECT() { Left = pos.x, Top = pos.y, Right = pos.x + pos.cx, Bottom = pos.y + pos.cy };
                     _boundsInitialized = true;
                 }
-                // Prevent messages with wrong location.
-                if (_state == WindowState.Minimized && _prevState != WindowState.Maximized && (pos.x != _bounds.Left || pos.y != _bounds.Top))
+                // Correct messages with wrong location.
+                if (_state == WindowState.Minimized && _prevState != WindowState.Maximized)
                 {
-                    pos.flags |= (int)SWP.NOMOVE;
+                    if (pos.x != _bounds.Left)
+                    {
+                        pos.x = _bounds.Left;
+                    }
+                    if (pos.y != _bounds.Top)
+                    {
+                        pos.y = _bounds.Top;
+                    }
                     changed = true;
                 }
             }
@@ -67,10 +72,17 @@ namespace Paragon.Runtime.WinForms
                     _bounds = new RECT() { Left = pos.x, Top = pos.y, Right = pos.x + pos.cx, Bottom = pos.y + pos.cy };
                     _boundsInitialized = true;
                 }
-                // Prevent messages with wrong siize
-                if (_state == WindowState.Minimized && _prevState != WindowState.Maximized && (pos.cx != _bounds.Width || pos.cy != _bounds.Height))
+                // Correct messages with wrong size
+                if (_state == WindowState.Minimized && _prevState != WindowState.Maximized)
                 {
-                    pos.flags |= (int)SWP.NOSIZE;
+                    if (pos.cx != _bounds.Width)
+                    {
+                        pos.cx = _bounds.Width;
+                    }
+                    if (pos.cy != _bounds.Height)
+                    {
+                        pos.cy = _bounds.Height;
+                    }
                     changed = true;
                 }
             }
