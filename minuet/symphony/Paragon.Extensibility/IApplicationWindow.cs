@@ -46,7 +46,7 @@ namespace Paragon.Plugins
 
         void Restore();
 
-        void DrawAttention(bool autoclear);
+        void DrawAttention(bool autoclear, int maxFlashes, int timeOut);
 
         /// <summary>
         /// Draw attention to the window.

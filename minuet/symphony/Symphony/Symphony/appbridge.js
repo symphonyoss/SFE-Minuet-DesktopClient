@@ -93,7 +93,9 @@ var appbridge = new function () {
             // Get the main app window.
             getMainWindow(function (win) {
                 // Cause the taskbar icon for the window to flash.
-                win.drawAttention(true);
+                // -1 --> flash forever
+                // timeout 1500 ms - time between flashes
+                win.drawAttention(true, -1, 1500);
             });
         });
     };

@@ -164,9 +164,9 @@ namespace Paragon.Runtime.Kernel.Windowing
         /// </summary>
         [JavaScriptPluginMember]
         [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public void DrawAttention(bool autoclear)
+        public void DrawAttention(bool autoclear, int maxFlashes, int timeOut)
         {
-            DispatchIfRequired(() => Flash(false, autoclear), true);
+            DispatchIfRequired(() => Flash(false, autoclear, maxFlashes, timeOut), true);
         }
 
         /// <summary>
