@@ -2,6 +2,11 @@ echo "go to minuet/symphony folder"
 cd minuet
 cd symphony
 
+echo "make output dirs"
+md bin
+md bin\apps
+md bin\paragon
+
 echo "Set Visual Studio env vars"
 $path1='c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC'
 $path2='c:\Program Files\Microsoft Visual Studio 12.0\VC'
