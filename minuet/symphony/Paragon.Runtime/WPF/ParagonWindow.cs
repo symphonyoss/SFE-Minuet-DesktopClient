@@ -13,7 +13,8 @@ namespace Paragon.Runtime.WPF
     {
         public static readonly DependencyProperty ShowIconInTitleBarProperty = DependencyProperty.Register("ShowIconInTitleBar", typeof (bool), typeof (ParagonWindow), new PropertyMetadata(true));
         public static readonly DependencyProperty GlowBrushProperty = DependencyProperty.Register("GlowBrush", typeof (SolidColorBrush), typeof (ParagonWindow), new PropertyMetadata(null));
-        public static readonly DependencyProperty GlowEnabledProperty = DependencyProperty.Register("GlowEnabled", typeof (bool), typeof (ParagonWindow), new PropertyMetadata(true, OnGlowEnabledChanged));
+        public static readonly DependencyProperty InactiveGlowBrushProperty = DependencyProperty.Register("InactiveGlowBrush", typeof(SolidColorBrush), typeof(ParagonWindow), new PropertyMetadata(null));
+        public static readonly DependencyProperty GlowEnabledProperty = DependencyProperty.Register("GlowEnabled", typeof(bool), typeof(ParagonWindow), new PropertyMetadata(true, OnGlowEnabledChanged));
         public static readonly DependencyProperty TitlebarHeightProperty = DependencyProperty.Register("TitlebarHeight", typeof (double), typeof (ParagonWindow), new PropertyMetadata(25.0d));
         public static readonly DependencyProperty TitlebarFontSizeProperty = DependencyProperty.Register("TitlebarFontSize", typeof (double), typeof (ParagonWindow), new PropertyMetadata(14.0d));
         public static readonly DependencyProperty MinMaxButtonsVisibleProperty = DependencyProperty.Register("MinMaxButtonsVisible", typeof (bool), typeof (ParagonWindow), new PropertyMetadata(true));
@@ -28,8 +29,8 @@ namespace Paragon.Runtime.WPF
 
         static ParagonWindow()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof (ParagonWindow), new FrameworkPropertyMetadata(typeof (ParagonWindow)));
-            BorderThicknessProperty.OverrideMetadata(typeof(ParagonWindow), new FrameworkPropertyMetadata(new PropertyChangedCallback(OnBorderThicknessChanged)));
+            DefaultStyleKeyProperty.OverrideMetadata(
+                typeof (ParagonWindow), new FrameworkPropertyMetadata(typeof (ParagonWindow)));
         }
 
         public ParagonWindow()
@@ -41,6 +42,12 @@ namespace Paragon.Runtime.WPF
         {
             get { return (SolidColorBrush) GetValue(GlowBrushProperty); }
             set { SetValue(GlowBrushProperty, value); }
+        }
+
+        public SolidColorBrush InactiveGlowBrush
+        {
+            get { return (SolidColorBrush)GetValue(InactiveGlowBrushProperty); }
+            set { SetValue(InactiveGlowBrushProperty, value); }
         }
 
         public bool GlowEnabled
@@ -164,9 +171,9 @@ namespace Paragon.Runtime.WPF
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public void Flash(bool clear = false, bool autoclear = false, int maxFlashes = 5, int timeOut = 0)
+        public void Flash(bool clear = false, bool autoclear = false)
         {
-            Win32Api.FlashWindow(_hwnd.Value, clear, autoclear, maxFlashes, timeOut);
+            Win32Api.FlashWindow(_hwnd.Value, clear, autoclear);
         }
 
         private void CloseClick(object sender, RoutedEventArgs e)
@@ -235,16 +242,6 @@ namespace Paragon.Runtime.WPF
                     _glowBehavior.Detach();
                     _glowBehavior = null;
                 }
-            }
-        }
-
-        private static void OnBorderThicknessChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
-        {
-            var window = (ParagonWindow)dependencyObject;
-            // If border thickness changed, when Glow is disabled let the window chrome handle the resizing
-            if (!window.GlowEnabled && window.CustomChromeEnabled)
-            {
-                WindowChrome.GetWindowChrome(window).ResizeBorderThickness = (Thickness)e.NewValue;
             }
         }
     }

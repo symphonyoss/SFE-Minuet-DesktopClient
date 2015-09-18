@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Windows;
 
 [assembly: AssemblyTitle("Paragon.Runtime")]
@@ -7,3 +8,5 @@ using System.Windows;
 [assembly: InternalsVisibleTo("Paragon.Runtime.Tests")]
 [assembly: InternalsVisibleTo("Paragon.Plugin.TestFramework")]
 [assembly: ThemeInfo(ResourceDictionaryLocation.None, ResourceDictionaryLocation.SourceAssembly)]
+[assembly: AssemblyVersion("3.3.0.0")]
+[assembly: AssemblyFileVersion("3.3.0.0")]

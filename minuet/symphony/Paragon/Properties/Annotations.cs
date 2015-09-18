@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 #pragma warning disable 1591
 // ReSharper disable UnusedMember.Global
@@ -26,6 +27,7 @@ namespace Paragon.Annotations
     AttributeTargets.Method | AttributeTargets.Parameter |
     AttributeTargets.Property | AttributeTargets.Delegate |
     AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class CanBeNullAttribute : Attribute { }
 
   /// <summary>
@@ -40,6 +42,7 @@ namespace Paragon.Annotations
     AttributeTargets.Method | AttributeTargets.Parameter |
     AttributeTargets.Property | AttributeTargets.Delegate |
     AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class NotNullAttribute : Attribute { }
 
   /// <summary>
@@ -57,6 +60,7 @@ namespace Paragon.Annotations
   [AttributeUsage(
     AttributeTargets.Constructor | AttributeTargets.Method,
     AllowMultiple = false, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class StringFormatMethodAttribute : Attribute
   {
     /// <param name="formatParameterName">
@@ -82,6 +86,7 @@ namespace Paragon.Annotations
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class InvokerParameterNameAttribute : Attribute { }
 
   /// <summary>
@@ -121,6 +126,7 @@ namespace Paragon.Annotations
   /// </list>
   /// </example>
   [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class NotifyPropertyChangedInvocatorAttribute : Attribute
   {
     public NotifyPropertyChangedInvocatorAttribute() { }
@@ -175,6 +181,7 @@ namespace Paragon.Annotations
   /// </code></item>
   /// </list></examples>
   [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class ContractAnnotationAttribute : Attribute
   {
     public ContractAnnotationAttribute([NotNull] string contract)
@@ -200,6 +207,7 @@ namespace Paragon.Annotations
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class LocalizationRequiredAttribute : Attribute
   {
     public LocalizationRequiredAttribute() : this(true) { }
@@ -233,6 +241,7 @@ namespace Paragon.Annotations
   [AttributeUsage(
     AttributeTargets.Interface | AttributeTargets.Class |
     AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class CannotApplyEqualityOperatorAttribute : Attribute { }
 
   /// <summary>
@@ -246,6 +255,7 @@ namespace Paragon.Annotations
   /// public class MyComponent : IComponent { }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   [BaseTypeRequired(typeof(Attribute))]
   public sealed class BaseTypeRequiredAttribute : Attribute
   {
@@ -263,6 +273,7 @@ namespace Paragon.Annotations
   /// will not be marked as unused (as well as by other usage inspections)
   /// </summary>
   [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class UsedImplicitlyAttribute : Attribute
   {
     public UsedImplicitlyAttribute()
@@ -291,6 +302,7 @@ namespace Paragon.Annotations
   /// (as well as by other usage inspections)
   /// </summary>
   [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class MeansImplicitUseAttribute : Attribute
   {
     public MeansImplicitUseAttribute() 
@@ -314,6 +326,7 @@ namespace Paragon.Annotations
   }
   
   [Flags]
+  [ExcludeFromCodeCoverage]
   public enum ImplicitUseKindFlags
   {
     Default = Access | Assign | InstantiatedWithFixedConstructorSignature,
@@ -336,6 +349,7 @@ namespace Paragon.Annotations
   /// or <see cref="UsedImplicitlyAttribute"/>
   /// </summary>
   [Flags]
+  [ExcludeFromCodeCoverage]
   public enum ImplicitUseTargetFlags
   {
     Default = Itself,
@@ -351,6 +365,7 @@ namespace Paragon.Annotations
   /// which should not be removed and so is treated as used
   /// </summary>
   [MeansImplicitUse]
+  [ExcludeFromCodeCoverage]
   public sealed class PublicAPIAttribute : Attribute
   {
     public PublicAPIAttribute() { }
@@ -370,6 +385,7 @@ namespace Paragon.Annotations
   /// while the method is executed
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class InstantHandleAttribute : Attribute { }
 
   /// <summary>
@@ -384,6 +400,7 @@ namespace Paragon.Annotations
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Method, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class PureAttribute : Attribute { }
 
   /// <summary>
@@ -392,6 +409,7 @@ namespace Paragon.Annotations
   /// starting from web root (~)
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
+  [ExcludeFromCodeCoverage]
   public class PathReferenceAttribute : Attribute
   {
     public PathReferenceAttribute() { }
@@ -406,36 +424,42 @@ namespace Paragon.Annotations
   // ASP.NET MVC attributes
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcAreaMasterLocationFormatAttribute : Attribute
   {
     public AspMvcAreaMasterLocationFormatAttribute(string format) { }
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcAreaPartialViewLocationFormatAttribute : Attribute
   {
     public AspMvcAreaPartialViewLocationFormatAttribute(string format) { }
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcAreaViewLocationFormatAttribute : Attribute
   {
     public AspMvcAreaViewLocationFormatAttribute(string format) { }
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcMasterLocationFormatAttribute : Attribute
   {
     public AspMvcMasterLocationFormatAttribute(string format) { }
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcPartialViewLocationFormatAttribute : Attribute
   {
     public AspMvcPartialViewLocationFormatAttribute(string format) { }
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcViewLocationFormatAttribute : Attribute
   {
     public AspMvcViewLocationFormatAttribute(string format) { }
@@ -448,6 +472,7 @@ namespace Paragon.Annotations
   /// <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcActionAttribute : Attribute
   {
     public AspMvcActionAttribute() { }
@@ -465,6 +490,7 @@ namespace Paragon.Annotations
   /// <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcAreaAttribute : PathReferenceAttribute
   {
     public AspMvcAreaAttribute() { }
@@ -484,6 +510,7 @@ namespace Paragon.Annotations
   /// <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String, String)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcControllerAttribute : Attribute
   {
     public AspMvcControllerAttribute() { }
@@ -501,6 +528,7 @@ namespace Paragon.Annotations
   /// <c>System.Web.Mvc.Controller.View(String, String)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcMasterAttribute : Attribute { }
 
   /// <summary>
@@ -509,6 +537,7 @@ namespace Paragon.Annotations
   /// <c>System.Web.Mvc.Controller.View(String, Object)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcModelTypeAttribute : Attribute { }
 
   /// <summary>
@@ -519,6 +548,7 @@ namespace Paragon.Annotations
   /// <c>System.Web.Mvc.Html.RenderPartialExtensions.RenderPartial(HtmlHelper, String)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcPartialViewAttribute : PathReferenceAttribute { }
 
   /// <summary>
@@ -526,6 +556,7 @@ namespace Paragon.Annotations
   /// for MVC views within a class or a method.
   /// </summary>
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcSupressViewErrorAttribute : Attribute { }
 
   /// <summary>
@@ -534,6 +565,7 @@ namespace Paragon.Annotations
   /// <c>System.Web.Mvc.Html.DisplayExtensions.DisplayForModel(HtmlHelper, String)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcDisplayTemplateAttribute : Attribute { }
 
   /// <summary>
@@ -542,6 +574,7 @@ namespace Paragon.Annotations
   /// <c>System.Web.Mvc.Html.EditorExtensions.EditorForModel(HtmlHelper, String)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcEditorTemplateAttribute : Attribute { }
 
   /// <summary>
@@ -550,6 +583,7 @@ namespace Paragon.Annotations
   /// <c>System.ComponentModel.DataAnnotations.UIHintAttribute(System.String)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcTemplateAttribute : Attribute { }
 
   /// <summary>
@@ -559,6 +593,7 @@ namespace Paragon.Annotations
   /// <c>System.Web.Mvc.Controller.View(Object)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcViewAttribute : PathReferenceAttribute { }
 
   /// <summary>
@@ -573,11 +608,13 @@ namespace Paragon.Annotations
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property)]
+  [ExcludeFromCodeCoverage]
   public sealed class AspMvcActionSelectorAttribute : Attribute { }
 
   [AttributeUsage(
     AttributeTargets.Parameter | AttributeTargets.Property |
     AttributeTargets.Field, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class HtmlElementAttributesAttribute : Attribute
   {
     public HtmlElementAttributesAttribute() { }
@@ -592,6 +629,7 @@ namespace Paragon.Annotations
   [AttributeUsage(
     AttributeTargets.Parameter | AttributeTargets.Field |
     AttributeTargets.Property, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class HtmlAttributeValueAttribute : Attribute
   {
     public HtmlAttributeValueAttribute([NotNull] string name)
@@ -610,5 +648,6 @@ namespace Paragon.Annotations
   /// <c>System.Web.WebPages.WebPageBase.RenderSection(String)</c>
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method, Inherited = true)]
+  [ExcludeFromCodeCoverage]
   public sealed class RazorSectionAttribute : Attribute { }
 }

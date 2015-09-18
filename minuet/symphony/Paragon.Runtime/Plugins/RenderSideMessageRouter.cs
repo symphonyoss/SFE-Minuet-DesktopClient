@@ -559,37 +559,6 @@ namespace Paragon.Runtime.Plugins
             }
         }
 
-        private void AddRenderSidePlugins(IApplicationPackage package, List<IPluginInfo> renderSidePlugins, IPluginContext pluginContext)
-        {
-            if (renderSidePlugins != null && pluginContext != null )
-            {
-                foreach (var pluginInfo in renderSidePlugins)
-                {
-                    try
-                    {
-                        if (pluginInfo.RunInRenderer &&
-                            !pluginInfo.Assembly.EndsWith(".js", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            Logger.Info("Creating render-side plugin : " + pluginInfo.Name);
-                            var assembly = Assembly.Load(pluginInfo.Assembly);
-                            if (assembly != null)
-                            {
-                                var plugin = pluginContext.PluginManager.AddApplicationPlugin(pluginInfo.Name, assembly) as IParagonPlugin;
-                                if (plugin != null)
-                                {
-                                    plugin.Initialize(null);
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error("Could not create render-side plugin : " + pluginInfo.Name, ex); 
-                    }
-                }
-            }
-        }
-
         private void InitializeContext(CefBrowser browser, CefFrame frame, CefV8Context context)
         {
             if (_pluginContext == null)

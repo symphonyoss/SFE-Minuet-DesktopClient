@@ -1,4 +1,7 @@
 ﻿using System.Reflection;
+using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("Paragon.Plugins.ScreenCapture")]
 [assembly: AssemblyDescription("Screen capture plugin")]
+[assembly: AssemblyVersion("3.3.0.0")]
+[assembly: AssemblyFileVersion("3.3.0.0")]

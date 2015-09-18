@@ -610,5 +610,20 @@ namespace Xilium.CefGlue
         {
             cef_browser_host_t.drag_source_system_drag_ended(_self);
         }
+
+        /// <summary>
+        /// Print to PDF
+        /// </summary>
+        public void PrintToPDF(string path, CefPdfPrintSettings settings, CefPdfPrintCallback callback)
+        {
+            var n_settings = settings.ToNative();
+            var n_callback = callback.ToNative();
+            fixed (char* path_str = path)
+            {
+                var n_path = new cef_string_t(path_str, path.Length);
+                cef_browser_host_t.print_to_pdf(_self, &n_path, n_settings, callback.ToNative());
+            }
+            CefPdfPrintSettings.Free(n_settings);
+        }
     }
 }

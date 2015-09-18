@@ -90,7 +90,12 @@ namespace Paragon.Runtime.WPF
             var ownerWindow = HwndSource.FromHwnd(owner);
             if (ownerWindow != null)
             {
-                hostWindow.Owner = ownerWindow.RootVisual as Window;
+                var ow = ownerWindow.RootVisual as Window;
+                if( ow != null )
+                {
+                    hostWindow.Owner = ow;
+                    hostWindow.Style = ow.Style;
+                }
             }
             else
             {

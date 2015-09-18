@@ -92,7 +92,8 @@ namespace Xilium.CefGlue
         public DateTime GetFileLastModified()
         {
             var time = cef_zip_reader_t.get_file_last_modified(_self);
-            return new DateTime(1970, 1, 1).AddSeconds(time);
+
+            return time.ToDateTime();
         }
 
         /// <summary>

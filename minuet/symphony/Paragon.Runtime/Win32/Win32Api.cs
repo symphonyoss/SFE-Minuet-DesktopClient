@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Text;
-using System.Windows;
 
 namespace Paragon.Runtime.Win32
 {
@@ -27,59 +26,21 @@ namespace Paragon.Runtime.Win32
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public static void FlashWindow(IntPtr hwnd, bool clear, bool autoclear = false, int maxFlashes = 5, int timeOut = 0)
+        public static void FlashWindow(IntPtr hwnd, bool clear, bool autoclear = false, int maxFlashes = 5)
         {
             var flags = clear ? FlashWindowFlags.FLASHW_STOP : FlashWindowFlags.FLASHW_ALL;
             flags |= autoclear ? FlashWindowFlags.FLASHW_TIMERNOFG : FlashWindowFlags.FLASHW_TIMER;
-
-            uint flashCount;
-            if (maxFlashes < 0)
-                flashCount = UInt32.MaxValue;
-            else
-                flashCount = (uint)maxFlashes;
 
             var info = new FLASHWINFO
             {
                 hwnd = hwnd,
                 dwFlags = (uint) flags,
-                uCount = (uint) flashCount,
-                dwTimeout = (uint) timeOut
+                uCount = (uint) maxFlashes,
+                dwTimeout = 0
             };
 
             info.cbSize = Convert.ToUInt32(Marshal.SizeOf(info));
             NativeMethods.FlashWindowEx(ref info);
-        }
-
-        public static Point GetCursorPosition()
-        {
-            POINT lpPoint;
-            NativeMethods.GetCursorPos(out lpPoint);
-            return lpPoint;
-        }
-
-        public static ResizeDirection GetResizeDirection(IntPtr ptr)
-        {
-            switch ((WMSZ) ptr)
-            {
-                case WMSZ.TOPLEFT:
-                    return ResizeDirection.Top | ResizeDirection.Left;
-                case WMSZ.TOP:
-                    return ResizeDirection.Top;
-                case WMSZ.TOPRIGHT:
-                    return ResizeDirection.Top | ResizeDirection.Right;
-                case WMSZ.RIGHT:
-                    return ResizeDirection.Right;
-                case WMSZ.BOTTOMRIGHT:
-                    return ResizeDirection.Bottom | ResizeDirection.Right;
-                case WMSZ.BOTTOM:
-                    return ResizeDirection.Bottom;
-                case WMSZ.BOTTOMLEFT:
-                    return ResizeDirection.Bottom | ResizeDirection.Left;
-                case WMSZ.LEFT:
-                    return ResizeDirection.Left;
-                default:
-                    return ResizeDirection.None;
-            }
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
@@ -139,26 +100,6 @@ namespace Paragon.Runtime.Win32
             }
         }
 
-        public static IEnumerable<IntPtr> GetProcessWindows(params int[] pids)
-        {
-            var result = new List<IntPtr>();
-
-            var callback = new EnumThreadDelegate((hwnd, lParam) =>
-            {
-                uint processId;
-                NativeMethods.GetWindowThreadProcessId(hwnd, out processId);
-                if (pids.Contains((int) processId))
-                {
-                    result.Add(hwnd);
-                }
-
-                return true;
-            });
-
-            NativeMethods.EnumChildWindows(IntPtr.Zero, callback, IntPtr.Zero);
-            return result;
-        }
-
         public static uint GetWindowProcessId(IntPtr hwnd)
         {
             uint processId;
@@ -170,15 +111,6 @@ namespace Paragon.Runtime.Win32
         {
             uint processId;
             return NativeMethods.GetWindowThreadProcessId(hwnd, out processId);
-        }
-
-        [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        public static WindowVisibility GetWindowVisibility(IntPtr hwnd)
-        {
-            var placement = new WINDOWPLACEMENT();
-            placement.length = Marshal.SizeOf(placement);
-            NativeMethods.GetWindowPlacement(hwnd, ref placement);
-            return placement.showCmd;
         }
 
         public static IEnumerable<IntPtr> GetWindowsByClass(string classname)
@@ -194,11 +126,6 @@ namespace Paragon.Runtime.Win32
             } while (target != IntPtr.Zero);
 
             return results;
-        }
-
-        public static bool MoveWindow(IntPtr hwnd, int x, int y, int width, int height, bool repaint)
-        {
-            return NativeMethods.MoveWindow(hwnd, x, y, width, height, repaint);
         }
 
         public static void ActivateWindowNoFocus(IntPtr hWnd)
@@ -262,11 +189,6 @@ namespace Paragon.Runtime.Win32
         public static IntPtr GetToplevelParent(IntPtr hWnd)
         {
             return NativeMethods.GetAncestor(hWnd, GAF.ROOT);
-        }
-
-        public static IntPtr GetParent(IntPtr hWnd)
-        {
-            return NativeMethods.GetAncestor(hWnd, GAF.PARENT);
         }
 
         public static void SetText(IntPtr hWnd, string text)

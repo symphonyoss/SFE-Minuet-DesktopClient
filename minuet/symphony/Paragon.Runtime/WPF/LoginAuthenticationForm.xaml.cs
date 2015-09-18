@@ -16,7 +16,7 @@ namespace Paragon.Runtime.WPF
     /// <summary>
     /// Interaction logic for LoginAuthenticationForm.xaml
     /// </summary>
-    public partial class LoginAuthenticationForm : Window
+    public partial class LoginAuthenticationForm
     {
         public LoginAuthenticationForm(String host)
         {
@@ -45,7 +45,5 @@ namespace Paragon.Runtime.WPF
             this.DialogResult = false;
             this.Close();
         }
-
-
     }
 }

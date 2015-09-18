@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Paragon.Runtime.Win32;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
-using System.Windows;
-using Xilium.CefGlue;
 
 namespace Paragon.Runtime.WPF
 {
@@ -22,7 +17,7 @@ namespace Paragon.Runtime.WPF
         /// <summary>
         /// The window handle of the browser
         /// </summary>
-        protected abstract IntPtr BrowserWindowHandle { get; }
+        public abstract IntPtr BrowserWindowHandle { get; }
 
         public IntPtr ParentHandle
         {
@@ -98,11 +93,6 @@ namespace Paragon.Runtime.WPF
             // Ignore size changes when form are minimized.
             if( BrowserWindowHandle != IntPtr.Zero)
                 Win32Api.SetWindowPosition(BrowserWindowHandle, IntPtr.Zero, 0, 0, width, height, SWP.NOZORDER | SWP.NOACTIVATE);
-        }
-
-        protected override void OnWindowPositionChanged(Rect rcBoundingBox)
-        {
-            base.OnWindowPositionChanged(rcBoundingBox);
         }
 
         protected void DispatchIfRequired(Action a, bool isAsync = false)

@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using Paragon.Runtime;
 using Xilium.CefGlue;
+using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace Paragon.Renderer
 {
@@ -20,12 +22,13 @@ namespace Paragon.Renderer
 
             try
             {
-                CefRuntime.Load();
-
-                using (new WorkingSetMonitor(120, 180))
+                if (!ExitWhenParentProcessExits())
                 {
-                    CefRuntime.ExecuteProcess(new CefMainArgs(args), new CefRenderApplication(), IntPtr.Zero);
+                    logger.Warn("Unable to monitor parent process for exit");
                 }
+
+                CefRuntime.Load();
+                CefRuntime.ExecuteProcess(new CefMainArgs(args), new CefRenderApplication(), IntPtr.Zero);
             }
             catch (Exception ex)
             {
@@ -61,5 +64,53 @@ namespace Paragon.Renderer
 
             ParagonLogManager.ConfigureLogging(logDir, LogContext.Renderer, 5);
         }
+
+        private static bool ExitWhenParentProcessExits()
+        {
+            int parentProcessPid;
+
+            try
+            {
+                var currentProc = Process.GetCurrentProcess();
+                var processInfo = new PROCESS_BASIC_INFORMATION();
+                uint bytesWritten;
+
+                NtQueryInformationProcess(currentProc.Handle, 0, ref processInfo,
+                    (uint)Marshal.SizeOf(processInfo), out bytesWritten);
+
+                parentProcessPid = processInfo.ParentPid;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            var thread = new Thread(() =>
+            {
+                var parentProc = Process.GetProcessById(parentProcessPid);
+                parentProc.WaitForExit(int.MaxValue);
+                Process.GetCurrentProcess().Kill();
+            }) { IsBackground = true };
+
+            thread.Start();
+            return true;
+        }
+
+        [DllImport("ntdll.dll")]
+        private static extern int NtQueryInformationProcess(IntPtr hProcess, int processInformationClass,
+            ref PROCESS_BASIC_INFORMATION processBasicInformation, uint processInformationLength, out uint returnLength);
+
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct PROCESS_BASIC_INFORMATION
+        {
+            public int ExitStatus;
+            public int PebBaseAddress;
+            public int AffinityMask;
+            public int BasePriority;
+            public int Pid;
+            public int ParentPid;
+        }
+
     }
 }

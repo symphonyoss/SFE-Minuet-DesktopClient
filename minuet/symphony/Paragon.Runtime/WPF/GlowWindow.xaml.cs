@@ -35,6 +35,9 @@ namespace Paragon.Runtime.WPF
             var b = new Binding("GlowBrush") {Source = owner};
             glow.SetBinding(Glow.GlowBrushProperty, b);
 
+            var b2 = new Binding("InactiveGlowBrush") { Source = owner };
+            glow.SetBinding(Glow.InactiveGlowBrushProperty, b);
+
             switch (direction)
             {
                 case GlowDirection.Left:

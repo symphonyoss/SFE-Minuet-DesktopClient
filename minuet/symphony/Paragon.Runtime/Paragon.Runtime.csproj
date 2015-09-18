@@ -20,7 +20,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\bin\paragon\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
@@ -54,7 +54,6 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Threading">
@@ -89,7 +88,6 @@
     <Compile Include="CefHandlers\CefWebContextMenuHandler.cs" />
     <Compile Include="CefHandlers\CefWebDisplayHandler.cs" />
     <Compile Include="CefHandlers\CefWebDownloadHandler.cs" />
-    <Compile Include="CefHandlers\CefWebDragHandler.cs" />
     <Compile Include="CefHandlers\CefWebJSDialogHandler.cs" />
     <Compile Include="CefHandlers\CefWebKeyboardHandler.cs" />
     <Compile Include="CefHandlers\CefWebLifeSpanHandler.cs" />
@@ -112,7 +110,6 @@
     <Compile Include="EventArgs\RenderProcessTerminatedEventArgs.cs" />
     <Compile Include="EventArgs\ResourceLoadEventArgs.cs" />
     <Compile Include="EventArgs\ShowPopupEventArgs.cs" />
-    <Compile Include="EventArgs\TakeFocusEventArgs.cs" />
     <Compile Include="EventArgs\TitleChangedEventArgs.cs" />
     <Compile Include="EventArgs\UnloadDialogEventArgs.cs" />
     <Compile Include="Desktop\AppInfo.cs" />
@@ -142,12 +139,11 @@
     <Compile Include="Kernel\Windowing\SystemMenuOptions.cs" />
     <Compile Include="PackagedApplication\ApplicationManifest.cs" />
     <Compile Include="PackagedApplication\ApplicationPackage.cs" />
-    <Compile Include="PackagedApplication\ParagonPackageVerifier.cs" />
+    <Compile Include="PackagedApplication\PackageExtensions.cs" />
     <Compile Include="ParagonJsonSerializer.cs" />
     <Compile Include="PackagedApplication\ApplicationPackageResolver.cs" />
     <Compile Include="ParagonLogManager.cs" />
     <Compile Include="ParagonTraceSources.cs" />
-    <Compile Include="Desktop\WindowInfo.cs" />
     <Compile Include="Plugins\IBrowserCallResponseHandler.cs" />
     <Compile Include="PackagedApplication\DirectoryPackage.cs" />
     <Compile Include="PackagedApplication\FilePackagePart.cs" />
@@ -231,7 +227,6 @@
     <Compile Include="Win32\Enums\MF.cs" />
     <Compile Include="Win32\Enums\ProcessAccessFlags.cs" />
     <Compile Include="Win32\Enums\PROCESSINFOCLASS.cs" />
-    <Compile Include="Win32\Enums\ResizeDirection.cs" />
     <Compile Include="Win32\Enums\SizeChangeType.cs" />
     <Compile Include="Win32\Enums\SnapshotFlags.cs" />
     <Compile Include="Win32\Enums\SWC.cs" />
@@ -270,7 +265,6 @@
     <Compile Include="WinForms\ContainerWindowMoveListener.cs" />
     <Compile Include="WinForms\WidgetWindowZOrderHandler.cs" />
     <Compile Include="WinForms\NativeApplicationWindow.cs" />
-    <Compile Include="WorkingSetMonitor.cs" />
     <Compile Include="WPF\AutoSaveWindowPositionBehavior.cs" />
     <Compile Include="WPF\BrowserHwndHost.cs" />
     <Compile Include="WPF\CefWebBrowser.cs" />
@@ -287,17 +281,14 @@
       <DependentUpon>JavaScriptDialogWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="WPF\Lazy.cs" />
-    <Compile Include="WPF\ParagonWindow.cs" />
-    <Compile Include="WPF\ProgressRing.cs" />
-    <Compile Include="WPF\SourceStringVisitor.cs" />
     <Compile Include="WPF\LoginAuthenticationForm.xaml.cs">
       <DependentUpon>LoginAuthenticationForm.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WPF\ParagonWindow.cs" />
+    <Compile Include="WPF\ProgressRing.cs" />
     <Compile Include="WPF\WindowButton.cs" />
     <Compile Include="WPF\WindowCommands.cs" />
     <Compile Include="WPF\WindowInteropHelperExtensions.cs" />
-    <Compile Include="WPF\WindowSnapBehavior.cs" />
-    <Compile Include="WPF\WindowSnapManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CefGlue\CefGlue.csproj">
@@ -339,8 +330,8 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="WPF\LoginAuthenticationForm.xaml">
-      <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>

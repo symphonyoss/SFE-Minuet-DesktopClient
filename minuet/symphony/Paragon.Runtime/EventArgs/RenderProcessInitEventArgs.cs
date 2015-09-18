@@ -30,13 +30,6 @@ namespace Paragon.Runtime
                     return _initArgs;
                 }
             }
-            private set
-            {
-                lock (_lock)
-                {
-                    _initArgs = value;
-                }
-            }
         }
 
         public void Dispose()

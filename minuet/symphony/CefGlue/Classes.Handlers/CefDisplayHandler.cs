@@ -130,5 +130,27 @@ namespace Xilium.CefGlue
             return false;
         }
 
+        /// <summary>
+        /// Called when the page icon changes.
+        /// </summary>
+        // protected abstract void OnFaviconURLChange(cef_browser_t* browser, cef_string_list* icon_urls);
+
+        private void on_fullscreen_mode_change(cef_display_handler_t* self, cef_browser_t* browser, int fullscreen)
+        {
+            CheckSelf(self);
+            var mBrowser = CefBrowser.FromNative(browser);
+            OnFullscreenModeChange(mBrowser, fullscreen != 0);
+        }
+
+        /// <summary>
+        /// Called when web content in the page has toggled fullscreen mode. If
+        /// |fullscreen| is true the content will automatically be sized to fill the
+        /// browser content area. If |fullscreen| is false the content will
+        /// automatically return to its original size and position. The client is
+        /// responsible for resizing the browser if desired.
+        /// </summary>
+        protected virtual void OnFullscreenModeChange(CefBrowser browser, bool fullscreen)
+        {
+        }
     }
 }

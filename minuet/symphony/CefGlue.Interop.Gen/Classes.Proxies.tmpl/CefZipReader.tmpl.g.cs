@@ -79,7 +79,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Returns the last modified timestamp for the file.
         /// </summary>
-        public int GetFileLastModified()
+        public cef_time_t GetFileLastModified()
         {
             throw new NotImplementedException(); // TODO: CefZipReader.GetFileLastModified
         }

@@ -3,21 +3,17 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Security.Permissions;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Interop;
 using Paragon.Plugins;
 using Paragon.Runtime.Plugins;
 using Paragon.Runtime.Win32;
 using Paragon.Runtime.WinForms;
 using Xilium.CefGlue;
-using Control = System.Windows.Forms.Control;
-using KeyEventArgs = System.Windows.Forms.KeyEventArgs;
 using System.Linq;
 using Paragon.Runtime.PackagedApplication;
-using Paragon.Runtime.Properties;
 using System.Threading;
+using System.Windows.Interop;
 
 namespace Paragon.Runtime.WPF
 {
@@ -45,6 +41,7 @@ namespace Paragon.Runtime.WPF
 
         public event EventHandler<BrowserCreateEventArgs> BeforeBrowserCreate;
         public event EventHandler<ContextMenuEventArgs> BeforeContextMenu;
+        public event EventHandler<BeginDownloadEventArgs> BeforeDownload;
         public event EventHandler<BeforePopupEventArgs> BeforePopup;
         public event EventHandler<ResourceLoadEventArgs> BeforeResourceLoad;
         public event EventHandler<UnloadDialogEventArgs> BeforeUnloadDialog;
@@ -58,7 +55,6 @@ namespace Paragon.Runtime.WPF
         public event EventHandler<RenderProcessTerminatedEventArgs> RenderProcessTerminated;
         public event EventHandler<ShowPopupEventArgs> ShowPopup;
         public event EventHandler<TitleChangedEventArgs> TitleChanged;
-        public event EventHandler<DragEnterEventArgs> WebDragEnter;
         public event EventHandler<ProtocolExecutionEventArgs> ProtocolExecution;
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
@@ -81,13 +77,15 @@ namespace Paragon.Runtime.WPF
             _router = router;
         }
 
-        protected override IntPtr BrowserWindowHandle
+        public override IntPtr BrowserWindowHandle
         {
             get
             {
                 return _browserWindowHandle;
             }
         }
+
+        public int RenderProcessId{ get; private set; }
 
         private bool IsPopup
         {
@@ -106,7 +104,7 @@ namespace Paragon.Runtime.WPF
         {
             get { return _name; }
         }
-
+        
         public int Identifier
         {
             get { return _browser != null ? _browser.Identifier : -1; }
@@ -284,7 +282,7 @@ namespace Paragon.Runtime.WPF
                             info.SetAsChild(ParentHandle, new CefRectangle(rect.Left, rect.Top, rect.Width, rect.Height));
                         }
 
-                        Logger.Info("OnHandleCreated - Creating a browser with url {0}", _currentUrl);
+                        Logger.Info(string.Format("OnHandleCreated - Creating a browser with url {0}", _currentUrl));
                         CefBrowserHost.CreateBrowser(info, _client, settings, _currentUrl);
                     }
                 }
@@ -309,42 +307,6 @@ namespace Paragon.Runtime.WPF
             }
         }
 
-        //satisfy the CEF test suite
-        public string GetSource(string frameName)
-        {
-            if (_browser != null)
-            {
-                var frame = _browser.GetFrame(frameName);
-                if (frame != null)
-                {
-                    var done = new ManualResetEvent(false);
-                    SourceStringVisitor visitor = new SourceStringVisitor(done);
-                    frame.GetSource(visitor);
-                    done.WaitOne();
-                    return visitor.Info;
-                }
-            }
-            return "Not able to retrieve source.";
-        }
-
-        //satisfy the CEF test suite
-        public string GetText(string frameName)
-        {
-            if (_browser != null)
-            {
-                var frame = _browser.GetFrame(frameName);
-                if (frame != null)
-                {
-                    var done = new ManualResetEvent(false);
-                    SourceStringVisitor visitor = new SourceStringVisitor(done);
-                    frame.GetText(visitor);
-                    done.WaitOne();
-                    return visitor.Info;
-                }
-            }
-            return "Not able to retrieve text.";
-        }
-
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         protected override void Dispose(bool disposing)
         {
@@ -363,15 +325,16 @@ namespace Paragon.Runtime.WPF
                     _containerWindowMoveListener.Dispose();
                     _containerWindowMoveListener = null;
                 }
-                if (_router != null)
-                {
-                    _router.Dispose();
-                    _router = null;
-                }
                 if (_client != null)
                 {
                     _client.Dispose();
                     _client = null;
+                }
+                if (_router != null)
+                {
+                    // Router should not be disposed here since it is shared by all cefwebbrowsers
+                    //_router.Dispose();
+                    _router = null;
                 }
                 if (_browser != null)
                 {
@@ -409,6 +372,11 @@ namespace Paragon.Runtime.WPF
             }
         }
 
+        public void OnBeforeDownload(BeginDownloadEventArgs args)
+        {
+            BeforeDownload.Raise(this, args);
+        }
+
         void ICefWebBrowserInternal.OnBeforePopup(BeforePopupEventArgs e)
         {
             try
@@ -430,8 +398,7 @@ namespace Paragon.Runtime.WPF
 
                     if (!e.Cancel && e.NeedCustomPopupWindow)
                     {
-                        var name = string.IsNullOrEmpty(e.TargetFrameName)
-                            ? Guid.NewGuid().ToString() : e.TargetFrameName;
+                        var name = e.TargetFrameName;
                         
                         // The following code must be executed on the UI thread of the browser process
                         DispatchIfRequired(() => 
@@ -634,11 +601,6 @@ namespace Paragon.Runtime.WPF
             }
         }
 
-        void ICefWebBrowserInternal.OnDragEnter(DragEnterEventArgs args)
-        {
-            InvokeHandler(WebDragEnter, args);
-        }
-
         void ICefWebBrowserInternal.OnJSDialog(JsDialogEventArgs ea)
         {
             // Raised on UI thread. Invoke is needed if multi-threaded-message-loop is used.
@@ -791,7 +753,13 @@ namespace Paragon.Runtime.WPF
 
         bool ICefWebBrowserInternal.OnProcessMessageReceived(CefBrowser browser, CefProcessMessage message)
         {
-            return _router.ProcessCefMessage(browser, message);
+            if (CefWebRenderProcessHandler.RENDER_PROC_ID_MESSAGE.Equals(message.Name, StringComparison.CurrentCultureIgnoreCase))
+            {
+                RenderProcessId = message.Arguments.GetInt(0);
+            }
+            else if(_router != null)
+                return _router.ProcessCefMessage(browser, message);
+            return false;
         }
 
         void ICefWebBrowserInternal.OnRenderProcessTerminated(RenderProcessTerminatedEventArgs e)
@@ -835,6 +803,33 @@ namespace Paragon.Runtime.WPF
         {
             var scheme = new Uri(request.Url).Scheme;
             return !string.IsNullOrEmpty(scheme) && !CefBrowserApplication.AllowedProtocols.Contains(scheme);
+        }
+
+        bool ICefWebBrowserInternal.OnGetAuthCredentials(CefBrowser browser, CefFrame frame, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback)
+        {
+            bool retVal = false;
+            this.DispatchIfRequired(() =>
+            {
+                try
+                {
+                    LoginAuthenticationForm authForm = new LoginAuthenticationForm(host);
+                    WindowInteropHelper wih = new WindowInteropHelper(authForm);
+                    wih.Owner = Handle;
+                    var result = authForm.ShowDialog();
+                    if (result != null && result.HasValue && result.Value)
+                    {
+                        callback.Continue(authForm.UserName, authForm.Password);
+                        retVal = true;
+                    }
+                    else
+                        callback.Cancel();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Error in GetAuthCredentials.", ex);
+                }
+            });
+            return retVal;
         }
 
         #endregion
@@ -948,13 +943,13 @@ namespace Paragon.Runtime.WPF
                     {
                         if (_browser.IsLoading)
                         {
-                            Logger.Info("Stopping the loading of {0}", _currentUrl);
+                            Logger.Info(string.Format("Stopping the loading of {0}", _currentUrl));
                             _browser.StopLoad();
                         }
                     }
                     finally
                     {
-                        Logger.Info("Loading url = {0}", _currentUrl);
+                        Logger.Info(string.Format("Loading url = {0}", _currentUrl));
                         _browser.GetMainFrame().LoadUrl(_currentUrl);
                     }
                 }
@@ -998,7 +993,7 @@ namespace Paragon.Runtime.WPF
                 Dispose(true);
             }
 
-            protected override IntPtr BrowserWindowHandle
+            public override IntPtr BrowserWindowHandle
             {
                 get
                 {

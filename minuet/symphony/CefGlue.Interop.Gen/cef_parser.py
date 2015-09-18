@@ -1724,7 +1724,6 @@ class obj_analysis:
         
         type = self.result_value[0]['result_type']
         value = self.result_value[0]['result_value']
-        
         result = {}
         if type == 'string':
             result['value'] = 'cef_string_list_t'
@@ -1745,6 +1744,13 @@ class obj_analysis:
             if self.is_const():
                 str += ' const'
             str += '*'
+            result['value'] = str
+        elif type == 'structure':
+            str = ''
+            if not value[:-1] in defined_structs:
+                str += 'struct _'
+            str += value
+	    str += '*'
             result['value'] = str
         else:
             raise Exception('Unsupported vector type: '+type)

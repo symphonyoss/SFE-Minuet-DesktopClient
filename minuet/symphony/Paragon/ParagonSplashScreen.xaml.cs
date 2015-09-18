@@ -74,7 +74,7 @@ namespace Paragon
                         }
                     }
                 }
-                catch 
+                catch
                 {
                     Logger.Warn("Could not create the splash screen icon from the specified icon in the manifest. Will use the paragon icon ");
                 }
@@ -109,7 +109,7 @@ namespace Paragon
 
         public void ShowText(string text)
         {
-            if( _statusText == null )
+            if (_statusText == null)
                 _statusText = GetTemplateChild("StatusText") as FrameworkElement;
 
             PreviousText = Text;

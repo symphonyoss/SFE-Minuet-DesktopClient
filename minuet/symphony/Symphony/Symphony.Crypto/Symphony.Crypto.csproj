@@ -37,6 +37,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\cbkbuild\ReferencedAssemblies\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Paragon.Plugins">
+      <HintPath>..\..\bin\paragon\Paragon.Plugins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -49,12 +53,6 @@
     <Compile Include="Defaults.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UnsafeNativeMethods.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Paragon.Extensibility\Paragon.Extensibility.csproj">
-      <Project>{8965d7d9-73f7-48ac-9ae4-6b22743691b5}</Project>
-      <Name>Paragon.Plugins</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -8,6 +8,10 @@ namespace Paragon.Runtime
     {
         string BrowserName { get; }
 
+        IntPtr BrowserWindowHandle { get; }
+
+        int RenderProcessId { get; }
+
         /// <summary>
         /// The identifier of the current browser. This value is valid only after the BrowserAfterCreated event is fired.
         /// </summary>
@@ -85,6 +89,8 @@ namespace Paragon.Runtime
         /// callback.
         /// </summary>
         event EventHandler<ContextMenuEventArgs> BeforeContextMenu;
+
+        event EventHandler<BeginDownloadEventArgs> BeforeDownload;
 
         /// <summary>
         /// Raised when a download's status or progress information has been updated.

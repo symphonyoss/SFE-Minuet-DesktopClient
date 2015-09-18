@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Packaging;
 using System.Linq;
 using System.Reflection;
 using System.Security.Permissions;
@@ -95,7 +96,7 @@ namespace Paragon.Runtime.Kernel.Plugins
             Logger.Debug("Launching application...");
 
             string resolvedPackageUri;
-            var package = ApplicationPackageResolver.Load(packageUri, out resolvedPackageUri);
+            var package = ApplicationPackageResolver.Load(packageUri, (p) => p, out resolvedPackageUri);
             if (package == null)
             {
                 throw new Exception("Could not resolve pacakge from " + packageUri);

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.IO.Packaging;
+using System.Security;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using Paragon.Plugins;
 using Paragon.Runtime.PackagedApplication;
@@ -11,10 +14,12 @@ namespace Paragon.Runtime.Kernel.Applications
     public class ApplicationMetadata : IApplicationMetadata
     {
         IApplicationPackage _package;
+        private ApplicationEnvironment _environment = ApplicationEnvironment.Production;
+
         public ApplicationMetadata()
         {
+            PackageSignatureVerifier = VerifyPackageSignature;
             InstanceId = Guid.NewGuid().ToString();
-            Environment = ApplicationEnvironment.Production;
             WDPort = -1;
         }
 
@@ -38,12 +43,44 @@ namespace Paragon.Runtime.Kernel.Applications
         /// </summary>
         public string WorkspaceId { get; set; }
 
+        [JsonIgnore]
+        public Func<Package,Package> PackageSignatureVerifier{ get; set; }
+
         /// <summary>
         /// Application environment.
         /// </summary>
-        public ApplicationEnvironment Environment { get; set; }
-
-        public string ApplicationFamily { get; set; }
+        public ApplicationEnvironment Environment 
+        {
+            get
+            {
+                return _environment;
+            }
+            set
+            {
+                if( value != ApplicationEnvironment.Production )
+                {
+                    try
+                    {
+#if ENFORCE_PACKAGE_SECURITY
+                        // Only if the current user has developer access, we allow non-production evironment to be set
+                        using( RegistryKey key = Registry.CurrentUser.OpenSubKey("Software\\Policies\\Goldman Sachs\\DashNative\\DevelperAccess") )
+                        {
+                            if( key.GetValue("Default").ToString().Equals("1", StringComparison.CurrentCultureIgnoreCase) )
+                            {
+                                _environment = value;
+                            }
+                        }
+#else
+                        _environment = value;
+#endif
+                    }
+                    catch
+                    {
+                        // TODO : Log this
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Port to listen on for WebDriver commands. Used in UIAutomationPlugin
@@ -87,7 +124,8 @@ namespace Paragon.Runtime.Kernel.Applications
             string resolvedUri;
             if (_package == null)
             {
-                var package = ApplicationPackageResolver.Load(StartData, out resolvedUri);
+                
+                var package = ApplicationPackageResolver.Load(StartData, PackageSignatureVerifier, out resolvedUri);
                 if (package == null)
                 {
                     throw new Exception("Invalid start data");
@@ -130,6 +168,23 @@ namespace Paragon.Runtime.Kernel.Applications
         public static bool operator !=(ApplicationMetadata left, ApplicationMetadata right)
         {
             return !Equals(left, right);
+        }
+
+        Package VerifyPackageSignature( Package inputPackage )
+        {
+            if( inputPackage.IsSigned() )
+            {
+                return inputPackage.Verify();
+            }
+#if ENFORCE_PACKAGE_SECURITY
+            else if( Environment == ApplicationEnvironment.Development )
+            {
+                return inputPackage;
+            }
+            throw new SecurityException("Unsigned packages are not allowed to run");
+#else
+            return inputPackage;
+#endif
         }
     }
 }

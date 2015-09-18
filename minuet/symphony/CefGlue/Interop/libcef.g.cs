@@ -37,6 +37,10 @@ namespace Xilium.CefGlue.Interop
         [DllImport(libcef.DllName, EntryPoint = "cef_set_osmodal_loop", CallingConvention = libcef.CEF_CALL)]
         public static extern void set_osmodal_loop(int osModalLoop);
         
+        // CefEnableHighDPISupport
+        [DllImport(libcef.DllName, EntryPoint = "cef_enable_highdpi_support", CallingConvention = libcef.CEF_CALL)]
+        public static extern void enable_highdpi_support();
+        
         // CefGetGeolocation
         [DllImport(libcef.DllName, EntryPoint = "cef_get_geolocation", CallingConvention = libcef.CEF_CALL)]
         public static extern int get_geolocation(cef_get_geolocation_callback_t* callback);
@@ -88,6 +92,18 @@ namespace Xilium.CefGlue.Interop
         // CefParseCSSColor
         [DllImport(libcef.DllName, EntryPoint = "cef_parse_csscolor", CallingConvention = libcef.CEF_CALL)]
         public static extern int parse_csscolor(cef_string_t* @string, int strict, uint* color);
+        
+        // CefParseJSON
+        [DllImport(libcef.DllName, EntryPoint = "cef_parse_json", CallingConvention = libcef.CEF_CALL)]
+        public static extern cef_value_t* parse_json(cef_string_t* json_string, CefJsonParserOptions options);
+        
+        // CefParseJSONAndReturnError
+        [DllImport(libcef.DllName, EntryPoint = "cef_parse_jsonand_return_error", CallingConvention = libcef.CEF_CALL)]
+        public static extern cef_value_t* parse_jsonand_return_error(cef_string_t* json_string, CefJsonParserOptions options, CefJsonParserError* error_code_out, cef_string_t* error_msg_out);
+        
+        // CefWriteJSON
+        [DllImport(libcef.DllName, EntryPoint = "cef_write_json", CallingConvention = libcef.CEF_CALL)]
+        public static extern cef_string_userfree* write_json(cef_value_t* node, CefJsonParserOptions options);
         
         // CefGetPath
         [DllImport(libcef.DllName, EntryPoint = "cef_get_path", CallingConvention = libcef.CEF_CALL)]
