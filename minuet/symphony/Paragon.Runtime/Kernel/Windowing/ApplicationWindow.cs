@@ -711,7 +711,9 @@ namespace Paragon.Runtime.Kernel.Windowing
             var key = (Keys)Enum.Parse(typeof(Keys), keys);
 
             _hotKeyService.Remove(name);
-            _hotKeyService.Add(name, modifierKeys, key);
+    
+            if (_hotKeyService.IsEnabled)
+                _hotKeyService.Add(name, modifierKeys, key);
         }
 
         [JavaScriptPluginMember(Name = "setHotKeysEnabled"), UsedImplicitly]
