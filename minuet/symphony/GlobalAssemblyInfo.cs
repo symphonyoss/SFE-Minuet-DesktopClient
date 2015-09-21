@@ -1,9 +1,9 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyCompany("Goldman Sachs & Co.")]
+[assembly: AssemblyCompany("Symphony OSF")]
 [assembly: AssemblyProduct("Paragon")]
-[assembly: AssemblyCopyright("Copyright © Goldman Sachs & Co. 2015")]
+[assembly: AssemblyCopyright("Symphony OSF")]
 [assembly: ComVisible(false)]
 
 #if DEBUG
