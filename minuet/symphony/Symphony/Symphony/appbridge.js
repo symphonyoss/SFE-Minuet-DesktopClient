@@ -13,6 +13,11 @@ var appbridge = new function () {
      * Public functions.
      * *************************************************/
 
+    // read by client app to determine if symphony logo in header should be shown
+    this.ShowHeaderLogo = function () {
+        return false;
+    }
+
     self.Log = function (message) {
         console.log("[JS]", message);
     };
