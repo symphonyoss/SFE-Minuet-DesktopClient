@@ -15,7 +15,7 @@ var appbridge = new function () {
 
     // read by client app to determine if symphony logo in header should be shown
     this.ShowHeaderLogo = function () {
-        return false;
+        return true;
     }
 
     self.Log = function (message) {
