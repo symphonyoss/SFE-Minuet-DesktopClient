@@ -26,6 +26,9 @@ namespace Symphony.Plugins
                 {
                     this.closeAllWindowBehavior.AttachTo(application, applicationWindow);
                 });
+
+            var applicationUpgradeBehavior = new ApplicationUpgradeBehavior();
+            applicationUpgradeBehavior.AttachTo(application);
         }
 
         public void Shutdown()

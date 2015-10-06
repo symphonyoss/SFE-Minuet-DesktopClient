@@ -30,6 +30,8 @@ namespace Paragon.Plugins
 
         event EventHandler<BeginDownloadEventArgs> BeginDownload;
 
+        string GetUrl();
+
         string GetId();
 
         string GetTitle();

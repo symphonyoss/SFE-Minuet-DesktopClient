@@ -215,6 +215,11 @@ namespace Paragon.Runtime.Kernel.Windowing
             }, true);
         }
 
+        public string GetUrl()
+        {
+            return this.Browser.Source;
+        }
+
         /// <summary>
         /// The id to uniquely identify the window instance within the application.
         /// </summary>
