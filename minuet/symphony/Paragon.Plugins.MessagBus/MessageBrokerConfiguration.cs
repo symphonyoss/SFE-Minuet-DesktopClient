@@ -3,6 +3,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 
 namespace Paragon.Plugins.MessageBus
 {
@@ -21,6 +22,19 @@ namespace Paragon.Plugins.MessageBus
 
         private string _domain;
 
+        private Configuration _appConfig;
+        private Configuration AppConfig
+        {
+            get
+            {
+                if (_appConfig == null)
+                {
+                    _appConfig = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location);
+                }
+                return _appConfig;
+            }
+        }
+
         public MessageBrokerConfiguration(ILogger logger)
         {
             _logger = logger;
@@ -28,7 +42,7 @@ namespace Paragon.Plugins.MessageBus
 
         public string GetBrokerExePath()
         {
-            var brokerExePath = GetSetting(AppSettingKeyBrokerExePath);
+            var brokerExePath = GetSetting(AppConfig, AppSettingKeyBrokerExePath);
             if (string.IsNullOrEmpty(brokerExePath) ||
                 brokerExePath.Equals("detect", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -39,7 +53,7 @@ namespace Paragon.Plugins.MessageBus
 
         public string GetBrokerLibPath()
         {
-            var brokerLibPath = GetSetting(AppSettingKeyBrokerLibPath);
+            var brokerLibPath = GetSetting(AppConfig, AppSettingKeyBrokerLibPath);
             if (string.IsNullOrEmpty(brokerLibPath) ||
                 brokerLibPath.Equals("detect", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -54,7 +68,7 @@ namespace Paragon.Plugins.MessageBus
 
         public int GetBrokerPort(int defaultPort)
         {
-            var brokerPort = GetSetting(AppSettingKeyBrokerPort);
+            var brokerPort = GetSetting(AppConfig, AppSettingKeyBrokerPort);
             if (!string.IsNullOrEmpty(brokerPort))
             {
                 int portNum;
@@ -69,7 +83,7 @@ namespace Paragon.Plugins.MessageBus
 
         public string GetBrokerLoggingConfiguration()
         {
-            var brokerLoggingConfig = GetSetting(AppSettingKeyBrokerLoggingConfig);
+            var brokerLoggingConfig = GetSetting(AppConfig, AppSettingKeyBrokerLoggingConfig);
             if (string.IsNullOrEmpty(brokerLoggingConfig) || brokerLoggingConfig.Equals("detect", StringComparison.InvariantCultureIgnoreCase))
             {
                 var file = Path.GetDirectoryName(GetType().Assembly.Location) + "\\messagebroker.log4j.xml";
@@ -159,11 +173,12 @@ namespace Paragon.Plugins.MessageBus
             }
         }
 
-        private static string GetSetting(string key)
+        private static string GetSetting(Configuration config, string key)
         {
             try
             {
-                return ConfigurationManager.AppSettings[key];
+                var entry = (config != null) ? (config.AppSettings.Settings[key]) : (null);
+                return (entry != null) ? (entry.Value) : (null);
             }
             catch
             {

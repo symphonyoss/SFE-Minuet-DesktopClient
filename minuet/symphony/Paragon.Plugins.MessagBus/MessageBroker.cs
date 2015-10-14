@@ -1,4 +1,3 @@
-using System.Net;
 using Newtonsoft.Json;
 using System;
 using System.Threading;
@@ -8,11 +7,11 @@ namespace Paragon.Plugins.MessageBus
 {
     public class MessageBroker : IMessageBroker
     {
-        public static int DefaultPort = 65534;
+        public const int DefaultPort = 65534;
         private static int _idcount = 1;
         private readonly TimeSpan _reconnectFrequency = TimeSpan.FromSeconds(10);
         private long _disconnectRequested;
-        private ILogger _logger;
+        private readonly ILogger _logger;
         private WebSocket _socket;
         private MessageBrokerWatcher _watcher;
         public event Action Connected;
@@ -20,38 +19,12 @@ namespace Paragon.Plugins.MessageBus
         public event Action<Exception> Error;
         public event Action<string, object> MessageReceived;
         private int _brokerPort = DefaultPort;
-        private string _domain;
 
-        public MessageBroker(ILogger logger)
-            : this(logger, null)
-        {
-        }
-
-        public MessageBroker(ILogger logger, MessageBrokerWatcher watcher)
-            : this(logger, watcher, DefaultPort)
-        {
-        }
-
-        public MessageBroker(ILogger logger, MessageBrokerWatcher watcher, int brokerPort)
+        public MessageBroker(ILogger logger, MessageBrokerWatcher watcher = null, int brokerPort = DefaultPort)
         {
             _logger = logger;
             _watcher = watcher;
-            if (brokerPort != DefaultPort)
-                _brokerPort = brokerPort;
-        }
-
-
-        public string Domain
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_domain))
-                {
-                    var hostnameParts = Dns.GetHostEntry("localhost").HostName.Split('.');
-                    _domain = (hostnameParts.Length > 1) ? (hostnameParts[1]) : (string.Empty);
-                }
-                return _domain;
-            }
+            _brokerPort = brokerPort;
         }
 
         public void Connect()
@@ -60,8 +33,8 @@ namespace Paragon.Plugins.MessageBus
             {
                 _watcher = CreateBrokerWatcher();
             }
-            if( _watcher != null )
-                _watcher.Start(new Action(OnBrokerProcessStarted));
+
+            _watcher.Start(OnBrokerProcessStarted);
         }
 
         public void Disconnect()
@@ -101,7 +74,6 @@ namespace Paragon.Plugins.MessageBus
             if (_socket != null && _socket.State == WebSocketState.Open)
             {
                 var payload = new Message {Type = "send", Topic = address, Rid = responseId, Data = msg};
-
                 var strPayload = JsonConvert.SerializeObject(payload);
                 _socket.Send(strPayload);
             }
@@ -112,7 +84,6 @@ namespace Paragon.Plugins.MessageBus
             if (_socket != null && _socket.State == WebSocketState.Open)
             {
                 var payload = new Message {Type = "register", Topic = topic, Rid = responseId};
-
                 var strPayload = JsonConvert.SerializeObject(payload);
                 _socket.Send(strPayload);
             }
@@ -123,13 +94,12 @@ namespace Paragon.Plugins.MessageBus
             if (_socket != null && _socket.State == WebSocketState.Open)
             {
                 var payload = new Message {Type = "unregister", Topic = topic, Rid = responseId};
-
                 var strPayload = JsonConvert.SerializeObject(payload);
                 _socket.Send(strPayload);
             }
         }
 
-        public void Reconnect()
+        private void Reconnect()
         {
             try
             {
@@ -169,55 +139,79 @@ namespace Paragon.Plugins.MessageBus
 
         private void DisconnectInternal()
         {
-            if (_socket != null)
+            if (_socket == null)
             {
-                _socket.Opened -= OnSocketOpened;
-                _socket.Error -= OnSocketError;
-                _socket.Closed -= OnSocketClosed;
-                _socket.MessageReceived -= OnSocketMessageReceived;
-                if (_socket.State == WebSocketState.Open ||
-                   _socket.State == WebSocketState.Connecting)
+                return;
+            }
+
+            _socket.Opened -= OnSocketOpened;
+            _socket.Error -= OnSocketError;
+            _socket.Closed -= OnSocketClosed;
+            _socket.MessageReceived -= OnSocketMessageReceived;
+
+            if (_socket.State == WebSocketState.Open ||
+                _socket.State == WebSocketState.Connecting)
+            {
+                try
                 {
                     _socket.Close();
                 }
-                _socket = null;
+                catch (Exception e)
+                {
+                    _logger.Warn("Error disconnection from message broker: " + e.Message);
+                }
             }
+
+            _socket = null;
         }
 
         private void OnSocketClosed(object sender, EventArgs e)
         {
-            if (Disconnected != null)
+            var evnt = Disconnected;
+            if (evnt != null)
             {
-                Disconnected();
-                Reconnect();
+                evnt();
             }
+
+            Reconnect();
         }
 
         private void OnSocketError(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
         {
-            if (Error != null)
+            var evnt = Error;
+            if (evnt != null)
             {
-                Error(e.Exception);
-                Reconnect();
+                evnt(e.Exception);
             }
+
+            Reconnect();
         }
 
         private void OnSocketMessageReceived(object sender, MessageReceivedEventArgs e)
         {
-            var strMessage = e.Message;
-            var message = JsonConvert.DeserializeObject<Message>(strMessage);
-
-            if (MessageReceived != null)
+            var evnt = MessageReceived;
+            if (evnt != null)
             {
-                MessageReceived(message.Topic, message);
+                var strMessage = e.Message;
+                var message = JsonConvert.DeserializeObject<Message>(strMessage);
+                evnt(message.Topic, message);
             }
         }
 
         private void OnSocketOpened(object sender, EventArgs e)
         {
-            if (Connected != null)
+            var evnt = Connected;
+            if (evnt != null)
             {
-                Connected();
+                var invocationList = evnt.GetInvocationList();
+                foreach (var ev in invocationList)
+                {
+                    var evAction = ev as Action;
+                    if (evAction != null)
+                    {
+                        evAction.BeginInvoke(evAction.EndInvoke, null);
+                    }
+                }
             }
         }
 
@@ -235,7 +229,7 @@ namespace Paragon.Plugins.MessageBus
 
             var brokerLoggingConfig = configuration.GetBrokerLoggingConfiguration();
             _logger.Info(string.Format("Resolved broker logging path: {0}", brokerLoggingConfig));
-            
+
             return new MessageBrokerWatcher(_logger, "-jar ", brokerLibPath, brokerExePath, brokerLoggingConfig, _brokerPort);
         }
     }
