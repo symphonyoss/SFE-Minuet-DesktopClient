@@ -143,6 +143,7 @@
     <ROW File="libcef.dll" Component_="libcef.dll" FileName="libcef.dll" Attributes="0" SourcePath="..\bin\paragon\libcef.dll" SelfReg="false" NextFile="libEGL.dll"/>
     <ROW File="lt.pak" Component_="am.pak" FileName="lt.pak" Attributes="0" SourcePath="..\bin\paragon\locales\lt.pak" SelfReg="false" NextFile="lv.pak"/>
     <ROW File="lv.pak" Component_="am.pak" FileName="lv.pak" Attributes="0" SourcePath="..\bin\paragon\locales\lv.pak" SelfReg="false" NextFile="ml.pak"/>
+    <ROW File="messagebus.jar" Component_="cef.pak" FileName="MESSAG~1.JAR|messagebus.jar" Attributes="0" SourcePath="..\cbkbuild\ReferencedAssemblies\messagebus.jar" SelfReg="false"/>
     <ROW File="ml.pak" Component_="am.pak" FileName="ml.pak" Attributes="0" SourcePath="..\bin\paragon\locales\ml.pak" SelfReg="false" NextFile="mr.pak"/>
     <ROW File="mr.pak" Component_="am.pak" FileName="mr.pak" Attributes="0" SourcePath="..\bin\paragon\locales\mr.pak" SelfReg="false" NextFile="ms.pak"/>
     <ROW File="ms.pak" Component_="am.pak" FileName="ms.pak" Attributes="0" SourcePath="..\bin\paragon\locales\ms.pak" SelfReg="false" NextFile="nb.pak"/>
@@ -171,7 +172,7 @@
     <ROW File="vi.pak" Component_="am.pak" FileName="vi.pak" Attributes="0" SourcePath="..\bin\paragon\locales\vi.pak" SelfReg="false" NextFile="zhCN.pak"/>
     <ROW File="window.ico" Component_="cef.pak" FileName="window.ico" Attributes="0" SourcePath="..\bin\paragon\window.ico" SelfReg="false" NextFile="Xilium.CefGlue.dll"/>
     <ROW File="zhCN.pak" Component_="am.pak" FileName="zh-CN.pak" Attributes="0" SourcePath="..\bin\paragon\locales\zh-CN.pak" SelfReg="false" NextFile="zhTW.pak"/>
-    <ROW File="zhTW.pak" Component_="am.pak" FileName="zh-TW.pak" Attributes="0" SourcePath="..\bin\paragon\locales\zh-TW.pak" SelfReg="false"/>
+    <ROW File="zhTW.pak" Component_="am.pak" FileName="zh-TW.pak" Attributes="0" SourcePath="..\bin\paragon\locales\zh-TW.pak" SelfReg="false" NextFile="messagebus.jar"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
     <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" Languages="en" InstallationType="4" UseLargeSchema="true"/>
