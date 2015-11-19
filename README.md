@@ -14,11 +14,13 @@
 
 * Change URL to point to the relevant URL
 
-      In config.json,
+      In config.json (which can be found in the Symphony project)
       
       <code>
       "url" : "[your url]"
       </code>
+
+      Your URL would usually be something like "https://my.symphony.com/"
 
 * Open Paragon.sln in Visual Studio 
 
