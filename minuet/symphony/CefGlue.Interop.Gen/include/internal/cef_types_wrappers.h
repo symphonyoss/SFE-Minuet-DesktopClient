@@ -534,6 +534,9 @@ struct CefRequestContextSettingsTraits {
   static inline void clear(struct_type* s) {
     cef_string_clear(&s->cache_path);
     cef_string_clear(&s->accept_language_list);
+    cef_string_clear(&s->auth_server_whitelist);
+    cef_string_clear(&s->auth_delegate_whitelist);
+
   }
 
   static inline void set(const struct_type* src, struct_type* target,
@@ -544,6 +547,13 @@ struct CefRequestContextSettingsTraits {
     target->ignore_certificate_errors = src->ignore_certificate_errors;
     cef_string_set(src->accept_language_list.str,
         src->accept_language_list.length, &target->accept_language_list, copy);
+    cef_string_set(src->auth_server_whitelist.str,
+        src->auth_server_whitelist.length, &target->auth_server_whitelist,
+        copy);
+    cef_string_set(src->auth_delegate_whitelist.str,
+        src->auth_delegate_whitelist.length, &target->auth_delegate_whitelist,
+        copy);
+
   }
 };
 

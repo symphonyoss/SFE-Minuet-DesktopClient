@@ -108,9 +108,28 @@ namespace Paragon.Runtime
                         CachePath = cachePath,
                         PersistSessionCookies = persistSessionCookies,
                         ProductVersion = string.Format("Paragon/{0} Chrome/{1}", Assembly.GetExecutingAssembly().GetName().Version, CefRuntime.ChromeVersion)
+                        
                     };
 
-                    var args = new CefMainArgs(new[] {"--process-per-tab"});
+                    var argArray = Environment.GetCommandLineArgs();
+
+
+               
+                    List<string> appArgs = new List<string>();
+                    appArgs.Add("--process-per-tab");
+
+                    // Pass through Kerberos and proxy parameters.
+                    for (int i = 0; i < argArray.Length; i++)
+                    {
+                        string a = argArray[i];
+                        if( a.StartsWith("--auth-server-whitelist") || 
+                            a.StartsWith("--auth-negotiate-delegate-whitelist") ||
+                            a.Contains("proxy")){
+                            appArgs.Add(a);
+                        }
+                    }
+
+                    var args = new CefMainArgs(appArgs.ToArray());
 
                     _cefApp = new CefBrowserApplication(disableSpellChecking, browserLanguage);
                     _cefApp.RenderProcessInitialize += OnRenderProcessInitialize;

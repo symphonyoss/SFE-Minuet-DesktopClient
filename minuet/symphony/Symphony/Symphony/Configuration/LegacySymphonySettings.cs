@@ -38,16 +38,25 @@ namespace Symphony.Configuration
 
                 string placementXml = reader.GetValueOrDefault("window_placement", "xml", string.Empty);
 
+
                 byte[] xmlBytes = Encoding.GetBytes(placementXml);
-
                 WindowPlacement placement;
-                using (var memStream = new MemoryStream(xmlBytes))
+                    
+                if (xmlBytes.Length > 0)
                 {
-                    placement = (WindowPlacement)Serializer.Deserialize(memStream);
-                }
+                    using (var memStream = new MemoryStream(xmlBytes))
+                    {
+                        placement = (WindowPlacement)Serializer.Deserialize(memStream);
+                    }
 
-                placement.length = Marshal.SizeOf(typeof(WindowPlacement));
-                placement.flags = 0;
+                    placement.length = Marshal.SizeOf(typeof(WindowPlacement));
+                    placement.flags = 0;
+                }
+                else
+                {
+                    placement = new WindowPlacement();
+                   
+                }
 
                 this.WindowPlacement = placement;
             }
