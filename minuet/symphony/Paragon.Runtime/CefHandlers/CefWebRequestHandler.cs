@@ -50,10 +50,10 @@ namespace Paragon.Runtime
             return base.OnCertificateError(browser, certError, requestUrl, sslInfo, callback);
         }
 
-        protected override bool GetAuthCredentials(CefBrowser browser, CefFrame frame, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback)
-        {
-            // Note : this event is fired on the CEF IO Thread. Before showing the auth dialog the call should be marshalled to the UI thread of the browser process
-            return _core.OnGetAuthCredentials(browser, frame, isProxy, host, port, realm, scheme, callback);
-        }
+   //     protected override bool GetAuthCredentials(CefBrowser browser, CefFrame frame, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback)
+   //     {
+   //         // Note : this event is fired on the CEF IO Thread. Before showing the auth dialog the call should be marshalled to the UI thread of the browser process
+   //         return _core.OnGetAuthCredentials(browser, frame, isProxy, host, port, realm, scheme, callback);
+   //     }
     }
 }
