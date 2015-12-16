@@ -122,13 +122,16 @@ namespace Paragon.Runtime
                     for (int i = 0; i < argArray.Length; i++)
                     {
                         string a = argArray[i];
-                        if( a.StartsWith("--auth-server-whitelist") || 
-                            a.StartsWith("--auth-negotiate-delegate-whitelist") ||
-                            a.Contains("proxy")){
+                        if( a.StartsWith("--auth") ||
+                            a.StartsWith("--enable-logging") ||
+                            a.StartsWith("--v=") ||
+                            a.Contains("proxy"))
+                        {
                             appArgs.Add(a);
                         }
                     }
-
+                    var argString = string.Join(",", appArgs.ToArray());
+                    Logger.Info("Passing Args to CefApp: " + argString);
                     var args = new CefMainArgs(appArgs.ToArray());
 
                     _cefApp = new CefBrowserApplication(disableSpellChecking, browserLanguage);
