@@ -6525,6 +6525,12 @@
         <member name="F:Xilium.CefGlue.Interop.cef_request_context_settings_t.accept_language_list">
             
         </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_request_context_settings_t.auth_server_whitelist">
+            
+        </member>
+        <member name="F:Xilium.CefGlue.Interop.cef_request_context_settings_t.auth_delegate_whitelist">
+            
+        </member>
         <member name="T:Xilium.CefGlue.Interop.cef_pdf_print_settings_t">
             
              Structure representing PDF print settings.
@@ -7180,6 +7186,12 @@
              for individual CefRequestContext instances via the
              CefRequestContextSettings.accept_language_list value.
             </summary>
+        </member>
+        <member name="P:Xilium.CefGlue.CefSettings.AuthServerWhitelist">
+            
+        </member>
+        <member name="P:Xilium.CefGlue.CefSettings.AuthDelegateWhitelist">
+            
         </member>
         <member name="P:Xilium.CefGlue.CefSettings.UserDataPath">
             <summary>

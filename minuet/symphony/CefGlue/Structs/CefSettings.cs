@@ -221,6 +221,21 @@
         ///</summary>
         public string AcceptLanguageList { get; set; }
 
+        ///
+        // Specifies the comma separated white list of domains for which the single sign on
+        // authentication may be used
+        // see https://dev.chromium.org/administrators/policy-list-3#AuthServerWhitelist
+        ///
+        public string AuthServerWhitelist { get; set; }
+
+        ///
+        // Kerberos delegation server whitelist
+        // see
+        // https://dev.chromium.org/administrators/policy-list-3#AuthNegotiateDelegateWhitelist
+        ///
+        public string AuthDelegateWhitelist { get; set; }
+
+
         ///<summary>
         /// The location where user data such as spell checking dictionary files will
         /// be stored on disk. If empty then the default platform-specific user data
@@ -230,6 +245,9 @@
         /// profile directory on Windows).
         ///</summary>
         public string UserDataPath { get; set; }
+
+
+
 
         internal cef_settings_t* ToNative()
         {
@@ -258,6 +276,8 @@
             ptr->ignore_certificate_errors = IgnoreCertificateErrors ? 1 : 0;
             ptr->background_color = BackgroundColor.ToArgb();
             cef_string_t.Copy(AcceptLanguageList, &ptr->accept_language_list);
+            cef_string_t.Copy(AuthServerWhitelist, &ptr->auth_server_whitelist);
+            cef_string_t.Copy(AuthDelegateWhitelist, &ptr->auth_delegate_whitelist);
             return ptr;
         }
 
@@ -274,6 +294,8 @@
             libcef.string_clear(&ptr->resources_dir_path);
             libcef.string_clear(&ptr->locales_dir_path);
             libcef.string_clear(&ptr->accept_language_list);
+            libcef.string_clear(&ptr->auth_server_whitelist);
+            libcef.string_clear(&ptr->auth_delegate_whitelist);
         }
 
         internal static void Free(cef_settings_t* ptr)

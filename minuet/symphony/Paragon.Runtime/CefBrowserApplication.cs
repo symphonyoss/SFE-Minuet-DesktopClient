@@ -99,7 +99,6 @@ namespace Paragon.Runtime
                 else if (!string.IsNullOrEmpty(_spellCheckLanguage) && !_spellCheckLanguage.Equals("en-US"))
                     commandLine.AppendArgument(string.Format("--override-spell-check-lang={0}", _spellCheckLanguage));
             }
-
             base.OnBeforeChildProcessLaunch(commandLine);
         }
     }

@@ -369,6 +369,22 @@ typedef struct _cef_settings_t {
   // CefRequestContextSettings.accept_language_list value.
   ///
   cef_string_t accept_language_list;
+
+
+  ///
+  // Specifies the comma separated white list of domains for which the single sign on
+  // authentication may be used
+  // see https://dev.chromium.org/administrators/policy-list-3#AuthServerWhitelist
+  ///
+  cef_string_t auth_server_whitelist;
+
+  ///
+  // Kerberos delegation server whitelist
+  // see
+  // https://dev.chromium.org/administrators/policy-list-3#AuthNegotiateDelegateWhitelist
+  ///
+  cef_string_t auth_delegate_whitelist;
+
 } cef_settings_t;
 
 ///
@@ -629,6 +645,23 @@ typedef struct _cef_browser_settings_t {
   // empty then "en-US,en" will be used.
   ///
   cef_string_t accept_language_list;
+
+
+  ///
+  // Specifies the comma separated white list of domains for which the single sign on
+  // authentication may be used
+  // see https://dev.chromium.org/administrators/policy-list-3#AuthServerWhitelist
+  ///
+  cef_string_t auth_server_whitelist;
+
+  ///
+  // Kerberos delegation server whitelist
+  // see
+  // https://dev.chromium.org/administrators/policy-list-3#AuthNegotiateDelegateWhitelist
+  ///
+  cef_string_t auth_delegate_whitelist;
+
+
 } cef_browser_settings_t;
 
 ///
