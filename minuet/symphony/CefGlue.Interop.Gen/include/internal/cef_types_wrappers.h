@@ -471,6 +471,8 @@ struct CefSettingsTraits {
     cef_string_clear(&s->resources_dir_path);
     cef_string_clear(&s->locales_dir_path);
     cef_string_clear(&s->accept_language_list);
+	cef_string_clear(&s->auth_server_whitelist);
+	cef_string_clear(&s->auth_delegate_whitelist);
   }
 
   static inline void set(const struct_type* src, struct_type* target,
@@ -515,6 +517,13 @@ struct CefSettingsTraits {
 
     cef_string_set(src->accept_language_list.str,
         src->accept_language_list.length, &target->accept_language_list, copy);
+	cef_string_set(src->auth_server_whitelist.str,
+		src->auth_server_whitelist.length, &target->auth_server_whitelist,
+		copy);
+	cef_string_set(src->auth_delegate_whitelist.str,
+		src->auth_delegate_whitelist.length, &target->auth_delegate_whitelist,
+		copy);
+
   }
 };
 
@@ -580,6 +589,8 @@ struct CefBrowserSettingsTraits {
     cef_string_clear(&s->fantasy_font_family);
     cef_string_clear(&s->default_encoding);
     cef_string_clear(&s->accept_language_list);
+	cef_string_clear(&s->auth_server_whitelist);
+	cef_string_clear(&s->auth_delegate_whitelist);
   }
 
   static inline void set(const struct_type* src, struct_type* target,
@@ -635,6 +646,14 @@ struct CefBrowserSettingsTraits {
 
     cef_string_set(src->accept_language_list.str,
         src->accept_language_list.length, &target->accept_language_list, copy);
+
+	cef_string_set(src->auth_server_whitelist.str,
+		src->auth_server_whitelist.length, &target->auth_server_whitelist,
+		copy);
+	cef_string_set(src->auth_delegate_whitelist.str,
+		src->auth_delegate_whitelist.length, &target->auth_delegate_whitelist,
+		copy);
+
   }
 };
 

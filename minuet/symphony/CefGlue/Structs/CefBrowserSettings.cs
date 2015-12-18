@@ -359,5 +359,29 @@
                 cef_string_t.Copy(value, &_self->accept_language_list);
             }
         }
+
+        public string AuthServerWhitelist
+        {
+            get
+            {
+                return cef_string_t.ToString(&_self->auth_server_whitelist);
+            }
+            set
+            {
+                cef_string_t.Copy(value, &_self->auth_server_whitelist);
+            }
+        }
+
+        public string AuthDelegateWhitelist
+        {
+            get
+            {
+                return cef_string_t.ToString(&_self->auth_delegate_whitelist);
+            }
+            set
+            {
+                cef_string_t.Copy(value, &_self->auth_delegate_whitelist);
+            }
+        }
     }
 }
