@@ -50,7 +50,11 @@ namespace Paragon.Plugins.Notifications.ViewModels
             var viewModel = createUserConfigurationWindowViewModel();
 
             EventHandler requestCloseHandler = (sender, args) => window.Close();
-            EventHandler requestShowHandler = (sender, args) => window.Show();
+            EventHandler requestShowHandler = (sender, args) =>
+            {
+                window.Show();
+                window.Focus();
+            };
 
             viewModel.RequestClose += requestCloseHandler;
             viewModel.RequestShow += requestShowHandler;
