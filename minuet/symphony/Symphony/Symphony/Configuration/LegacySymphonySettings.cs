@@ -28,8 +28,6 @@ namespace Symphony.Configuration
             {
                 reader.Load();
 
-                this.IsMinimiseOnCloseChecked = reader.GetValueOrDefault("settings", "minimizeOnClose", false);
-
                 this.HotKeys = new HotKey();
                 this.HotKeys.Name = "Bring To Focus";
                 this.HotKeys.IsEnabled = reader.GetValueOrDefault("hotkeys", "bringToFocus.isEnabled", false);

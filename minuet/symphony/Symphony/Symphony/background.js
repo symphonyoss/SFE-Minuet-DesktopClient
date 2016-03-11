@@ -36,60 +36,62 @@ paragon.app.runtime.onLaunched.addListener(function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {
                 var config = JSON.parse( xmlhttp.responseText );
 
+                // this value will be used if local storage doesn't have a value
+                var isMinimizeOnCloseChecked = !!(config && config.isMinimizeOnCloseChecked &&
+                        (typeof config.isMinimizeOnCloseChecked === 'boolean' || config.isMinimizeOnCloseChecked.toLowerCase() === 'true'));
+
                 // read from local storage
-                var isMinimizeOnCloseChecked;
-
                 paragon.storage.local.get('isMinimizeOnCloseChecked', function (value, err, errMsg) {
-                    if (err || !value || typeof value.isMinimizeOnCloseChecked !== 'boolean') {
-                        console.error('Error loading settings from local storage.', errMsg);
-                        resolve({});
-                    } else {
+
+                    // if local storage has value, it should override
+                    if (value && typeof value.isMinimizeOnCloseChecked === 'boolean') {
                         isMinimizeOnCloseChecked = value.isMinimizeOnCloseChecked;
-                        
-                        var systemMenu = {
-                            refresh: 1011,
-                            minimizeOnClose: 1021,
-                            editShortcuts: 1031,
-                            exit: 1041,
-                            about: 1051
-                        };
+                    }
 
-                        var createParams = {
-                            id: "main",
-                            autoSaveLocation: true,
-                            outerBounds: settings.outerBounds,
-                            minimizeOnClose: isMinimizeOnCloseChecked,
-                            hotKeysEnabled: settings.hotkeys[0].isEnabled,
-                            frame: {
-                                systemMenu: {
-                                    items: [{
-                                        header: 'Refresh',
-                                        id: systemMenu.refresh,
-                                        enabled: true
-                                    }, {
-                                        header: 'Minimize on Close',
-                                        id: systemMenu.minimizeOnClose,
-                                        enabled: true,
-                                        checkable: true,
-                                        isChecked: isMinimizeOnCloseChecked
-                                    }, {
-                                        header: 'Edit Shortcuts',
-                                        id: systemMenu.editShortcuts,
-                                        enabled: true
-                                    }, {
-                                        header: 'Exit',
-                                        id: systemMenu.exit,
-                                        enabled: true
-                                    }, {
-                                        header: 'Version ' + appVersion,
-                                        id: systemMenu.about,
-                                        enabled: false
-                                    }]
-                                },
-                            }
-                        };
+                    var systemMenu = {
+                        refresh: 1011,
+                        minimizeOnClose: 1021,
+                        editShortcuts: 1031,
+                        exit: 1041,
+                        about: 1051
+                    };
 
-                        paragon.app.window.create(config.url, createParams, function(createdWindow) {
+                    var createParams = {
+                        id: "main",
+                        autoSaveLocation: true,
+                        outerBounds: settings.outerBounds,
+                        minimizeOnClose: isMinimizeOnCloseChecked,
+                        hotKeysEnabled: settings.hotkeys[0].isEnabled,
+                        frame: {
+                            systemMenu: {
+                                items: [{
+                                    header: 'Refresh',
+                                    id: systemMenu.refresh,
+                                    enabled: true
+                                }, {
+                                    header: 'Minimize on Close',
+                                    id: systemMenu.minimizeOnClose,
+                                    enabled: true,
+                                    checkable: true,
+                                    isChecked: isMinimizeOnCloseChecked
+                                }, {
+                                    header: 'Edit Shortcuts',
+                                    id: systemMenu.editShortcuts,
+                                    enabled: true
+                                }, {
+                                    header: 'Exit',
+                                    id: systemMenu.exit,
+                                    enabled: true
+                                }, {
+                                    header: 'Version ' + appVersion,
+                                    id: systemMenu.about,
+                                    enabled: false
+                                }]
+                            },
+                        }
+                    };
+
+                    paragon.app.window.create(config.url, createParams, function(createdWindow) {
                             paragon.notifications.setSettings(settings.notifications);
 
                             paragon.notifications.onSettingsChanged.addListener(function (notificationSettings) {
@@ -118,16 +120,6 @@ paragon.app.runtime.onLaunched.addListener(function() {
                                 }
                             });
 
-                            //createdWindow.onBoundsChanged.addListener(function (bounds) {
-                            //    var outerBounds = settings.outerBounds;
-                            //    outerBounds.left = bounds.left;
-                            //    outerBounds.top = bounds.top;
-                            //    outerBounds.width = bounds.width;
-                            //    outerBounds.height = bounds.height;
-
-                            //    paragon.storage.local.set({ outerBounds: outerBounds });
-                            //});
-
                             var hk = settings.hotkeys[0];
                             createdWindow.setHotKeys(hk.name, hk.modifier, hk.key);
 
@@ -148,7 +140,6 @@ paragon.app.runtime.onLaunched.addListener(function() {
                             });
 
                         }); 
-                    }
                 });               
             }
         }
@@ -184,7 +175,6 @@ function getLocalAppSettings() {
             minHeight: 300,
             minWidth: 560,
         },
-        isMinimizeOnCloseChecked: false,
         windowState: null,
         notifications: {
             selectedMonitor: 0,
@@ -229,7 +219,6 @@ function migrateLegacySettings(settings) {
             if (legacySettings) {
                 var windowPlacement = legacySettings.windowPlacement;
                 settings.outerBounds = toOuterBounds(windowPlacement);
-                settings.isMinimizeOnCloseChecked = legacySettings.isMinimiseOnCloseChecked;
 
                 if (legacySettings.hotKeys) {
                     var hk = settings.hotkeys[0];
