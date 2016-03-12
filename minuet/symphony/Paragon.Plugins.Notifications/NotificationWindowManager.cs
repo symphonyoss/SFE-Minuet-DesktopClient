@@ -8,6 +8,8 @@ namespace Paragon.Plugins.Notifications
 
         private NotificationWindowViewModel notificationWindow;
 
+        UserConfigurationWindowViewModel configurationWindow = null;
+
         public NotificationWindowManager(IViewModelFactory viewModelFactory)
         {
             this.viewModelFactory = viewModelFactory;
@@ -20,10 +22,23 @@ namespace Paragon.Plugins.Notifications
 
         public UserConfigurationWindowViewModel ShowSettings(IApplicationWindow owner)
         {
-            var configurationWindow = viewModelFactory.CreateUserConfigurationWindow(owner);
+            if (configurationWindow == null)
+            {
+                configurationWindow = viewModelFactory.CreateUserConfigurationWindow(owner);
+                configurationWindow.RequestClose += configurationWindow_RequestClose;
+            }
             configurationWindow.Show();
 
             return configurationWindow;
+        }
+
+        void configurationWindow_RequestClose(object sender, System.EventArgs e)
+        {
+            if (configurationWindow != null)
+            {
+                configurationWindow.RequestClose -= configurationWindow_RequestClose;
+                configurationWindow = null;
+            }
         }
 
         public void Shutdown()

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using Paragon.Plugins.Notifications.ViewModels;
+using System.Windows;
 
 namespace Paragon.Plugins.Notifications.Views
 {
@@ -10,6 +11,18 @@ namespace Paragon.Plugins.Notifications.Views
         public UserConfigurationWindow()
         {
             InitializeComponent();
+
+            this.Closed += UserConfigurationWindow_Closed;
+        }
+
+        void UserConfigurationWindow_Closed(object sender, System.EventArgs e)
+        {
+            if (this.DataContext is UserConfigurationWindowViewModel)
+            {
+                UserConfigurationWindowViewModel viewModel = this.DataContext as UserConfigurationWindowViewModel;
+                if (viewModel.CancelCommand.CanExecute())
+                    viewModel.CancelCommand.Execute();
+            }
         }
     }
 }
