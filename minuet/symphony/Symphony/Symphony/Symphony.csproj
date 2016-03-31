@@ -67,12 +67,17 @@
     <Compile Include="Configuration\LegacySymphonySettings.cs" />
     <Compile Include="Configuration\Model\WindowPlacement.cs" />
     <Compile Include="Plugins\AppWindowPlugin.cs" />
+    <Compile Include="Plugins\GetWindowsPlugin.cs" />
     <Compile Include="Plugins\CachePlugin.cs" />
     <Compile Include="Plugins\Hotkeys\Converters\KeysValueConverter.cs" />
     <Compile Include="Plugins\Hotkeys\Converters\ModifierKeysValueConverter.cs" />
     <Compile Include="Plugins\DownloadPlugin.cs" />
     <Compile Include="Plugins\Hotkeys\HotKeyConfigurationViewModel.cs" />
     <Compile Include="Plugins\Hotkeys\HotKeyConfigurationWindow.xaml.cs" />
+    <Compile Include="Plugins\MediaStreamPicker\EnumWindows.cs" />
+    <Compile Include="Plugins\MediaStreamPicker\MediaStreamPicker.xaml.cs">
+      <DependentUpon>MediaStreamPicker.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Plugins\SystemInfoPlugin.cs" />
     <Compile Include="Win32\NativeMethods.cs" />
     <Compile Include="Plugins\SettingsPlugin.cs" />
@@ -149,6 +154,10 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Page Include="Plugins\MediaStreamPicker\MediaStreamPicker.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Symphony.Crypto\Symphony.Crypto.csproj">
