@@ -1,30 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using HWND = System.IntPtr;
 
 namespace Symphony.Plugins.MediaStreamPicker
 {
-    public class EnumWindowsResult
+    public class EnumWindowResult
     {
-        public EnumWindowsResult(String title, BitmapSource image)
+        public EnumWindowResult(HWND _hWnd, String _title, BitmapSource _image)
         {
-            Title = title;
-            Image = image;
+            hWnd = _hWnd;
+            title = _title;
+            image = _image;
         }
-        public string Title { get; private set; }
-        public BitmapSource Image { get; private set; }
+        public HWND hWnd { get; private set; }
+        public string title { get; private set; }
+        public BitmapSource image { get; private set; }
     }
 
-    /// <summary>Contains functionality to get all the open windows.</summary>
     public static class EnumerateWindows
     {
-        struct WINDOWPLACEMENT
+        private struct WINDOWPLACEMENT
         {
             public int length;
             public int flags;
@@ -38,7 +37,7 @@ namespace Symphony.Plugins.MediaStreamPicker
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
+        private static extern bool GetWindowPlacement(HWND hWnd, ref WINDOWPLACEMENT lpwndpl);
 
         private delegate bool EnumWindowsProc(HWND hWnd, int lParam);
 
@@ -59,7 +58,7 @@ namespace Symphony.Plugins.MediaStreamPicker
 
         [DllImport("User32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool PrintWindow(IntPtr hwnd, IntPtr hDC, uint nFlags);
+        private static extern bool PrintWindow(HWND hwnd, IntPtr hDC, uint nFlags);
 
         // http://msdn.microsoft.com/en-us/library/dd183539(VS.85).aspx
         [DllImport("gdi32.dll")]
@@ -67,18 +66,18 @@ namespace Symphony.Plugins.MediaStreamPicker
 
         // Important note for Vista / Win7 on this function. In those version, rectangle returned is not 100% correct
         [DllImport("user32.dll")]
-        private static extern bool GetWindowRect(IntPtr hWnd, out Win32Rect rect);
+        private static extern bool GetWindowRect(HWND hWnd, out Win32Rect rect);
 
         [DllImport("user32.dll")]
-        private static extern bool GetClientRect(IntPtr hWnd, out Win32Rect rect);
+        private static extern bool GetClientRect(HWND hWnd, out Win32Rect rect);
 
-        /// <summary>Returns a dictionary that contains the handle and title of all the open windows.</summary>
-        /// <returns>A dictionary that contains the handle and title of all the open windows.</returns>
-        public static IDictionary<HWND, EnumWindowsResult> GetOpenWindows()
+        // returns all non-minimized windows
+        public static IList<EnumWindowResult> getWindows()
         {
             HWND shellWindow = GetShellWindow();
-            Dictionary<HWND, EnumWindowsResult> windows = new Dictionary<HWND, EnumWindowsResult>();
 
+            IList<EnumWindowResult> windows = new List<EnumWindowResult>();
+            
             EnumWindows(delegate(HWND hWnd, int lParam)
             {
                 if (hWnd == shellWindow) 
@@ -108,21 +107,59 @@ namespace Symphony.Plugins.MediaStreamPicker
                 if (img == null)
                     return true;
 
-                windows[hWnd] = new EnumWindowsResult(title, img);
+                windows.Add(new EnumWindowResult(hWnd, title, img));
 
                 return true;
-
             }, 0);
 
             return windows;
         }
 
-        private static BitmapSource ToBitmapSource(this System.Drawing.Bitmap source)
+
+        private static BitmapSource getScreenShot(HWND hwnd)
+        {
+            bool success = false;
+            IntPtr dc = IntPtr.Zero;
+            System.Drawing.Graphics memoryGraphics = null;
+            System.Drawing.Bitmap bmp = null;
+            
+            try
+            {
+                Int32Rect rect = GetWindowActualRect(hwnd);
+                bmp = new System.Drawing.Bitmap(rect.Width, rect.Height);
+                memoryGraphics = System.Drawing.Graphics.FromImage(bmp);
+                dc = memoryGraphics.GetHdc();
+                success = PrintWindow(hwnd, dc, 0);
+            }
+            catch
+            {
+                return null;
+            }
+            finally 
+            {
+                if (dc != null && memoryGraphics != null)
+                  memoryGraphics.ReleaseHdc(dc);
+            }
+            
+            if (success == true)
+            {
+                try
+                {
+                    return ToBitmapSource(bmp);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            return null;
+        }
+
+        public static BitmapSource ToBitmapSource(this System.Drawing.Bitmap source)
         {
             if (source == null)
-            {
                 throw new ArgumentNullException("source");
-            }
 
             IntPtr ip = source.GetHbitmap();
             try
@@ -135,21 +172,6 @@ namespace Symphony.Plugins.MediaStreamPicker
             {
                 DeleteObject(ip);
             }
-        }
-
-        private static BitmapSource getScreenShot(HWND hwnd)
-        {
-            Int32Rect rect = GetWindowActualRect(hwnd);
-            System.Drawing.Bitmap bmp = new  System.Drawing.Bitmap(rect.Width, rect.Height);
-            System.Drawing.Graphics memoryGraphics = System.Drawing.Graphics.FromImage(bmp);
-            IntPtr dc = memoryGraphics.GetHdc();
-            bool success = PrintWindow(hwnd, dc, 0);
-            memoryGraphics.ReleaseHdc(dc);
-            BitmapSource result = null;
-            if (success == true) 
-                result = ToBitmapSource(bmp);
-
-            return result;
         }
 
         [StructLayout(LayoutKind.Sequential)]

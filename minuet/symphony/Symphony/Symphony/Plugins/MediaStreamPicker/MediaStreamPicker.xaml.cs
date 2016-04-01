@@ -8,6 +8,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using HWND = System.IntPtr;
@@ -16,9 +17,9 @@ namespace Symphony.Plugins.MediaStreamPicker
 {
     public class Img
     {
-        public Img(string value, Image img) { Str = value; Image = img; }
+        public Img(string value, BitmapSource img) { Str = value; ImageSource = img; }
         public string Str { get; set; }
-        public Image Image { get; set; }
+        public BitmapSource ImageSource { get; set; }
     }
 
     /// <summary>
@@ -35,41 +36,45 @@ namespace Symphony.Plugins.MediaStreamPicker
 
             this.Loaded += MediaStreamPicker_Loaded;
 
-            done.Click += onClickedDone;
+            share.Click += onClickedShare;
+            cancel.Click += onClickedCancel;
+
+            //addToStreams("test", null);
         }
 
-        void onClickedDone(object sender, RoutedEventArgs e)
+        void onClickedShare(object sender, RoutedEventArgs e)
         {
             this.Close();
         }
+
+        void onClickedCancel(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        void addToStreams(string title, BitmapSource image)
+        {
+            Img item = new Img(title, image);
+            streams.Items.Add(item);
+        }
+
         void MediaStreamPicker_Loaded(object sender, RoutedEventArgs e)
         {
-            IDictionary<HWND, EnumWindowsResult> result = EnumerateWindows.GetOpenWindows();
-
-            //HWND ptrZero = new HWND(0);
-            //result.Add(ptrZero, "Desktop");
-
-            var enumerator = result.GetEnumerator();
-
-            while (enumerator.MoveNext())
+            IList<EnumScreenResult> screens = EnumerateScreens.getScreens();
+            foreach (EnumScreenResult screen in screens)
             {
-                EnumWindowsResult value = enumerator.Current.Value;
-
-                Image i = new Image();
-                i.Width = 200;
-                i.Height = 200;
-                i.Source = value.Image;
-
-                Img item = new Img(value.Title, i);
-                streams.Items.Add(item);
-                string streamType = "window";
-                //if (value == "Desktop")
-                //    streamType = "screen";
-
-                mediaStreams.Add(streamType + ":" + enumerator.Current.Key.ToString());
+                addToStreams(screen.title, screen.image);
+                mediaStreams.Add("screen:" + screen.id);
             }
 
-            streams.SelectedIndex = streams.Items.Count - 1;
+            IList<EnumWindowResult> windows = EnumerateWindows.getWindows();
+            foreach (EnumWindowResult window in windows)
+            {
+                addToStreams(window.title, window.image);
+                mediaStreams.Add("window:" + window.hWnd.ToString());
+            }
+
+            streams.SelectedIndex = -1;
         }
 
         void onSelectionChanged(object sender, SelectionChangedEventArgs args)
@@ -77,9 +82,14 @@ namespace Symphony.Plugins.MediaStreamPicker
             ListBox lb = sender as ListBox;
             ListBoxItem lbi = (lb.SelectedItem as ListBoxItem);
             int index = lb.SelectedIndex;
-            string mediaStream = mediaStreams[index];
-            selectedMediaStream = mediaStream;
-            selectedHwndLabel.Content = mediaStream;
+
+            if (index != -1 && index < mediaStreams.Count - 1)
+            {
+                string mediaStream = mediaStreams[index];
+                selectedMediaStream = mediaStream;
+            }
+
+            share.IsEnabled = (index != -1) ? true : false;
         }
 
         public string getSelectedMediaStream()

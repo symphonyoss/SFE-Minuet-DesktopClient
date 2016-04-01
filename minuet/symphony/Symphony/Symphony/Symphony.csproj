@@ -74,6 +74,7 @@
     <Compile Include="Plugins\DownloadPlugin.cs" />
     <Compile Include="Plugins\Hotkeys\HotKeyConfigurationViewModel.cs" />
     <Compile Include="Plugins\Hotkeys\HotKeyConfigurationWindow.xaml.cs" />
+    <Compile Include="Plugins\MediaStreamPicker\EnumScreens.cs" />
     <Compile Include="Plugins\MediaStreamPicker\EnumWindows.cs" />
     <Compile Include="Plugins\MediaStreamPicker\MediaStreamPicker.xaml.cs">
       <DependentUpon>MediaStreamPicker.xaml</DependentUpon>
