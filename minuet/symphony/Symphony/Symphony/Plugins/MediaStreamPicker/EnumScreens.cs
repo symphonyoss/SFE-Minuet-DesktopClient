@@ -88,71 +88,16 @@ namespace Symphony.Plugins.MediaStreamPicker
                                            CopyPixelOperation.SourceCopy);
 
                 BitmapSource bitmapSrc = EnumerateWindows.ToBitmapSource(bmpScreenshot);
-                
-                string title = screen.Primary ? "Primary Screen" : "Screen " + (id + 1);
+                // freeze needed since we are creating on a separate thread
+                bitmapSrc.Freeze();
+
+                id++;
+                string title = screen.Primary ? "Primary Screen" : "Screen " + id;
                 
                 results.Add(new EnumScreenResult(id, title, bitmapSrc));
              }
 
-            //IList<numScreenResult> results = getNumScreens();
-
-            //if (results != null)
-            //{
-            //    int num = 0;
-            //    foreach (numScreenResult result in results)
-            //    {
-            //        num++;
-            //        string title = result.isPrimary ? "Primary Screen" : "Screen " + num;
-            //        BitmapSource img = null;
-            //        screens.Add(new EnumScreensResult(result.id, title, img));
-            //    }
-            //}
-
             return results;
-        }
-
-        class numScreenResult
-        {
-            public numScreenResult(uint _id, bool _isPrimary)
-            {
-                id = _id;
-                isPrimary = _isPrimary;
-            }
-
-            public uint id { get; private set; }
-            public bool isPrimary { get; private set; }
-        }
-
-        static List<numScreenResult> getNumScreens()
-        {
-            DISPLAY_DEVICE d = new DISPLAY_DEVICE();
-            d.cb = Marshal.SizeOf(d);
-            List<numScreenResult> deviceIds = new List<numScreenResult>();
-            try
-            {
-                for (uint id = 0; ; id++)
-                {
-                    bool result = EnumDisplayDevices(null, id, ref d, 0);
-                    if (result == false)
-                        return deviceIds;
-
-                    if ((d.StateFlags & DisplayDeviceStateFlags.AttachedToDesktop) == 0)
-                        continue;
-
-                    if ((d.StateFlags & DisplayDeviceStateFlags.PrimaryDevice) != 0)
-                        deviceIds.Add(new numScreenResult(id, true));
-                    else
-                        deviceIds.Add(new numScreenResult(id, false));
-
-                    d.cb = Marshal.SizeOf(d);
-                }
-            }
-            catch
-            {
-                return null;
-            }
-
-            return null;
         }
     }
 }

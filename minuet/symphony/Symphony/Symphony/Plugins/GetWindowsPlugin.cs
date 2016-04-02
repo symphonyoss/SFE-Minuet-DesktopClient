@@ -6,7 +6,7 @@ using System;
 
 namespace Symphony.Plugins
 {
-    [JavaScriptPlugin(Name = "symphony", IsBrowserSide = true)]
+    [JavaScriptPlugin(Name = "cef", IsBrowserSide = true)]
     public class GetWindowsPlugin : IParagonPlugin
     {
         private IApplication application;
@@ -20,7 +20,7 @@ namespace Symphony.Plugins
         {
         }
 
-        [JavaScriptPluginMember(Name = "cefGetScreenMedia")]
+        [JavaScriptPluginMember(Name = "getScreenMedia")]
         public void cefGetScreenMedia(JavaScriptPluginCallback callback)
         {
             var mainWindow = (Window)this.application.WindowManager.AllWindows[0];
@@ -33,17 +33,16 @@ namespace Symphony.Plugins
 
                 string stream = window.getSelectedMediaStream();
 
-                callback(stream);
+                if (String.IsNullOrEmpty(stream))
+                    callback("media stream selected is null/empty", stream);
+                else
+                    callback(null, stream);
             });
 
             if (!mainWindow.Dispatcher.CheckAccess())
-            {
                 mainWindow.Dispatcher.Invoke(showDialog);
-            }
             else
-            {
                 showDialog.Invoke();
-            }
         }
     }
 }
