@@ -1,1 +1,9 @@
+# Folders
+.vs
 bin 
+
+# Solution Files
+*.suo
+
+# Tools
+*.DotSettings
