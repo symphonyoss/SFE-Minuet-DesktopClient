@@ -91,11 +91,11 @@ namespace Symphony.Plugins.MediaStreamPicker
                 // freeze needed since we are creating on a separate thread
                 bitmapSrc.Freeze();
 
-                id++;
-                string title = screen.Primary ? "Primary Screen" : "Screen " + id;
+                string title = screen.Primary ? "Primary Screen" : "Screen " + (id + 1);
                 
                 results.Add(new EnumScreenResult(id, title, bitmapSrc));
-             }
+                id++;
+            }
 
             return results;
         }

@@ -23,7 +23,9 @@
                  ScrollViewer.CanContentScroll="True" 
                  ScrollViewer.VerticalScrollBarVisibility="Visible"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                 Grid.Row="0" x:Name="streams" SelectionChanged="onSelectionChanged">
+                 ItemsSource="{Binding Streams, Mode=OneWay}"
+                 SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                 Grid.Row="0">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel />
@@ -46,8 +48,11 @@
             </ListBox.ItemTemplate>
         </ListBox>
         <StackPanel Grid.Row="1" Margin="0,5,10,5" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="cancel" Style="{StaticResource SystemButton}">Cancel</Button>
-            <Button x:Name="share" Style="{StaticResource SystemButton}" IsEnabled="false">Share</Button>
+            <Button Command="{Binding Path=CancelCommand}" 
+                    Style="{StaticResource SystemButton}">Cancel</Button>
+            <Button IsEnabled="{Binding IsShareEnabled, Mode=OneWay}" 
+                    Command="{Binding Path=ShareCommand}"
+                    Style="{StaticResource SystemButton}">Share</Button>
         </StackPanel>
     </Grid>
 </Window>

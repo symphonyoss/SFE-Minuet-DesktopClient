@@ -28,15 +28,26 @@ namespace Symphony.Plugins
             var showDialog = new Action(() =>
             {
                 var window = new MediaStreamPicker.MediaStreamPicker();
+                MediaStreamPicker.MediaStreamPickerViewModel vm = new MediaStreamPicker.MediaStreamPickerViewModel(window);
+                window.DataContext = vm;
+
+                EventHandler requestCloseHandler = (sender, args) => window.Close();
+                vm.RequestCancel += requestCloseHandler;
+
+                EventHandler<MediaStreamPicker.RequestShareEventArgs> requestShareHandler = (sender, args) =>
+                {
+                    string stream = args.mediaStream;
+                    if (String.IsNullOrEmpty(stream))
+                        callback("media stream selected is null/empty", stream);
+                    else
+                        callback(null, stream);
+
+                    window.Close();
+                };
+                vm.RequestShare += requestShareHandler;
+
                 window.Owner = mainWindow;
                 window.ShowDialog();
-
-                string stream = window.getSelectedMediaStream();
-
-                if (String.IsNullOrEmpty(stream))
-                    callback("media stream selected is null/empty", stream);
-                else
-                    callback(null, stream);
             });
 
             if (!mainWindow.Dispatcher.CheckAccess())
@@ -44,5 +55,6 @@ namespace Symphony.Plugins
             else
                 showDialog.Invoke();
         }
+
     }
 }

@@ -79,6 +79,7 @@
     <Compile Include="Plugins\MediaStreamPicker\MediaStreamPicker.xaml.cs">
       <DependentUpon>MediaStreamPicker.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plugins\MediaStreamPicker\MediaStreamPickerViewModel.cs" />
     <Compile Include="Plugins\SystemInfoPlugin.cs" />
     <Compile Include="Win32\NativeMethods.cs" />
     <Compile Include="Plugins\SettingsPlugin.cs" />
