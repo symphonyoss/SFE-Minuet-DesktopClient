@@ -62,6 +62,10 @@
         {
             "name": "Symphony.Plugins.SystemInfoPlugin",
             "assembly": "Symphony.dll"
+        },
+        {
+            "name": "Symphony.Plugins.ActivityPlugin",
+            "assembly": "Symphony.dll"
         }
     ],
     "customTheme" : "SymphonyTheme.xaml"

@@ -73,6 +73,7 @@
     <Compile Include="Plugins\DownloadPlugin.cs" />
     <Compile Include="Plugins\Hotkeys\HotKeyConfigurationViewModel.cs" />
     <Compile Include="Plugins\Hotkeys\HotKeyConfigurationWindow.xaml.cs" />
+    <Compile Include="Plugins\ActivityPlugin.cs" />
     <Compile Include="Plugins\SystemInfoPlugin.cs" />
     <Compile Include="Win32\NativeMethods.cs" />
     <Compile Include="Plugins\SettingsPlugin.cs" />
