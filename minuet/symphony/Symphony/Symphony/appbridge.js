@@ -49,6 +49,12 @@ var appbridge = new function () {
         onFileUploadCallback = fileUploadCallback;
     };
 
+    self.RegisterActivityCallback = function (activityCallbackName) {
+        symphony.activityDetector.onActivity.addListener(function () {
+            execCallback(activityCallbackName, null);
+        });
+    };
+
     self.OpenScreenSnippetTool = function () {
         console.log("paragon.snippets.capture");
 
