@@ -53,7 +53,7 @@ namespace Symphony.Plugins
 
         System.Threading.Timer timer;
 
-        double checkIntervalInSecs = 5.0;
+        double checkIntervalInSecs = 60;
 
         public void Initialize(IApplication application)
         {
