@@ -6,8 +6,7 @@ namespace Symphony.Plugins
 {
     /* 
      * This plugin looks for keyboard or mouse activity anywhere in the OS and raises
-     * event when activity occurs.  A timer running once per minutes checks for activity and
-     * only raises event if there has been activity within the last minute.
+     * event when activity occurs.
      */
     
     [JavaScriptPlugin(Name = "symphony.activityDetector", IsBrowserSide = true)]
@@ -51,25 +50,45 @@ namespace Symphony.Plugins
         int currX = -1;
         int currY = -1;
 
-        System.Threading.Timer timer;
-
-        double checkIntervalInSecs = 60;
+        System.Threading.Timer timer = null;
+        double numOfSecondsWaited = 60;
+        double checkIntervalInSecs = 10;
+        bool activityOccurred = false;
 
         public void Initialize(IApplication application)
         {
-            timer = new System.Threading.Timer(onTimer, null, TimeSpan.Zero, 
+            if (timer != null)
+            {
+                timer.Dispose();
+                timer = null;
+            }
+            timer = new System.Threading.Timer(onTimer, null, 
+                TimeSpan.Zero, 
                 TimeSpan.FromSeconds(checkIntervalInSecs));
         }
 
-        // check for mouse position changes every 60 seconds
         void onTimer(object state)
         {
-            if (anyMouseMovement() || anyKeyPressed())
+            // don't recalulate if activity has already occurred
+            if (activityOccurred == false &&  
+                (anyMouseMovement() || anyKeyPressed()))
+                activityOccurred = true;
+
+            if (activityOccurred)
             {
+                numOfSecondsWaited += checkIntervalInSecs;
+
+                // raise event at most once per minute to avoid flooding appBridge
+                if (numOfSecondsWaited < 60)
+                    return;
+
+                numOfSecondsWaited = 0;
+                activityOccurred = false;
+
                 var evnt = onActivity;
                 if (evnt != null)
                     evnt();
-            }            
+            }
         }
 
         bool anyMouseMovement()
