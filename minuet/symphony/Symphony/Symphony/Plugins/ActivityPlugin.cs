@@ -64,8 +64,6 @@ namespace Symphony.Plugins
                 numOfSecondsWaited = 0;
                 activityOccurred = false;
 
-                Console.WriteLine("send at " + DateTime.Now);
-
                 var evnt = onActivity;
                 if (evnt != null)
                     evnt();
