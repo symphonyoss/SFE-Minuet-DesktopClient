@@ -1,2 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Disable Code Analysis" Description="Code analysis disabled as all code in this project is either generated or supplied by a third party." ToolsVersion="11.0" />
