@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8965D7D9-73F7-48AC-9AE4-6B22743691B5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Paragon.Plugins</RootNamespace>
+    <AssemblyName>Paragon.Plugins</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\bin\paragon\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>..\..\bin\paragon\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="BeginDownloadEventArgs.cs" />
+    <Compile Include="ExcludeFromCodeCoverageAttribute.cs" />
+    <Compile Include="FileDialogMode.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="IApplicationManager.cs" />
+    <Compile Include="ILogger.cs" />
+    <Compile Include="IMessageBusPlugin.cs" />
+    <Compile Include="IParagonAppInfo.cs" />
+    <Compile Include="IParagonSplashScreen.cs" />
+    <Compile Include="ProtocolInvocationEventArgs.cs" />
+    <Compile Include="ApplicationEnvironment.cs" />
+    <Compile Include="ApplicationExitingEventArgs.cs" />
+    <Compile Include="BoundsSpecification.cs" />
+    <Compile Include="DownloadProgressEventArgs.cs" />
+    <Compile Include="IApplicationManifest.cs" />
+    <Compile Include="ApplicationState.cs" />
+    <Compile Include="ApplicationType.cs" />
+    <Compile Include="CallbackThread.cs" />
+    <Compile Include="IApplication.cs" />
+    <Compile Include="IApplicationMetadata.cs" />
+    <Compile Include="IApplicationPackage.cs" />
+    <Compile Include="IApplicationWindow.cs" />
+    <Compile Include="IApplicationWindowManager.cs" />
+    <Compile Include="IParagonPlugin.cs" />
+    <Compile Include="JavaScriptDisposeAttribute.cs" />
+    <Compile Include="JavaScriptPluginMemberAttribute .cs" />
+    <Compile Include="JavaScriptPluginAttribute.cs" />
+    <Compile Include="JavaScriptPluginCallback.cs" />
+    <Compile Include="ParagonPlugin.cs" />
+    <Compile Include="PluginExecutionContext.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
