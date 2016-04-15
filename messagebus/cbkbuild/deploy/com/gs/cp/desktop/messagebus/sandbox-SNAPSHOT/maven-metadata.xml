@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>com.gs.cp.desktop</groupId>
+  <artifactId>messagebus</artifactId>
+  <version>sandbox-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20150414.164935</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <lastUpdated>20150414164935</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>sandbox-20150414.164935-1</value>
+        <updated>20150414164935</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>sandbox-20150414.164935-1</value>
+        <updated>20150414164935</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>
