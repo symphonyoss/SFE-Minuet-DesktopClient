@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head><title>REST Test</title> <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE"></head>
+    <body>
+        <script>
+            function postStuff(payload){
+                var xmlhttp = new XMLHttpRequest();
+
+                xmlhttp.onreadystatechange=function(){
+                  if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                    document.getElementById("id01").innerHTML=xmlhttp.responseText;
+                    }
+                }
+                xmlhttp.open("POST","http://localhost:{BROKER_PORT_NUMBER}/messagebus",true);
+                xmlhttp.setRequestHeader("Content-type","application/json;charset=UTF-8");
+                xmlhttp.send(JSON.stringify(payload));
+            }
+
+            function send(address, message) {
+                var msg = JSON.parse(message);
+                var payload = {
+                    type:'send',
+                    address: address,
+                    message:msg
+                    };
+                postStuff(payload);
+            }
+
+            function sendWithReply(address, message) {
+                var msg = JSON.parse(message);
+                var payload = {
+                    type:'send',
+                    address: address,
+                    message: msg,
+                    rid: newGUID()
+                    };
+                postStuff(payload);
+            }
+
+            function publish(address, message) {
+                var msg = JSON.parse(message);
+                var payload = {
+                    type:'publish',
+                    address: address,
+                    message:msg
+                    };
+                postStuff(payload);
+
+            }
+
+            function newGUID() {
+                    return "xxxxxxxx-xxxx-4xxx-yxxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (a, b) {
+                        return b = Math.random() * 16, (a == "y" ? b & 3 | 8 : b | 0).toString(16);
+                    });
+            }
+        </script>
+        <form onsubmit="return false;">
+            <input type="text" name="sendAddress" value="topic"/>
+            <input type="text" name="message" value="Hello, World!"/>
+            <input type="button" value="Send" onclick="send(this.form.sendAddress.value, this.form.message.value)"/>
+            <input type="button" value="Send Reply" onclick="sendWithReply(this.form.sendAddress.value, this.form.message.value)"/>
+            <input type="button" value="Publish" onclick="publish(this.form.sendAddress.value, this.form.message.value)"/>
+        </form>
+        <div id="id01"></div>
+    </body>
+</html>
