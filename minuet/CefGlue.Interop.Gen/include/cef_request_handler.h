@@ -46,7 +46,6 @@
 #include "include/cef_response.h"
 #include "include/cef_request.h"
 #include "include/cef_ssl_info.h"
-#include "include/cef_web_plugin.h"
 
 
 ///
@@ -79,6 +78,7 @@ class CefRequestHandler : public virtual CefBase {
  public:
   typedef cef_return_value_t ReturnValue;
   typedef cef_termination_status_t TerminationStatus;
+  typedef cef_urlrequest_status_t URLRequestStatus;
   typedef cef_window_open_disposition_t WindowOpenDisposition;
 
   ///
@@ -182,6 +182,20 @@ class CefRequestHandler : public virtual CefBase {
   }
 
   ///
+  // Called on the IO thread when a resource load has completed. |request| and
+  // |response| represent the request and response respectively and cannot be
+  // modified in this callback. |status| indicates the load completion status.
+  // |received_content_length| is the number of response bytes actually read.
+  ///
+  /*--cef()--*/
+  virtual void OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
+                                      CefRefPtr<CefFrame> frame,
+                                      CefRefPtr<CefRequest> request,
+                                      CefRefPtr<CefResponse> response,
+                                      URLRequestStatus status,
+                                      int64 received_content_length) {}
+
+  ///
   // Called on the IO thread when the browser needs credentials from the user.
   // |isProxy| indicates whether the host is a proxy server. |host| contains the
   // hostname and |port| contains the port number. Return true to continue the
@@ -245,18 +259,6 @@ class CefRequestHandler : public virtual CefBase {
       const CefString& request_url,
       CefRefPtr<CefSSLInfo> ssl_info,
       CefRefPtr<CefRequestCallback> callback) {
-    return false;
-  }
-
-  ///
-  // Called on the browser process IO thread before a plugin is loaded. Return
-  // true to block loading of the plugin.
-  ///
-  /*--cef(optional_param=url,optional_param=policy_url)--*/
-  virtual bool OnBeforePluginLoad(CefRefPtr<CefBrowser> browser,
-                                  const CefString& url,
-                                  const CefString& policy_url,
-                                  CefRefPtr<CefWebPluginInfo> info) {
     return false;
   }
 

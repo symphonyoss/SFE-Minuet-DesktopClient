@@ -62,6 +62,32 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
+        /// Set the referrer URL and policy. If non-empty the referrer URL must be
+        /// fully qualified with an HTTP or HTTPS scheme component. Any username,
+        /// password or ref component will be removed.
+        /// </summary>
+        public void SetReferrer(cef_string_t* referrer_url, cef_referrer_policy_t policy)
+        {
+            throw new NotImplementedException(); // TODO: CefRequest.SetReferrer
+        }
+        
+        /// <summary>
+        /// Get the referrer URL.
+        /// </summary>
+        public cef_string_userfree* GetReferrerURL()
+        {
+            throw new NotImplementedException(); // TODO: CefRequest.GetReferrerURL
+        }
+        
+        /// <summary>
+        /// Get the referrer policy.
+        /// </summary>
+        public cef_referrer_policy_t GetReferrerPolicy()
+        {
+            throw new NotImplementedException(); // TODO: CefRequest.GetReferrerPolicy
+        }
+        
+        /// <summary>
         /// Get the post data.
         /// </summary>
         public cef_post_data_t* GetPostData()
@@ -78,7 +104,7 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Get the header values.
+        /// Get the header values. Will not include the Referer value if any.
         /// </summary>
         public void GetHeaderMap(cef_string_multimap* headerMap)
         {
@@ -86,7 +112,8 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Set the header values.
+        /// Set the header values. If a Referer value exists in the header map it will
+        /// be removed and ignored.
         /// </summary>
         public void SetHeaderMap(cef_string_multimap* headerMap)
         {

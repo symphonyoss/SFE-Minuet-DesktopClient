@@ -31,6 +31,15 @@ namespace Xilium.CefGlue
         }
 
         /// <summary>
+        /// Returns true if this object has excluded elements
+        /// </summary>
+        public bool HasExcludedElements
+        {
+            get { return cef_post_data_t.has_excluded_elements(_self) != 0; }
+        }
+
+
+        /// <summary>
         /// Returns the number of existing post data elements.
         /// </summary>
         public int Count

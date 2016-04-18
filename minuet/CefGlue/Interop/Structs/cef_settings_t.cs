@@ -25,6 +25,7 @@ namespace Xilium.CefGlue.Interop
         public cef_string_t cache_path;
         public cef_string_t user_data_path;
         public int persist_session_cookies;
+        public int persist_user_preferences;
         public cef_string_t user_agent;
         public cef_string_t product_version;
         public cef_string_t locale;
@@ -40,9 +41,6 @@ namespace Xilium.CefGlue.Interop
         public int ignore_certificate_errors;
         public uint background_color;
         public cef_string_t accept_language_list;
-        public cef_string_t auth_server_whitelist;
-        public cef_string_t auth_delegate_whitelist;
-
         #region Alloc & Free
         private static int _sizeof;
 

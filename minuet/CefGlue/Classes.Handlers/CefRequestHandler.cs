@@ -123,6 +123,35 @@ namespace Xilium.CefGlue
         }
 
 
+        /// <summary>
+        /// Called on the IO thread when a resource response is received. To allow the
+        /// resource to load normally return false. To redirect or retry the resource
+        /// modify |request| (url, headers or post body) and return true. The
+        /// |response| object cannot be modified in this callback.
+        /// </summary>
+        // protected abstract int OnResourceResponse(cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response);
+
+        private void on_resource_load_complete(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response, CefUrlRequestStatus status, long received_content_length)
+        {
+            CheckSelf(self);
+
+            var m_browser = CefBrowser.FromNative(browser);
+            var m_frame = CefFrame.FromNative(frame);
+            var m_request = CefRequest.FromNative(request);
+            var m_response = CefResponse.FromNative(response);
+            OnResourceLoadComplete(m_browser, m_frame, m_request, m_response, status, received_content_length);
+        }
+
+        /// <summary>
+        /// Called on the IO thread when a resource load has completed. |request| and
+        /// |response| represent the request and response respectively and cannot be
+        /// modified in this callback. |status| indicates the load completion status.
+        /// |received_content_length| is the number of response bytes actually read.
+        /// </summary>
+        protected virtual void OnResourceLoadComplete(CefBrowser browser, CefFrame frame, CefRequest request, CefResponse response, CefUrlRequestStatus status, long received_content_length)
+        {
+        }
+
         private int get_auth_credentials(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback)
         {
             CheckSelf(self);
@@ -235,31 +264,6 @@ namespace Xilium.CefGlue
                 callback.Cancel();
             return false;
         }
-
-
-        private int on_before_plugin_load(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* url, cef_string_t* policy_url, cef_web_plugin_info_t* info)
-        {
-            CheckSelf(self);
-
-            var m_browser = CefBrowser.FromNative(browser);
-            var m_url = cef_string_t.ToString(url);
-            var m_policy_url = cef_string_t.ToString(policy_url);
-            var m_info = CefWebPluginInfo.FromNative(info);
-
-            var result = OnBeforePluginLoad(m_browser, m_url, m_policy_url, m_info);
-
-            return result ? 1 : 0;
-        }
-
-        /// <summary>
-        /// Called on the browser process IO thread before a plugin is loaded. Return
-        /// true to block loading of the plugin.
-        /// </summary>
-        protected virtual bool OnBeforePluginLoad(CefBrowser browser, string url, string policyUrl, CefWebPluginInfo info)
-        {
-            return false;
-        }
-
 
         private void on_plugin_crashed(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* plugin_path)
         {

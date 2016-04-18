@@ -33,7 +33,6 @@ namespace Xilium.CefGlue.Interop
         public CefState javascript_access_clipboard;
         public CefState javascript_dom_paste;
         public CefState caret_browsing;
-        public CefState java;
         public CefState plugins;
         public CefState universal_access_from_file_urls;
         public CefState file_access_from_file_urls;
@@ -49,9 +48,6 @@ namespace Xilium.CefGlue.Interop
 
         public uint background_color;
         public cef_string_t accept_language_list;
-        public cef_string_t auth_server_whitelist;
-        public cef_string_t auth_delegate_whitelist;
-
 
         #region Alloc & Free
         private static int _sizeof;

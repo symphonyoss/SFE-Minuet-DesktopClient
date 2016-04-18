@@ -81,6 +81,16 @@
         public bool PersistSessionCookies { get; set; }
 
         /// <summary>
+        /// To persist user preferences as a JSON file in the cache path directory set
+        /// this value to true (1). A |cache_path| value must also be specified
+        /// to enable this feature. Also configurable using the
+        /// "persist-user-preferences" command-line switch. Can be overridden for
+        /// individual CefRequestContext instances via the
+        /// CefRequestContextSettings.persist_user_preferences value.
+        /// </summary>
+        public bool PersistUserPreferences;
+
+        /// <summary>
         /// Value that will be returned as the User-Agent HTTP header. If empty the
         /// default User-Agent string will be used. Also configurable using the
         /// "user-agent" command-line switch.
@@ -221,21 +231,6 @@
         ///</summary>
         public string AcceptLanguageList { get; set; }
 
-        ///
-        // Specifies the comma separated white list of domains for which the single sign on
-        // authentication may be used
-        // see https://dev.chromium.org/administrators/policy-list-3#AuthServerWhitelist
-        ///
-        public string AuthServerWhitelist { get; set; }
-
-        ///
-        // Kerberos delegation server whitelist
-        // see
-        // https://dev.chromium.org/administrators/policy-list-3#AuthNegotiateDelegateWhitelist
-        ///
-        public string AuthDelegateWhitelist { get; set; }
-
-
         ///<summary>
         /// The location where user data such as spell checking dictionary files will
         /// be stored on disk. If empty then the default platform-specific user data
@@ -245,9 +240,6 @@
         /// profile directory on Windows).
         ///</summary>
         public string UserDataPath { get; set; }
-
-
-
 
         internal cef_settings_t* ToNative()
         {
@@ -261,6 +253,7 @@
             cef_string_t.Copy(CachePath, &ptr->cache_path);
             cef_string_t.Copy(UserDataPath, &ptr->user_data_path);
             ptr->persist_session_cookies = PersistSessionCookies ? 1 : 0;
+            ptr->persist_user_preferences = PersistUserPreferences ? 1 : 0;
             cef_string_t.Copy(UserAgent, &ptr->user_agent);
             cef_string_t.Copy(ProductVersion, &ptr->product_version);
             cef_string_t.Copy(Locale, &ptr->locale);
@@ -276,8 +269,6 @@
             ptr->ignore_certificate_errors = IgnoreCertificateErrors ? 1 : 0;
             ptr->background_color = BackgroundColor.ToArgb();
             cef_string_t.Copy(AcceptLanguageList, &ptr->accept_language_list);
-            cef_string_t.Copy(AuthServerWhitelist, &ptr->auth_server_whitelist);
-            cef_string_t.Copy(AuthDelegateWhitelist, &ptr->auth_delegate_whitelist);
             return ptr;
         }
 
@@ -294,8 +285,6 @@
             libcef.string_clear(&ptr->resources_dir_path);
             libcef.string_clear(&ptr->locales_dir_path);
             libcef.string_clear(&ptr->accept_language_list);
-            libcef.string_clear(&ptr->auth_server_whitelist);
-            libcef.string_clear(&ptr->auth_delegate_whitelist);
         }
 
         internal static void Free(cef_settings_t* ptr)

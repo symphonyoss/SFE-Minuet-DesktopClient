@@ -32,6 +32,14 @@
         public int persist_session_cookies;
 
         ///
+        // To persist user preferences as a JSON file in the cache path directory set
+        // this value to true (1). Can be set globally using the
+        // CefSettings.persist_user_preferences value. This value will be ignored if
+        // |cache_path| is empty or if it matches the CefSettings.cache_path value.
+        ///
+        public int persist_user_preferences;
+
+        ///
         // Set to true (1) to ignore errors related to invalid SSL certificates.
         // Enabling this setting can lead to potential security vulnerabilities like
         // "man in the middle" attacks. Applications that load content from the
@@ -50,20 +58,6 @@
         // ignored if |cache_path| matches the CefSettings.cache_path value.
         ///
         public cef_string_t accept_language_list;
-
-        ///
-        // Specifies the comma separated white list of domains for which the single sign on
-        // authentication may be used
-        // see https://dev.chromium.org/administrators/policy-list-3#AuthServerWhitelist
-        ///
-        public cef_string_t auth_server_whitelist;
-
-        ///
-        // Kerberos delegation server whitelist
-        // see
-        // https://dev.chromium.org/administrators/policy-list-3#AuthNegotiateDelegateWhitelist
-        ///
-        public cef_string_t auth_delegate_whitelist;
 
         #region Alloc & Free
         private static int _sizeof;

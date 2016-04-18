@@ -77,5 +77,84 @@ namespace Xilium.CefGlue
                 cef_request_context_t.get_handler(_self)
                 );
         }
+
+        /// <summary>
+        /// Returns true if a preference with the specified |name| exists. This method
+        /// must be called on the browser process UI thread.
+        /// </summary>
+        public bool HasPreference(string name)
+        {
+            fixed (char* name_str = name)
+            {
+                var n_name = new cef_string_t(name_str, name.Length);
+                return cef_request_context_t.has_preference(_self, &n_name) != 0;
+            }
+        }
+
+        /// <summary>
+        /// Returns the value for the preference with the specified |name|. Returns
+        /// NULL if the preference does not exist. The returned object contains a copy
+        /// of the underlying preference value and modifications to the returned object
+        /// will not modify the underlying preference value. This method must be called
+        /// on the browser process UI thread.
+        /// </summary>
+        public CefValue GetPreference(string name)
+        {
+            fixed (char* name_str = name)
+            {
+                var n_name = new cef_string_t(name_str, name.Length);
+                var n_value = cef_request_context_t.get_preference(_self, &n_name);
+                return CefValue.FromNative(n_value);
+            }
+        }
+
+        /// <summary>
+        /// Returns all preferences as a dictionary. If |include_defaults| is true then
+        /// preferences currently at their default value will be included. The returned
+        /// object contains a copy of the underlying preference values and
+        /// modifications to the returned object will not modify the underlying
+        /// preference values. This method must be called on the browser process UI
+        /// thread.
+        /// </summary>
+        public CefDictionaryValue GetAllPreferences(int include_defaults)
+        {
+            var n_value = cef_request_context_t.get_all_preferences(_self, include_defaults);
+            return CefDictionaryValue.FromNative(n_value);
+        }
+
+        /// <summary>
+        /// Returns true if the preference with the specified |name| can be modified
+        /// using SetPreference. As one example preferences set via the command-line
+        /// usually cannot be modified. This method must be called on the browser
+        /// process UI thread.
+        /// </summary>
+        public bool CanSetPreference(string name)
+        {
+            fixed (char* name_str = name)
+            {
+                var n_name = new cef_string_t(name_str, name.Length);
+                return cef_request_context_t.can_set_preference(_self, &n_name) != 0;
+            }
+        }
+
+        /// <summary>
+        /// Set the |value| associated with preference |name|. Returns true if the
+        /// value is set successfully and false otherwise. If |value| is NULL the
+        /// preference will be restored to its default value. If setting the preference
+        /// fails then |error| will be populated with a detailed description of the
+        /// problem. This method must be called on the browser process UI thread.
+        /// </summary>
+        public bool SetPreference(string name, CefValue value, string error)
+        {
+            fixed (char* name_str = name)
+            {
+                fixed (char* error_str = error)
+                {
+                    var n_name = new cef_string_t(name_str, name.Length);
+                    var n_error = new cef_string_t(error_str, error.Length);
+                    return cef_request_context_t.set_preference(_self, &n_name, value.ToNative(), &n_error) != 0;
+                }
+            }
+        }
     }
 }

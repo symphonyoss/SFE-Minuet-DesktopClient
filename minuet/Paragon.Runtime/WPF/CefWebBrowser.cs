@@ -274,10 +274,7 @@ namespace Paragon.Runtime.WPF
 
                 if (!IsPopup && _browser == null)
                 {
-                    var settings = new CefBrowserSettings
-                    {
-                        Java = CefState.Disabled
-                    };
+                    var settings = new CefBrowserSettings();
 
                     using (AutoStopwatch.TimeIt("Creating browser"))
                     {

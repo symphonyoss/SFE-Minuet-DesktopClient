@@ -38,6 +38,21 @@ namespace Xilium.CefGlue
         {
         }
 
+        private int run_context_menu(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_context_menu_params_t* @params, cef_menu_model_t* model, cef_run_context_menu_callback_t* callback)
+        {
+            CheckSelf(self);
+            var mBrowser = CefBrowser.FromNative(browser);
+            var mFrame = CefFrame.FromNative(frame);
+            var mState = CefContextMenuParams.FromNative(@params);
+            var mModel = CefMenuModel.FromNative(model);
+            var mCallback = CefRunContextMenuCallback.FromNative(callback);
+            return RunContextMenu(mBrowser, mFrame, mState, mModel, mCallback) ? 1 : 0;
+        }
+
+        protected virtual bool RunContextMenu(CefBrowser browser, CefFrame frame, CefContextMenuParams state, CefMenuModel model, CefRunContextMenuCallback callback)
+        {
+            return false;
+        }
 
         private int on_context_menu_command(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_context_menu_params_t* @params, int command_id, CefEventFlags event_flags)
         {
