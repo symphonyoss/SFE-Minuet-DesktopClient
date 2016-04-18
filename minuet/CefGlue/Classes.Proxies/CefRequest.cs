@@ -92,6 +92,21 @@ namespace Xilium.CefGlue
             }
         }
 
+        public string GetReferrer()
+        {
+            var n_result = cef_request_t.get_referrer_url(_self);
+            return cef_string_userfree.ToString(n_result);
+        }
+
+        public void SetReferrer(string referrer_url, CefReferrerPolicy policy)
+        {
+            fixed (char* value_str = referrer_url)
+            {
+                var n_value = new cef_string_t(value_str, referrer_url != null ? referrer_url.Length : 0);
+                cef_request_t.set_referrer(_self, &n_value, policy);
+            }
+        }
+
         /// <summary>
         /// Get the header values.
         /// </summary>

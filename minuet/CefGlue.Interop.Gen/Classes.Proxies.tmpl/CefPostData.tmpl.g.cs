@@ -29,6 +29,17 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
+        /// Returns true if the underlying POST data includes elements that are not
+        /// represented by this CefPostData object (for example, multi-part file upload
+        /// data). Modifying CefPostData objects with excluded elements may result in
+        /// the request failing.
+        /// </summary>
+        public int HasExcludedElements()
+        {
+            throw new NotImplementedException(); // TODO: CefPostData.HasExcludedElements
+        }
+        
+        /// <summary>
         /// Returns the number of existing post data elements.
         /// </summary>
         public UIntPtr GetElementCount()

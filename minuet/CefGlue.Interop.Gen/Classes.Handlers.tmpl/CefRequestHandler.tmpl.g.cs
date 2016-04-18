@@ -111,6 +111,20 @@ namespace Xilium.CefGlue
         /// </summary>
         // protected abstract int OnResourceResponse(cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response);
         
+        private void on_resource_load_complete(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response, CefUrlRequestStatus status, long received_content_length)
+        {
+            CheckSelf(self);
+            throw new NotImplementedException(); // TODO: CefRequestHandler.OnResourceLoadComplete
+        }
+        
+        /// <summary>
+        /// Called on the IO thread when a resource load has completed. |request| and
+        /// |response| represent the request and response respectively and cannot be
+        /// modified in this callback. |status| indicates the load completion status.
+        /// |received_content_length| is the number of response bytes actually read.
+        /// </summary>
+        // protected abstract void OnResourceLoadComplete(cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response, CefUrlRequestStatus status, long received_content_length);
+        
         private int get_auth_credentials(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback)
         {
             CheckSelf(self);
@@ -174,18 +188,6 @@ namespace Xilium.CefGlue
         /// will be accepted without calling this method.
         /// </summary>
         // protected abstract int OnCertificateError(cef_browser_t* browser, CefErrorCode cert_error, cef_string_t* request_url, cef_sslinfo_t* ssl_info, cef_request_callback_t* callback);
-        
-        private int on_before_plugin_load(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* url, cef_string_t* policy_url, cef_web_plugin_info_t* info)
-        {
-            CheckSelf(self);
-            throw new NotImplementedException(); // TODO: CefRequestHandler.OnBeforePluginLoad
-        }
-        
-        /// <summary>
-        /// Called on the browser process IO thread before a plugin is loaded. Return
-        /// true to block loading of the plugin.
-        /// </summary>
-        // protected abstract int OnBeforePluginLoad(cef_browser_t* browser, cef_string_t* url, cef_string_t* policy_url, cef_web_plugin_info_t* info);
         
         private void on_plugin_crashed(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* plugin_path)
         {

@@ -120,9 +120,11 @@
     <Compile Include="Classes.g\CefRequestContext.g.cs" />
     <Compile Include="Classes.g\CefRequestContextHandler.g.cs" />
     <Compile Include="Classes.g\CefRequestHandler.g.cs" />
+    <Compile Include="Classes.g\CefResourceBundle.g.cs" />
     <Compile Include="Classes.g\CefResourceBundleHandler.g.cs" />
     <Compile Include="Classes.g\CefResourceHandler.g.cs" />
     <Compile Include="Classes.g\CefResponse.g.cs" />
+    <Compile Include="Classes.g\CefRunContextMenuCallback.g.cs" />
     <Compile Include="Classes.g\CefRunFileDialogCallback.g.cs" />
     <Compile Include="Classes.g\CefSchemeHandlerFactory.g.cs" />
     <Compile Include="Classes.g\CefSchemeRegistrar.g.cs" />
@@ -231,7 +233,9 @@
     <Compile Include="Classes.Proxies\CefRequest.cs" />
     <Compile Include="Classes.Proxies\CefRequestContext.cs" />
     <Compile Include="Classes.Proxies\CefRequestCallback.cs" />
+    <Compile Include="Classes.Proxies\CefResourceBundle.cs" />
     <Compile Include="Classes.Proxies\CefResponse.cs" />
+    <Compile Include="Classes.Proxies\CefRunContextMenuCallback.cs" />
     <Compile Include="Classes.Proxies\CefSchemeRegistrar.cs" />
     <Compile Include="Classes.Proxies\CefSslCertPrincipal.cs" />
     <Compile Include="Classes.Proxies\CefSslInfo.cs" />
@@ -247,6 +251,11 @@
     <Compile Include="Classes.Proxies\CefWebPluginInfo.cs" />
     <Compile Include="Classes.Proxies\CefXmlReader.cs" />
     <Compile Include="Classes.Proxies\CefZipReader.cs" />
+    <Compile Include="Enums\CefPluginPolicy.cs" />
+    <Compile Include="Enums\CefReferrerPolicy.cs" />
+    <Compile Include="Enums\CefJsonWriterOptions.cs" />
+    <Compile Include="Interop\Classes.g\cef_resource_bundle_t.g.cs" />
+    <Compile Include="Interop\Classes.g\cef_run_context_menu_callback_t.g.cs" />
     <Compile Include="Structs\CefPdfPrintSettings.cs" />
     <Compile Include="Classes.Handlers\CefPdfPrintCallback.cs" />
     <Compile Include="Enums\CefJsonParserOptions.cs" />
@@ -401,6 +410,7 @@
     <Compile Include="Structs\CefMouseEvent.cs" />
     <Compile Include="Structs\CefScreenInfo.cs" />
     <Compile Include="Structs\CefDraggableRegion.cs" />
+    <Compile Include="Enums\CefScaleFactor.cs" />
     <Compile Include="Wrapper\MessageRouter\CefBrowserInfoMap.cs" />
     <Compile Include="Wrapper\MessageRouter\CefMessageRouterBrowserSide.cs" />
     <Compile Include="Wrapper\MessageRouter\CefMessageRouterConfig.cs" />

@@ -170,5 +170,22 @@ namespace Xilium.CefGlue
             throw new NotImplementedException(); // TODO: CefContextMenuParams.GetEditStateFlags
         }
         
+        /// <summary>
+        /// Returns true if the context menu contains items specified by the renderer
+        /// process (for example, plugin placeholder or pepper plugin menu items).
+        /// </summary>
+        public int IsCustomMenu()
+        {
+            throw new NotImplementedException(); // TODO: CefContextMenuParams.IsCustomMenu
+        }
+        
+        /// <summary>
+        /// Returns true if the context menu was invoked from a pepper plugin.
+        /// </summary>
+        public int IsPepperMenu()
+        {
+            throw new NotImplementedException(); // TODO: CefContextMenuParams.IsPepperMenu
+        }
+        
     }
 }

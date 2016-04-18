@@ -134,5 +134,73 @@ namespace Xilium.CefGlue
             throw new NotImplementedException(); // TODO: CefRequestContext.ClearSchemeHandlerFactories
         }
         
+        /// <summary>
+        /// Tells all renderer processes associated with this context to throw away
+        /// their plugin list cache. If |reload_pages| is true they will also reload
+        /// all pages with plugins. CefRequestContextHandler::OnBeforePluginLoad may
+        /// be called to rebuild the plugin list cache.
+        /// </summary>
+        public void PurgePluginListCache(int reload_pages)
+        {
+            throw new NotImplementedException(); // TODO: CefRequestContext.PurgePluginListCache
+        }
+        
+        /// <summary>
+        /// Returns true if a preference with the specified |name| exists. This method
+        /// must be called on the browser process UI thread.
+        /// </summary>
+        public int HasPreference(cef_string_t* name)
+        {
+            throw new NotImplementedException(); // TODO: CefRequestContext.HasPreference
+        }
+        
+        /// <summary>
+        /// Returns the value for the preference with the specified |name|. Returns
+        /// NULL if the preference does not exist. The returned object contains a copy
+        /// of the underlying preference value and modifications to the returned object
+        /// will not modify the underlying preference value. This method must be called
+        /// on the browser process UI thread.
+        /// </summary>
+        public cef_value_t* GetPreference(cef_string_t* name)
+        {
+            throw new NotImplementedException(); // TODO: CefRequestContext.GetPreference
+        }
+        
+        /// <summary>
+        /// Returns all preferences as a dictionary. If |include_defaults| is true then
+        /// preferences currently at their default value will be included. The returned
+        /// object contains a copy of the underlying preference values and
+        /// modifications to the returned object will not modify the underlying
+        /// preference values. This method must be called on the browser process UI
+        /// thread.
+        /// </summary>
+        public cef_dictionary_value_t* GetAllPreferences(int include_defaults)
+        {
+            throw new NotImplementedException(); // TODO: CefRequestContext.GetAllPreferences
+        }
+        
+        /// <summary>
+        /// Returns true if the preference with the specified |name| can be modified
+        /// using SetPreference. As one example preferences set via the command-line
+        /// usually cannot be modified. This method must be called on the browser
+        /// process UI thread.
+        /// </summary>
+        public int CanSetPreference(cef_string_t* name)
+        {
+            throw new NotImplementedException(); // TODO: CefRequestContext.CanSetPreference
+        }
+        
+        /// <summary>
+        /// Set the |value| associated with preference |name|. Returns true if the
+        /// value is set successfully and false otherwise. If |value| is NULL the
+        /// preference will be restored to its default value. If setting the preference
+        /// fails then |error| will be populated with a detailed description of the
+        /// problem. This method must be called on the browser process UI thread.
+        /// </summary>
+        public int SetPreference(cef_string_t* name, cef_value_t* value, cef_string_t* error)
+        {
+            throw new NotImplementedException(); // TODO: CefRequestContext.SetPreference
+        }
+        
     }
 }

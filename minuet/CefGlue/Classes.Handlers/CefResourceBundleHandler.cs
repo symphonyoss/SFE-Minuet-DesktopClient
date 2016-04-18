@@ -41,7 +41,16 @@ namespace Xilium.CefGlue
         private int get_data_resource(cef_resource_bundle_handler_t* self, int resource_id, void** data, UIntPtr* data_size)
         {
             CheckSelf(self);
-            return 0; // TODO: CefResourceBundleHandler.GetDataResource
+            int size = 0;
+            byte[] buffer = null;
+            var retVal = GetDataResource( resource_id, out buffer, out size);
+            if (retVal && buffer != null && size > 0)
+            {
+               *data_size = (UIntPtr)(size);
+               *data = (void*)Marshal.AllocHGlobal(size);
+               Marshal.Copy(buffer, 0, (IntPtr)(*data), size);
+            }
+            return retVal ? 1 : 0;
         }
 
         /// <summary>
@@ -51,8 +60,40 @@ namespace Xilium.CefGlue
         /// return false. The resource data will not be copied and must remain resident
         /// in memory. Supported resource IDs are listed in cef_pack_resources.h.
         /// </summary>
-        protected virtual bool GetDataResource(int resource_id, void** data, UIntPtr* data_size)
+        protected virtual bool GetDataResource(int resource_id, out byte[] data, out int data_size)
         {
+            data = null;
+            data_size = 0;
+            return false;
+        }
+
+        private int get_data_resource_for_scale(cef_resource_bundle_handler_t* self, int resource_id, CefScaleFactor scale_factor, void** data, UIntPtr* data_size)
+        {
+            CheckSelf(self);
+            int size = 0;
+            byte[] buffer = null;
+            var retVal = GetDataResourceForScale(resource_id, scale_factor, out buffer, out size);
+            if (retVal && buffer != null && size > 0)
+            {
+                *data_size = (UIntPtr)(size);
+                *data = (void*)Marshal.AllocHGlobal(size);
+                Marshal.Copy(buffer, 0, (IntPtr)(*data), size);
+            }
+            return retVal ? 1 : 0;
+        }
+
+        /// <summary>
+        /// Called to retrieve data for the specified |resource_id| nearest the scale
+        /// factor |scale_factor|. To provide the resource data set |data| and
+        /// |data_size| to the data pointer and size respectively and return true. To
+        /// use the default resource data return false. The resource data will not be
+        /// copied and must remain resident in memory. Include cef_pack_resources.h for
+        /// a listing of valid resource ID values.
+        /// </summary>
+        protected virtual bool GetDataResourceForScale(int resource_id, CefScaleFactor scale_factor, out byte[] data, out int data_size)
+        {
+            data = null;
+            data_size = 0;
             return false;
         }
     }

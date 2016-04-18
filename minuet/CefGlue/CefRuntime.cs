@@ -507,7 +507,9 @@
 
         #region cef_url
 
-        /*
+        /* 
+         * The following are not exposed because, they are natively available in .NET
+         * 
         ///
         // Parse the specified |url| into its component parts.
         // Returns false if the URL is empty or invalid.
@@ -523,23 +525,6 @@
         bool CefCreateURL(const CefURLParts& parts,
                             CefString& url);
 
-        ///
-        // Returns the mime type for the specified file extension or an empty string if
-        // unknown.
-        ///
-        CefString CefGetMimeType(const CefString& extension);
-
-        // Get the extensions associated with the given mime type. This should be passed
-        // in lower case. There could be multiple extensions for a given mime type, like
-        // "html,htm" for "text/html", or "txt,text,html,..." for "text/*". Any existing
-        // elements in the provided vector will not be erased.
-        void CefGetExtensionsForMimeType(const CefString& mime_type,
-                                            std::vector<CefString>& extensions);
-
-        ///
-        // Encodes |data| as a base64 string.
-        ///
-        CefString CefBase64Encode(const void* data, size_t data_size);
 
         ///
         // Decodes the base64 encoded string |data|. The returned value will be NULL if
@@ -857,6 +842,48 @@
                 return result;
             }
         }
+
+        /// <remarks>
+        /// This is a convenience function for formatting a URL in a concise and human-
+        /// friendly way to help users make security-related decisions (or in other
+        /// circumstances when people need to distinguish sites, origins, or otherwise-
+        /// simplified URLs from each other). Internationalized domain names (IDN) may be
+        /// presented in Unicode if |languages| accepts the Unicode representation. The
+        /// returned value will (a) omit the path for standard schemes, excepting file
+        /// and filesystem, and (b) omit the port if it is the default for the scheme. Do
+        /// not use this for URLs which will be parsed or sent to other applications.
+        /// </remarks>
+        public static string FormatUrlForSecurityDisplay(string origin_url, string languages)
+        {
+            fixed (char* origin_url_str = origin_url)
+            {
+                fixed (char* languages_str = languages)
+                {
+                    var n_origin_url = new cef_string_t(origin_url_str, origin_url.Length);
+                    var n_languages = new cef_string_t(languages_str, languages.Length);
+                    var n_result = libcef.format_url_for_security_display(&n_origin_url, &n_languages);
+                    return cef_string_userfree.ToString(n_result);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Convert to base64
+        /// </summary>
+        public static string ToBase64(string data)
+        {
+            var data_bytes = Encoding.ASCII.GetBytes(data);
+            if (data_bytes != null)
+            {
+                fixed (void* data_ptr = data_bytes)
+                {
+                    var n_base64 = libcef.base64encode(data_ptr, (UIntPtr)data_bytes.Length);
+                    return cef_string_userfree.ToString(n_base64);
+                }
+            }
+            return string.Empty;
+        }
+
 
         public static string ChromeVersion
         {

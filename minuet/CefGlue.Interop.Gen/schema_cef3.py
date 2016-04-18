@@ -120,4 +120,8 @@ classdef = {
     'CefDeleteCookiesCallback': { 'role': ROLE_HANDLER },
     # 2454 branch
     'CefPdfPrintCallback': { 'role': ROLE_HANDLER },
-    }
+    # 2526 branch
+    'CefRunContextMenuCallback': { 'role': ROLE_PROXY },
+    'CefResourceBundle': { 'role': ROLE_PROXY },
+    'CefResourceBundleHandler': { 'role': ROLE_HANDLER },    
+}
