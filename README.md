@@ -10,7 +10,7 @@
 $ git clone git@github.com:SymphonyOSF/SFE-Minuet-DesktopClient.git
 ```
 
-## Building Minuet
+## Build Minuet
 
 ```powershell
 $ powershell ./scripts/build.ps1
@@ -18,7 +18,7 @@ $ powershell ./scripts/build.ps1
 
 After the build is complete, you can find `paragon.exe` under `bin\paragon`.
 
-## Building sample
+## Build the sample
 
 Once Minuet has been built you can build the sample from `sample-app`.
 
