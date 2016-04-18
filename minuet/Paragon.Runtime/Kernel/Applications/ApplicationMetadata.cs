@@ -78,18 +78,7 @@ namespace Paragon.Runtime.Kernel.Applications
                 {
                     try
                     {
-#if ENFORCE_PACKAGE_SECURITY
-                        // Only if the current user has developer access, we allow non-production evironment to be set
-                        using( RegistryKey key = Registry.CurrentUser.OpenSubKey("Software\\Policies\\Goldman Sachs\\DashNative\\DevelperAccess") )
-                        {
-                            if( key.GetValue("Default").ToString().Equals("1", StringComparison.CurrentCultureIgnoreCase) )
-                            {
-                                _environment = value;
-                            }
-                        }
-#else
                         _environment = value;
-#endif
                     }
                     catch
                     {
