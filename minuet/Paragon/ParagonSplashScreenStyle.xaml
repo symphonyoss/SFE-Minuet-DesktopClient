@@ -146,7 +146,7 @@
                                     </Grid.RowDefinitions>
                                     <Viewbox Grid.Row="0" StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Left">
                                         <TextBlock Margin="0" FontSize="26" VerticalAlignment="Top"
-                                  Text="{Binding ShellName, FallbackValue='Dash Native'}"
+                                  Text="{Binding ShellName, FallbackValue='Minuet'}"
                                   Foreground="{DynamicResource AlarmGlowBrush}" FontWeight="Bold" />
                                     </Viewbox>
 
@@ -154,7 +154,7 @@
                                                DataContext="{Binding Version, FallbackValue='1.0.0.0'}" 
                                                Text="{Binding StringFormat='Version {0}'}"/>
 
-                                    <TextBlock Foreground="{DynamicResource WhiteBrush}" Grid.Row="2" Text="Powered by Dash Native" />
+                                    <TextBlock Foreground="{DynamicResource WhiteBrush}" Grid.Row="2" Text="Powered by Minuet" />
                                 </Grid>
 
                                 <controls:ProgressRing IsActive="True" Width="45" Height="45" Foreground="{DynamicResource WhiteBrush}" Grid.Row="0" Grid.Column="2"/>
