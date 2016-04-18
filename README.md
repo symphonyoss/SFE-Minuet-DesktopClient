@@ -30,8 +30,8 @@ $ powershell ./scripts/build-sample.ps1
 
 Once Minuet and the sample have been built you can run the app.
 
+Note that the `/start-app` switch can not take a relative path.
+
 ```powershell
 $ call "bin/paragon/paragon.exe" /start-app:"C:/full-path-to-sample-pgx/bin/apps/sample.pgx"
 ```
-
-Note that the `/start-app` switch can not take a relative path.
