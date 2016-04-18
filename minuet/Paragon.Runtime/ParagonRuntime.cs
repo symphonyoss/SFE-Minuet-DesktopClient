@@ -62,8 +62,6 @@ namespace Paragon.Runtime
         public static void Initialize(string cachePath = null,
                                       string paragonPath = null,
                                       string browserLanguage = null,
-                                      string authserverlist = null,
-                                      string authdelgatelist = null,
                                       bool disableSpellChecking = false,
                                       bool ignoreCertificateErrors = false,
                                       bool persistSessionCookies = false)
@@ -126,8 +124,6 @@ namespace Paragon.Runtime
                         Locale = browserLanguage,
                         CachePath = cachePath,
                         PersistSessionCookies = persistSessionCookies,
-                        AuthServerWhitelist = authserverlist,
-                        AuthDelegateWhitelist = authdelgatelist,
                         ProductVersion = string.Format("Paragon/{0} Chrome/{1}", Assembly.GetExecutingAssembly().GetName().Version, CefRuntime.ChromeVersion)
                         
                     };
