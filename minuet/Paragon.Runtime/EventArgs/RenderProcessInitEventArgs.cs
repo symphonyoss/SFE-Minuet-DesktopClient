@@ -64,10 +64,12 @@ namespace Paragon.Runtime
                     if (disposing)
                     {
                         if (_initArgs != null)
+                        {
                             _initArgs.Dispose();
+                            _initArgs = null;
+                        }
                     }
 
-                    _initArgs = null;
                     _disposed = true;
                 }    
             }
