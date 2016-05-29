@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Goldman Sachs.
+ * Copyright 2016 Symphony Communication Services, LLC
  * Created by William Stamatakis.
  * meow.js
  * Description: [M]essaging [E]xtended [O]ver [W]ebsockets
