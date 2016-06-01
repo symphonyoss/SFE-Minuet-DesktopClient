@@ -1,4 +1,4 @@
-namespace Xilium.CefGlue
+﻿namespace Xilium.CefGlue
 {
     using System;
     using System.Collections.Generic;
@@ -164,7 +164,6 @@ namespace Xilium.CefGlue
             return cef_string_userfree.ToString(n_result);
         }
 
-
         /// <summary>
         /// Returns true if suggestions exist, false otherwise. Fills in |suggestions|
         /// from the spell check service for the misspelled word if there is one.
@@ -202,6 +201,23 @@ namespace Xilium.CefGlue
         public CefContextMenuEditStateFlags EditState
         {
             get { return cef_context_menu_params_t.get_edit_state_flags(_self); }
+        }
+
+        /// <summary>
+        /// Returns true if the context menu contains items specified by the renderer
+        /// process (for example, plugin placeholder or pepper plugin menu items).
+        /// </summary>
+        public bool IsCustomMenu
+        {
+            get { return cef_context_menu_params_t.is_custom_menu(_self) != 0; }
+        }
+
+        /// <summary>
+        /// Returns true if the context menu was invoked from a pepper plugin.
+        /// </summary>
+        public bool IsPepperMenu
+        {
+            get { return cef_context_menu_params_t.is_pepper_menu(_self) != 0; }
         }
     }
 }

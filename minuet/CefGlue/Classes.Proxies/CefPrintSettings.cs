@@ -1,4 +1,4 @@
-namespace Xilium.CefGlue
+﻿namespace Xilium.CefGlue
 {
     using System;
     using System.Collections.Generic;
@@ -142,10 +142,10 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Set the page ranges.
         /// </summary>
-        public void SetPageRanges(CefPageRange[] ranges)
+        public void SetPageRanges(CefRange[] ranges)
         {
             var count = ranges != null ? ranges.Length : 0;
-            var n_ranges = new cef_page_range_t[count];
+            var n_ranges = new cef_range_t[count];
 
             for (var i = 0; i < count; i++)
             {
@@ -153,7 +153,7 @@ namespace Xilium.CefGlue
                 n_ranges[i].to = ranges[i].To;
             }
 
-            fixed (cef_page_range_t* n_ranges_ptr = n_ranges)
+            fixed (cef_range_t* n_ranges_ptr = n_ranges)
             {
                 cef_print_settings_t.set_page_ranges(_self, (UIntPtr)count, n_ranges_ptr);
             }
@@ -170,22 +170,22 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Retrieve the page ranges.
         /// </summary>
-        public CefPageRange[] GetPageRanges()
+        public CefRange[] GetPageRanges()
         {
             var count = GetPageRangesCount();
-            if (count == 0) return new CefPageRange[0];
+            if (count == 0) return new CefRange[0];
 
-            var n_ranges = new cef_page_range_t[count];
+            var n_ranges = new cef_range_t[count];
             UIntPtr n_count = (UIntPtr)count;
-            fixed (cef_page_range_t* n_ranges_ptr = n_ranges)
+            fixed (cef_range_t* n_ranges_ptr = n_ranges)
             {
                 cef_print_settings_t.get_page_ranges(_self, &n_count, n_ranges_ptr);
             }
 
             count = (int)n_count;
-            if (count == 0) return new CefPageRange[0];
+            if (count == 0) return new CefRange[0];
 
-            var ranges = new CefPageRange[count];
+            var ranges = new CefRange[count];
 
             for (var i = 0; i < count; i++)
             {

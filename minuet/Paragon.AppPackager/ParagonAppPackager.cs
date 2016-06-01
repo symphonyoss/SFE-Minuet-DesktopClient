@@ -129,7 +129,7 @@ namespace Paragon.AppPackager
                 return _contentTypesGiven[ext];
             }
 
-            var type = CefRuntime.GetMimeTypeForExtension(ext);
+            var type = CefRuntime.GetMimeType(ext);
             if (type != null)
             {
                 return type;

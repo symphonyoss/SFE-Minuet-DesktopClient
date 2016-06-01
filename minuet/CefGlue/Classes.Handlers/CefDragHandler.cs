@@ -1,4 +1,4 @@
-namespace Xilium.CefGlue
+﻿namespace Xilium.CefGlue
 {
     using System;
     using System.Collections.Generic;
@@ -29,40 +29,38 @@ namespace Xilium.CefGlue
         /// operation. Return false for default drag handling behavior or true to
         /// cancel the drag event.
         /// </summary>
-        protected virtual bool OnDragEnter(CefBrowser browser, CefDragData dragData, CefDragOperationsMask mask)
-        {
-            return false;
-        }
+        protected abstract bool OnDragEnter(CefBrowser browser, CefDragData dragData, CefDragOperationsMask mask);
+
+
+        private static readonly CefDraggableRegion[] EmptyDraggableRegion = new CefDraggableRegion[0];
 
         private void on_draggable_regions_changed(cef_drag_handler_t* self, cef_browser_t* browser, UIntPtr regionsCount, cef_draggable_region_t* regions)
         {
             CheckSelf(self);
 
             var m_browser = CefBrowser.FromNative(browser);
-            var m_regions = new CefDraggableRegion[(int)regionsCount];
-
-            var count = (int)regionsCount;
-            var regionP = regions;
-            for (var i = 0; i < count; i++)
+            CefDraggableRegion[] m_regions;
+            var m_count = (int)regionsCount;
+            if (m_count == 0) m_regions = EmptyDraggableRegion;
+            else
             {
-                m_regions[i] = CefDraggableRegion.FromNative(regionP);
-
-                regionP++;
+                m_regions = new CefDraggableRegion[m_count];
+                for (var i = 0; i < m_count; i++)
+                {
+                    m_regions[i] = CefDraggableRegion.FromNative(regions + i);
+                }
             }
 
-            // TODO : Finish this
             OnDraggableRegionsChanged(m_browser, m_regions);
         }
 
         /// <summary>
         /// Called whenever draggable regions for the browser window change. These can
         /// be specified using the '-webkit-app-region: drag/no-drag' CSS-property. If
-        /// draggable regions are never defined in a document this function will also
+        /// draggable regions are never defined in a document this method will also
         /// never be called. If the last draggable region is removed from a document
-        /// this function will be called with an NULL vector.
+        /// this method will be called with an empty vector.
         /// </summary>
-        protected virtual void OnDraggableRegionsChanged(CefBrowser browser, CefDraggableRegion[] regions)
-        {
-        }
+        protected abstract void OnDraggableRegionsChanged(CefBrowser browser, CefDraggableRegion[] regions);
     }
 }

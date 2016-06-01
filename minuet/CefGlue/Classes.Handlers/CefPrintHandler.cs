@@ -1,4 +1,4 @@
-namespace Xilium.CefGlue
+﻿namespace Xilium.CefGlue
 {
     using System;
     using System.Collections.Generic;
@@ -15,8 +15,9 @@ namespace Xilium.CefGlue
         private void on_print_start(cef_print_handler_t* self, cef_browser_t* browser)
         {
             CheckSelf(self);
-            var m_browser = CefBrowser.FromNative(browser);
-            OnPrintStart(m_browser);
+
+            var mBrowser = CefBrowser.FromNative(browser);
+            OnPrintStart(mBrowser);
         }
 
         /// <summary>
@@ -28,6 +29,7 @@ namespace Xilium.CefGlue
         protected virtual void OnPrintStart(CefBrowser browser)
         {
         }
+
 
         private void on_print_settings(cef_print_handler_t* self, cef_print_settings_t* settings, int get_defaults)
         {
@@ -94,18 +96,26 @@ namespace Xilium.CefGlue
         /// </summary>
         protected abstract void OnPrintReset();
 
+
         private cef_size_t get_pdf_paper_size(cef_print_handler_t* self, int device_units_per_inch)
         {
             CheckSelf(self);
 
-            var size = GetPdfPaperSize();
-            return new cef_size_t(size.Width, size.Height);
+            var m_result = GetPdfPaperSize(device_units_per_inch);
+
+            var n_result = new cef_size_t
+            {
+                width = m_result.Width,
+                height = m_result.Height,
+            };
+
+            return n_result;
         }
 
         /// <summary>
-        /// GetPdfPaperSize.
+        /// Return the PDF paper size in device units. Used in combination with
+        /// CefBrowserHost::PrintToPDF().
         /// </summary>
-        protected abstract CefSize GetPdfPaperSize();
-
+        protected abstract CefSize GetPdfPaperSize(int deviceUnitsPerInch);
     }
 }

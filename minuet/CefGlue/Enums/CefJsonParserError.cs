@@ -4,22 +4,20 @@
 //
 namespace Xilium.CefGlue
 {
-    using System;
-
     /// <summary>
     /// Error codes that can be returned from CefParseJSONAndReturnError.
     /// </summary>
     public enum CefJsonParserError
     {
-        JsonNoError = 0,
-        JsonInvalidEscape,
-        JsonSyntaxError,
-        JsonUnexpectedToken,
-        JsonTrailingComma,
-        JsonTooMuchNesting,
-        JsonUnexpectedDataAfterRoot,
-        JsonUnexpectedEncoding,
-        JsonUnquotedDictionaryKey,
-        JsonParseErrorCount
+        NoError = 0,
+        InvalidEscape,
+        SyntaxError,
+        UnexpectedToken,
+        TrailingComma,
+        TooMuchNesting,
+        UnexpectedDataAfterRoot,
+        UnsupportedEncoding,
+        UnquotedDictionaryKey,
+        ParseErrorCount,
     }
 }

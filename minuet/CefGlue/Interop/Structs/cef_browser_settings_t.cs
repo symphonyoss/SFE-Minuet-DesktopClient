@@ -47,6 +47,7 @@ namespace Xilium.CefGlue.Interop
         public CefState webgl;
 
         public uint background_color;
+
         public cef_string_t accept_language_list;
 
         #region Alloc & Free

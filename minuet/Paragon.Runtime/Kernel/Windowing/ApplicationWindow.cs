@@ -1267,7 +1267,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         void SetBrowserAsContent()
         {
-            if (Content == null && _browser.BrowserWindowHandle != IntPtr.Zero)
+            if (_browser != null && Content == null && _browser.BrowserWindowHandle != IntPtr.Zero)
             {
                 Content = _browser;
                 LoadComplete.Raise(this, EventArgs.Empty);

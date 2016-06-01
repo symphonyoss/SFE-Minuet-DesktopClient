@@ -1,4 +1,4 @@
-namespace Xilium.CefGlue
+﻿namespace Xilium.CefGlue
 {
     using System;
     using System.Collections.Generic;
@@ -7,7 +7,9 @@ namespace Xilium.CefGlue
     using Xilium.CefGlue.Interop;
 
     /// <summary>
-    /// Implement this interface to provide handler implementations.
+    /// Implement this interface to provide handler implementations. The handler
+    /// instance will not be released until all objects related to the context have
+    /// been destroyed.
     /// </summary>
     public abstract unsafe partial class CefRequestContextHandler
     {
@@ -21,25 +23,28 @@ namespace Xilium.CefGlue
         }
 
         /// <summary>
-        /// Called on the IO thread to retrieve the cookie manager. The global cookie
-        /// manager will be used if this method returns NULL.
+        /// Called on the browser process IO thread to retrieve the cookie manager. If
+        /// this method returns NULL the default cookie manager retrievable via
+        /// CefRequestContext::GetDefaultCookieManager() will be used.
         /// </summary>
-        protected virtual CefCookieManager GetCookieManager()
-        {
-            return null;
-        }
+        protected abstract CefCookieManager GetCookieManager();
+
 
         private int on_before_plugin_load(cef_request_context_handler_t* self, cef_string_t* mime_type, cef_string_t* plugin_url, cef_string_t* top_origin_url, cef_web_plugin_info_t* plugin_info, CefPluginPolicy* plugin_policy)
         {
             CheckSelf(self);
-            CefPluginPolicy policy = *plugin_policy;
-            var retVal = OnBeforePluginLoad(cef_string_t.ToString(mime_type),
-                                      cef_string_t.ToString(plugin_url),
-                                      cef_string_t.ToString(top_origin_url),
-                                      CefWebPluginInfo.FromNative(plugin_info),
-                                      ref policy);
-            *plugin_policy = policy;
-            return retVal ? 1 : 0;
+
+            var mMimeType = cef_string_t.ToString(mime_type);
+            var mPluginUrl = cef_string_t.ToString(plugin_url);
+            var mTopOriginUrl = cef_string_t.ToString(top_origin_url);
+            var mPluginInfo = CefWebPluginInfo.FromNative(plugin_info);
+            var mPluginPolicy = *plugin_policy;
+
+            var result = OnBeforePluginLoad(mMimeType, mPluginUrl, mTopOriginUrl, mPluginInfo, ref mPluginPolicy);
+
+            *plugin_policy = mPluginPolicy;
+
+            return result ? 1 : 0;
         }
 
         /// <summary>
@@ -59,7 +64,7 @@ namespace Xilium.CefGlue
         /// cache and potentially trigger new calls to this method call
         /// CefRequestContext::PurgePluginListCache.
         /// </summary>
-        protected virtual bool OnBeforePluginLoad(string mime_type, string plugin_url, string top_origin_url, CefWebPluginInfo plugin_info, ref CefPluginPolicy plugin_policy)
+        protected virtual bool OnBeforePluginLoad(string mimeType, string pluginUrl, string topOriginUrl, CefWebPluginInfo pluginInfo, ref CefPluginPolicy pluginPolicy)
         {
             return false;
         }

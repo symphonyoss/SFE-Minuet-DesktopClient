@@ -23,6 +23,5 @@
         /// cookie was set successfully.
         /// </summary>
         protected abstract void OnComplete(bool success);
-
     }
 }

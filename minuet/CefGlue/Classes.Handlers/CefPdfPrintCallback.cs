@@ -1,4 +1,4 @@
-namespace Xilium.CefGlue
+﻿namespace Xilium.CefGlue
 {
     using System;
     using System.Collections.Generic;
@@ -16,10 +16,15 @@ namespace Xilium.CefGlue
         {
             CheckSelf(self);
 
-            OnPdfPrintFinished(cef_string_t.ToString(path), ok != 0);
+            var m_path = cef_string_t.ToString(path);
+            OnPdfPrintFinished(m_path, ok != 0);
         }
-
-        // OnPdfPrintFinished
-        protected abstract void OnPdfPrintFinished(string path, bool ok);        
+        
+        /// <summary>
+        /// Method that will be executed when the PDF printing has completed. |path|
+        /// is the output path. |ok| will be true if the printing completed
+        /// successfully or false otherwise.
+        /// </summary>
+        protected abstract void OnPdfPrintFinished(string path, bool ok);
     }
 }

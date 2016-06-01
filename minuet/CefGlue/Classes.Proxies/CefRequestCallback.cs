@@ -7,21 +7,21 @@
     using Xilium.CefGlue.Interop;
 
     /// <summary>
-    /// Callback interface used for asynchronous continuation of authentication
-    /// requests.
+    /// Callback interface used for asynchronous continuation of url requests.
     /// </summary>
     public sealed unsafe partial class CefRequestCallback
     {
         /// <summary>
-        /// Continue the authentication request.
+        /// Continue the url request. If |allow| is true the request will be continued.
+        /// Otherwise, the request will be canceled.
         /// </summary>
         public void Continue(bool allow)
         {
-             cef_request_callback_t.cont(_self, allow ? 1 : 0);
+            cef_request_callback_t.cont(_self, allow ? 1 : 0);
         }
 
         /// <summary>
-        /// Cancel the authentication request.
+        /// Cancel the url request.
         /// </summary>
         public void Cancel()
         {

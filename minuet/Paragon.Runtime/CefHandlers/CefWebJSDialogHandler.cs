@@ -28,7 +28,7 @@ namespace Paragon.Runtime
             _core = core;
         }
 
-        protected override bool OnJSDialog(CefBrowser browser, string originUrl, string acceptLang, CefJSDialogType dialogType, string messageText, string defaultPromptText, CefJSDialogCallback callback, out bool suppressMessage)
+        protected override bool OnJSDialog(CefBrowser browser, string originUrl, CefJSDialogType dialogType, string messageText, string defaultPromptText, CefJSDialogCallback callback, out bool suppressMessage)
         {
             var ea = new JsDialogEventArgs(dialogType, messageText, defaultPromptText, callback);
             _core.OnJSDialog(ea);
