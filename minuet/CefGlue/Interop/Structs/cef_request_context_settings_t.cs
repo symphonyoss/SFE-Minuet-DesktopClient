@@ -16,6 +16,20 @@ namespace Xilium.CefGlue.Interop
         public int ignore_certificate_errors;
         public cef_string_t accept_language_list;
 
+        ///
+        // Specifies the comma separated white list of domains for which the single sign on
+        // authentication may be used
+        // see https://dev.chromium.org/administrators/policy-list-3#AuthServerWhitelist
+        ///
+        public cef_string_t auth_server_whitelist;
+
+        ///
+        // Kerberos delegation server whitelist
+        // see
+        // https://dev.chromium.org/administrators/policy-list-3#AuthNegotiateDelegateWhitelist
+        ///
+        public cef_string_t auth_delegate_whitelist;
+
         #region Alloc & Free
         private static int _sizeof;
 
