@@ -1,40 +1,33 @@
 ﻿namespace Xilium.CefGlue
 {
     using System;
+    using System.Collections.Generic;
+    using System.Text;
     using Xilium.CefGlue.Interop;
 
-    public sealed unsafe class CefDraggableRegion
+    public sealed class CefDraggableRegion
     {
-        public CefDraggableRegion()
-        { }
-
-        public CefRectangle Bounds{ get; set; }
-
-        /// <summary>
-        /// True this region is draggable and false otherwise.
-        /// </summary>
-        public bool Draggable { get; set; }
-
-        internal static CefDraggableRegion FromNative(cef_draggable_region_t* ptr)
+        internal static unsafe CefDraggableRegion FromNative(cef_draggable_region_t* ptr)
         {
-            return new CefDraggableRegion
-            {
-                Bounds = new CefRectangle(ptr->bounds.x, ptr->bounds.y, ptr->bounds.width, ptr->bounds.height),
-                Draggable = ptr->draggable != 0
-            };
+            return new CefDraggableRegion(ptr);
         }
 
-        internal cef_draggable_region_t* ToNative()
+        private readonly CefRectangle _bounds;
+        private readonly bool _draggable;
+
+        private unsafe CefDraggableRegion(cef_draggable_region_t* ptr)
         {
-            var ptr = cef_draggable_region_t.Alloc();
-            ptr->bounds = new cef_rect_t(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height);
-            ptr->draggable = Draggable ? 1 : 0;
-            return ptr;
+            _bounds = new CefRectangle(
+                ptr->bounds.x,
+                ptr->bounds.y,
+                ptr->bounds.width,
+                ptr->bounds.height
+                );
+            _draggable = ptr->draggable != 0;
         }
 
-        internal static void Free(cef_draggable_region_t* ptr)
-        {
-            cef_draggable_region_t.Free((cef_draggable_region_t*)ptr);
-        }
+        public CefRectangle Bounds { get { return _bounds; } }
+
+        public bool Draggable { get { return _draggable; } }
     }
 }

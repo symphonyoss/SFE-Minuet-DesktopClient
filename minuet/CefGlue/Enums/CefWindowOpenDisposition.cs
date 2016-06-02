@@ -1,13 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿//
+// This file manually written from cef/include/internal/cef_types.h.
+// C API name: cef_window_open_disposition_t.
+//
 namespace Xilium.CefGlue
 {
+    /// <summary>
+    /// The manner in which a link click should be opened.
+    /// </summary>
     public enum CefWindowOpenDisposition
     {
         Unknown,
-        SupressOpen,
+        SuppressOpen,
         CurrentTab,
         SingletonTab,
         NewForegroundTab,
@@ -16,6 +19,6 @@ namespace Xilium.CefGlue
         NewWindow,
         SaveToDisk,
         OffTheRecord,
-        IgnoreAction
+        IgnoreAction,
     }
 }

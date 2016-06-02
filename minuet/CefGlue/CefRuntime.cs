@@ -115,7 +115,7 @@
 
         private static void CheckVersion()
         {
-             CheckVersionByApiHash();
+            CheckVersionByApiHash();
         }
 
         private static void CheckVersionByApiHash()
@@ -144,7 +144,8 @@
 
             if (string.Compare(actual, expected, StringComparison.OrdinalIgnoreCase) != 0)
             {
-                throw ExceptionBuilder.RuntimeVersionApiHashMismatch(actual, expected);
+                var expectedVersion = libcef.CEF_VERSION;
+                throw ExceptionBuilder.RuntimeVersionApiHashMismatch(actual, expected, expectedVersion);
             }
         }
 
@@ -204,7 +205,7 @@
 
             if (_initialized) throw ExceptionBuilder.CefRuntimeAlreadyInitialized();
 
-            var n_main_args = args != null ? args.ToNative() : null;
+            var n_main_args = args.ToNative();
             var n_settings = settings.ToNative();
             var n_app = application != null ? application.ToNative() : null;
 
@@ -290,6 +291,16 @@
         public static void SetOSModalLoop(bool osModalLoop)
         {
             libcef.set_osmodal_loop(osModalLoop ? 1 : 0);
+        }
+
+        /// <summary>
+        /// Call during process startup to enable High-DPI support on Windows 7 or newer.
+        /// Older versions of Windows should be left DPI-unaware because they do not
+        /// support DirectWrite and GDI fonts are kerned very badly.
+        /// </summary>
+        public static void EnableHighDpiSupport()
+        {
+            libcef.enable_highdpi_support();
         }
 
         #endregion
@@ -505,55 +516,205 @@
 
         #endregion
 
-        #region cef_url
+        #region cef_parser
 
-        /* 
-         * The following are not exposed because, they are natively available in .NET
-         * 
-        ///
-        // Parse the specified |url| into its component parts.
-        // Returns false if the URL is empty or invalid.
-        ///
-        bool CefParseURL(const CefString& url,
-                            CefURLParts& parts);
+        // Methods from cef_parser.h.
 
-        ///
-        // Creates a URL from the specified |parts|, which must contain a non-empty
-        // spec or a non-empty host and path (at a minimum), but not both.
-        // Returns false if |parts| isn't initialized as described.
-        ///
-        bool CefCreateURL(const CefURLParts& parts,
-                            CefString& url);
+        /// <summary>
+        /// Parse the specified |url| into its component parts.
+        /// Returns false if the URL is empty or invalid.
+        /// </summary>
+        public static bool ParseUrl(string url, out CefUrlParts parts)
+        {
+            fixed (char* url_str = url)
+            {
+                var n_url = new cef_string_t(url_str, url != null ? url.Length : 0);
+                var n_parts = new cef_urlparts_t();
+
+                var result = libcef.parse_url(&n_url, &n_parts) != 0;
+
+                parts = result ? CefUrlParts.FromNative(&n_parts) : null;
+                cef_urlparts_t.Clear(&n_parts);
+                return result;
+            }
+        }
+
+        public static bool CreateUrl(CefUrlParts parts, out string url)
+        {
+            if (parts == null) throw new ArgumentNullException("parts");
+
+            var n_parts = parts.ToNative();
+            var n_url = new cef_string_t();
+
+            var result = libcef.create_url(&n_parts, &n_url) != 0;
+
+            url = result ? cef_string_t.ToString(&n_url) : null;
+
+            cef_urlparts_t.Clear(&n_parts);
+            libcef.string_clear(&n_url);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the mime type for the specified file extension or an empty string if
+        /// unknown.
+        /// </summary>
+        public static string GetMimeType(string extension)
+        {
+            fixed (char* extension_str = extension)
+            {
+                var n_extension = new cef_string_t(extension_str, extension != null ? extension.Length : 0);
+
+                var n_result = libcef.get_mime_type(&n_extension);
+                return cef_string_userfree.ToString(n_result);
+            }
+        }
+
+        /// <summary>
+        /// Get the extensions associated with the given mime type. This should be passed
+        /// in lower case. There could be multiple extensions for a given mime type, like
+        /// "html,htm" for "text/html", or "txt,text,html,..." for "text/*". Any existing
+        /// elements in the provided vector will not be erased.
+        /// </summary>
+        public static string[] GetExtensionsForMimeType(string mimeType)
+        {
+            fixed (char* mimeType_str = mimeType)
+            {
+                var n_mimeType = new cef_string_t(mimeType_str, mimeType != null ? mimeType.Length : 0);
+
+                var n_list = libcef.string_list_alloc();
+                libcef.get_extensions_for_mime_type(&n_mimeType, n_list);
+                var result = cef_string_list.ToArray(n_list);
+                libcef.string_list_free(n_list);
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Encodes |data| as a base64 string.
+        /// </summary>
+        public static unsafe string Base64Encode(void* data, int size)
+        {
+            var n_result = libcef.base64encode(data, (UIntPtr)size);
+            return cef_string_userfree.ToString(n_result);
+        }
+
+        public static string Base64Encode(byte[] bytes, int offset, int length)
+        {
+            // TODO: check bounds
+
+            fixed (byte* bytes_ptr = &bytes[offset])
+            {
+                return Base64Encode(bytes_ptr, length);
+            }
+        }
+
+        public static string Base64Encode(byte[] bytes)
+        {
+            return Base64Encode(bytes, 0, bytes.Length);
+        }
+
+        /// <summary>
+        /// Decodes the base64 encoded string |data|. The returned value will be NULL if
+        /// the decoding fails.
+        /// </summary>
+        public static CefBinaryValue Base64Decode(string data)
+        {
+            fixed (char* data_str = data)
+            {
+                var n_data = new cef_string_t(data_str, data != null ? data.Length : 0);
+                return CefBinaryValue.FromNative(libcef.base64decode(&n_data));
+            }
+        }
 
 
-        ///
-        // Decodes the base64 encoded string |data|. The returned value will be NULL if
-        // the decoding fails.
-        ///
-        CefRefPtr<CefBinaryValue> CefBase64Decode(const CefString& data);
+        /// <summary>
+        /// Escapes characters in |text| which are unsuitable for use as a query
+        /// parameter value. Everything except alphanumerics and -_.!~*'() will be
+        /// converted to "%XX". If |use_plus| is true spaces will change to "+". The
+        /// result is basically the same as encodeURIComponent in Javacript.
+        /// </summary>
+        public static string UriEncode(string text, bool usePlus)
+        {
+            fixed (char* text_str = text)
+            {
+                var n_text = new cef_string_t(text_str, text != null ? text.Length : 0);
 
-        ///
-        // Escapes characters in |text| which are unsuitable for use as a query
-        // parameter value. Everything except alphanumerics and -_.!~*'() will be
-        // converted to "%XX". If |use_plus| is true spaces will change to "+". The
-        // result is basically the same as encodeURIComponent in Javacript.
-        ///
-        CefString CefURIEncode(const CefString& text, bool use_plus);
+                var n_result = libcef.uriencode(&n_text, usePlus ? 1 : 0);
+                return cef_string_userfree.ToString(n_result);
+            }
+        }
 
-        ///
-        // Unescapes |text| and returns the result. Unescaping consists of looking for
-        // the exact pattern "%XX" where each X is a hex digit and converting to the
-        // character with the numerical value of those digits (e.g. "i%20=%203%3b"
-        // unescapes to "i = 3;"). If |convert_to_utf8| is true this function will
-        // attempt to interpret the initial decoded result as UTF-8. If the result is
-        // convertable into UTF-8 it will be returned as converted. Otherwise the
-        // initial decoded result will be returned.  The |unescape_rule| parameter
-        // supports further customization the decoding process.
-        ///
-        CefString CefURIDecode(const CefString& text,
-                                bool convert_to_utf8,
-                                cef_uri_unescape_rule_t unescape_rule);
-        */
+        /// <summary>
+        /// Unescapes |text| and returns the result. Unescaping consists of looking for
+        /// the exact pattern "%XX" where each X is a hex digit and converting to the
+        /// character with the numerical value of those digits (e.g. "i%20=%203%3b"
+        /// unescapes to "i = 3;"). If |convert_to_utf8| is true this function will
+        /// attempt to interpret the initial decoded result as UTF-8. If the result is
+        /// convertable into UTF-8 it will be returned as converted. Otherwise the
+        /// initial decoded result will be returned.  The |unescape_rule| parameter
+        /// supports further customization the decoding process.
+        /// </summary>
+        public static string UriDecode(string text, bool convertToUtf8, CefUriUnescapeRules unescapeRule)
+        {
+            fixed (char* text_str = text)
+            {
+                var n_text = new cef_string_t(text_str, text != null ? text.Length : 0);
+
+                var n_result = libcef.uridecode(&n_text, convertToUtf8 ? 1 : 0, unescapeRule);
+                return cef_string_userfree.ToString(n_result);
+            }
+        }
+
+        /// <summary>
+        /// Parses the specified |json_string| and returns a dictionary or list
+        /// representation. If JSON parsing fails this method returns NULL.
+        /// </summary>
+        public static CefValue ParseJson(string value, CefJsonParserOptions options)
+        {
+            fixed (char* value_str = value)
+            {
+                var n_value = new cef_string_t(value_str, value != null ? value.Length : 0);
+                var n_result = libcef.parse_json(&n_value, options);
+                return CefValue.FromNativeOrNull(n_result);
+            }
+        }
+
+        /// <summary>
+        /// Parses the specified |json_string| and returns a dictionary or list
+        /// representation. If JSON parsing fails this method returns NULL and populates
+        /// |error_code_out| and |error_msg_out| with an error code and a formatted error
+        /// message respectively.
+        /// </summary>
+        public static CefValue ParseJsonAndReturnError(string value, CefJsonParserOptions options, out CefJsonParserError errorCode, out string errorMessage)
+        {
+            fixed (char* value_str = value)
+            {
+                var n_value = new cef_string_t(value_str, value != null ? value.Length : 0);
+
+                CefJsonParserError n_error_code;
+                cef_string_t n_error_msg;
+                var n_result = libcef.parse_jsonand_return_error(&n_value, options, & n_error_code, &n_error_msg);
+
+                var result = CefValue.FromNativeOrNull(n_result);
+                errorCode = n_error_code;
+                errorMessage = cef_string_userfree.ToString((cef_string_userfree*)&n_error_msg);
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Generates a JSON string from the specified root |node| which should be a
+        /// dictionary or list value. Returns an empty string on failure. This method
+        /// requires exclusive access to |node| including any underlying data.
+        /// </summary>
+        public static string WriteJson(CefValue value, CefJsonWriterOptions options)
+        {
+            if (value == null) throw new ArgumentNullException("value");
+            var n_result = libcef.write_json(value.ToNative(), options);
+            return cef_string_userfree.ToString(n_result);
+        }
 
         #endregion
 
@@ -661,54 +822,6 @@
         }
 
         /// <summary>
-        /// Add a plugin path (directory + file). This change may not take affect until
-        /// after CefRefreshWebPlugins() is called. Can be called on any thread in the
-        /// browser process.
-        /// </summary>
-        public static void AddWebPluginPath(string path)
-        {
-            if (string.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
-
-            fixed (char* path_str = path)
-            {
-                var n_path = new cef_string_t(path_str, path.Length);
-                libcef.add_web_plugin_path(&n_path);
-            }
-        }
-
-        /// <summary>
-        /// Add a plugin directory. This change may not take affect until after
-        /// CefRefreshWebPlugins() is called. Can be called on any thread in the browser
-        /// process.
-        /// </summary>
-        public static void AddWebPluginDirectory(string directory)
-        {
-            if (string.IsNullOrEmpty(directory)) throw new ArgumentNullException("path");
-
-            fixed (char* directory_str = directory)
-            {
-                var n_directory = new cef_string_t(directory_str, directory.Length);
-                libcef.add_web_plugin_directory(&n_directory);
-            }
-        }
-
-        /// <summary>
-        /// Remove a plugin path (directory + file). This change may not take affect
-        /// until after CefRefreshWebPlugins() is called. Can be called on any thread in
-        /// the browser process.
-        /// </summary>
-        public static void RemoveWebPluginPath(string path)
-        {
-            if (string.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
-
-            fixed (char* path_str = path)
-            {
-                var n_path = new cef_string_t(path_str, path.Length);
-                libcef.remove_web_plugin_path(&n_path);
-            }
-        }
-
-        /// <summary>
         /// Unregister an internal plugin. This may be undone the next time
         /// CefRefreshWebPlugins() is called. Can be called on any thread in the browser
         /// process.
@@ -721,21 +834,6 @@
             {
                 var n_path = new cef_string_t(path_str, path.Length);
                 libcef.unregister_internal_web_plugin(&n_path);
-            }
-        }
-
-        /// <summary>
-        /// Force a plugin to shutdown. Can be called on any thread in the browser
-        /// process but will be executed on the IO thread.
-        /// </summary>
-        public static void ForceWebPluginShutdown(string path)
-        {
-            if (string.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
-
-            fixed (char* path_str = path)
-            {
-                var n_path = new cef_string_t(path_str, path.Length);
-                libcef.force_web_plugin_shutdown(&n_path);
             }
         }
 
@@ -819,71 +917,6 @@
         #region cef_sandbox_win
         // TODO: investigate using of sandbox on windows and .net
         #endregion
-
-        public static string GetMimeTypeForExtension(string extension)
-        {
-            fixed (char* extension_str = extension)
-            {
-                var n_extension = new cef_string_t(extension_str, extension.Length);
-                var n_result = libcef.get_mime_type(&n_extension);
-                return cef_string_userfree.ToString(n_result);
-            }
-        }
-
-        public static string[] GetExtensionsForMimeType(string mimeType)
-        {
-            fixed (char* mimeType_str = mimeType)
-            {
-                var n_mimeType = new cef_string_t(mimeType_str, mimeType.Length);
-                var n_extensions = libcef.string_list_alloc();
-                libcef.get_extensions_for_mime_type(&n_mimeType, n_extensions);
-                var result = cef_string_list.ToArray(n_extensions);
-                libcef.string_list_free(n_extensions);
-                return result;
-            }
-        }
-
-        /// <remarks>
-        /// This is a convenience function for formatting a URL in a concise and human-
-        /// friendly way to help users make security-related decisions (or in other
-        /// circumstances when people need to distinguish sites, origins, or otherwise-
-        /// simplified URLs from each other). Internationalized domain names (IDN) may be
-        /// presented in Unicode if |languages| accepts the Unicode representation. The
-        /// returned value will (a) omit the path for standard schemes, excepting file
-        /// and filesystem, and (b) omit the port if it is the default for the scheme. Do
-        /// not use this for URLs which will be parsed or sent to other applications.
-        /// </remarks>
-        public static string FormatUrlForSecurityDisplay(string origin_url, string languages)
-        {
-            fixed (char* origin_url_str = origin_url)
-            {
-                fixed (char* languages_str = languages)
-                {
-                    var n_origin_url = new cef_string_t(origin_url_str, origin_url.Length);
-                    var n_languages = new cef_string_t(languages_str, languages.Length);
-                    var n_result = libcef.format_url_for_security_display(&n_origin_url, &n_languages);
-                    return cef_string_userfree.ToString(n_result);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Convert to base64
-        /// </summary>
-        public static string ToBase64(string data)
-        {
-            var data_bytes = Encoding.ASCII.GetBytes(data);
-            if (data_bytes != null)
-            {
-                fixed (void* data_ptr = data_bytes)
-                {
-                    var n_base64 = libcef.base64encode(data_ptr, (UIntPtr)data_bytes.Length);
-                    return cef_string_userfree.ToString(n_base64);
-                }
-            }
-            return string.Empty;
-        }
-
 
         public static string ChromeVersion
         {

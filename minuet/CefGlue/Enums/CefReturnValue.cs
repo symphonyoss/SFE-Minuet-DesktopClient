@@ -4,21 +4,24 @@
 //
 namespace Xilium.CefGlue
 {
+    /// <summary>
+    /// Return value types.
+    /// </summary>
     public enum CefReturnValue
     {
-        ///
-        // Cancel immediately.
-        ///
+        /// <summary>
+        /// Cancel immediately.
+        /// </summary>
         Cancel = 0,
 
-        ///
-        // Continue immediately.
-        ///
+        /// <summary>
+        /// Continue immediately.
+        /// </summary>
         Continue,
 
-        ///
-        // Continue asynchronously (usually via a callback).
-        ///
+        /// <summary>
+        /// Continue asynchronously (usually via a callback).
+        /// </summary>
         ContinueAsync,
     }
 }

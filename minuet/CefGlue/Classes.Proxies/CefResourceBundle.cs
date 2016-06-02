@@ -1,11 +1,11 @@
-namespace Xilium.CefGlue
+﻿namespace Xilium.CefGlue
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Runtime.InteropServices;
     using Xilium.CefGlue.Interop;
-    
+
     /// <summary>
     /// Class used for retrieving resources from the resource bundle (*.pak) files
     /// loaded by CEF during startup or via the CefResourceBundleHandler returned
@@ -22,17 +22,18 @@ namespace Xilium.CefGlue
         {
             return CefResourceBundle.FromNative(cef_resource_bundle_t.get_global());
         }
-        
+
         /// <summary>
         /// Returns the localized string for the specified |string_id| or an empty
         /// string if the value is not found. Include cef_pack_strings.h for a listing
         /// of valid string ID values.
         /// </summary>
-        public string GetLocalizedString(int string_id)
+        public string GetLocalizedString(int stringId)
         {
-            return cef_string_userfree.ToString(cef_resource_bundle_t.get_localized_string(_self, string_id));
+            var n_result = cef_resource_bundle_t.get_localized_string(_self, stringId);
+            return cef_string_userfree.ToString(n_result);
         }
-        
+
         /// <summary>
         /// Retrieves the contents of the specified scale independent |resource_id|.
         /// If the value is found then |data| and |data_size| will be populated and
@@ -41,27 +42,25 @@ namespace Xilium.CefGlue
         /// memory and should not be freed. Include cef_pack_resources.h for a listing
         /// of valid resource ID values.
         /// </summary>
-        public int GetDataResource(int resource_id, out byte[] data, out int data_size)
+        public bool GetDataResource(int resourceId, out void* data, out UIntPtr dataSize)
         {
-            int retVal = 0;
-            data = null;
-            data_size = 0;
-
-            fixed (void* data_size_ptr = &data_size)
+            void* n_data;
+            UIntPtr n_dataSize;
+            var n_result = cef_resource_bundle_t.get_data_resource(_self, resourceId, &n_data, &n_dataSize);
+            if (n_result != 0)
             {
-                void* data_buff = null;
-                retVal = cef_resource_bundle_t.get_data_resource(_self, resource_id, &data_buff, (UIntPtr*)data_size_ptr);
-                if (retVal != 0 && data_size > 0)
-                {
-                    data = new byte[data_size];
-                    Marshal.Copy((IntPtr)data_buff, data, 0, data_size);
-                    Marshal.FreeHGlobal(new IntPtr(data_buff));
-                }
+                data = n_data;
+                dataSize = n_dataSize;
+                return true;
             }
-
-            return retVal;
+            else
+            {
+                data = null;
+                dataSize = UIntPtr.Zero;
+                return false;
+            }
         }
-        
+
         /// <summary>
         /// Retrieves the contents of the specified |resource_id| nearest the scale
         /// factor |scale_factor|. Use a |scale_factor| value of SCALE_FACTOR_NONE for
@@ -72,25 +71,23 @@ namespace Xilium.CefGlue
         /// be freed. Include cef_pack_resources.h for a listing of valid resource ID
         /// values.
         /// </summary>
-        public int GetDataResourceForScale(int resource_id, CefScaleFactor scale_factor, out byte[] data, out int data_size)
+        public bool GetDataResourceForScale(int resourceId, CefScaleFactor scaleFactor, out void* data, out UIntPtr dataSize)
         {
-            int retVal = 0;
-            data = null;
-            data_size = 0;
-
-            fixed (void* data_size_ptr = &data_size)
+            void* n_data;
+            UIntPtr n_dataSize;
+            var n_result = cef_resource_bundle_t.get_data_resource_for_scale(_self, resourceId, scaleFactor, &n_data, &n_dataSize);
+            if (n_result != 0)
             {
-                void* data_buff = null;
-                retVal = cef_resource_bundle_t.get_data_resource_for_scale(_self, resource_id, scale_factor, &data_buff, (UIntPtr*)data_size_ptr);
-                if (retVal != 0 && data_size > 0)
-                {
-                    data = new byte[data_size];
-                    Marshal.Copy((IntPtr)data_buff, data, 0, data_size);
-                    Marshal.FreeHGlobal(new IntPtr(data_buff));
-                }
+                data = n_data;
+                dataSize = n_dataSize;
+                return true;
             }
-            
-            return retVal;
+            else
+            {
+                data = null;
+                dataSize = UIntPtr.Zero;
+                return false;
+            }
         }
     }
 }

@@ -4,29 +4,29 @@
 //
 namespace Xilium.CefGlue
 {
-    ///
+    /// <summary>
     /// Margin type for PDF printing.
-    ///
+    /// </summary>
     public enum CefPdfPrintMarginType
     {
-        ///
+        /// <summary>
         /// Default margins.
-        ///
-        PdfPrintMarginDefault,
+        /// </summary>
+        Default,
 
-        ///
+        /// <summary>
         /// No margins.
-        ///
-        PdfPrintMarginNone,
+        /// </summary>
+        None,
 
-        ///
+        /// <summary>
         /// Minimum margins.
-        ///
-        PdfPrintMarginMinimum,
+        /// </summary>
+        Minimum,
 
-        ///
+        /// <summary>
         /// Custom margins using the |margin_*| values from cef_pdf_print_settings_t.
-        ///
-        PdfPrintMarginCustom,
+        /// </summary>
+        Custom,
     }
 }

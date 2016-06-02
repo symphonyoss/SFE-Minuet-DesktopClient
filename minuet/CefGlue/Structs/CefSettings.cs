@@ -43,7 +43,8 @@
         /// <summary>
         /// Set to <c>true</c> to have the browser process message loop run in a separate
         /// thread. If <c>false</c> than the CefDoMessageLoopWork() function must be
-        /// called from your application message loop.
+        /// called from your application message loop. This option is only supported on
+        /// Windows.
         /// </summary>
         public bool MultiThreadedMessageLoop { get; set; }
 
@@ -63,32 +64,46 @@
         public bool CommandLineArgsDisabled { get; set; }
 
         /// <summary>
-        /// The location where cache data will be stored on disk. If empty an in-memory
-        /// cache will be used for some features and a temporary disk cache for others.
-        /// HTML5 databases such as localStorage will only persist across sessions if a
-        /// cache path is specified.
+        /// The location where cache data will be stored on disk. If empty then
+        /// browsers will be created in "incognito mode" where in-memory caches are
+        /// used for storage and no data is persisted to disk. HTML5 databases such as
+        /// localStorage will only persist across sessions if a cache path is
+        /// specified. Can be overridden for individual CefRequestContext instances via
+        /// the CefRequestContextSettings.cache_path value.
         /// </summary>
         public string CachePath { get; set; }
 
         /// <summary>
+        /// The location where user data such as spell checking dictionary files will
+        /// be stored on disk. If empty then the default platform-specific user data
+        /// directory will be used ("~/.cef_user_data" directory on Linux,
+        /// "~/Library/Application Support/CEF/User Data" directory on Mac OS X,
+        /// "Local Settings\Application Data\CEF\User Data" directory under the user
+        /// profile directory on Windows).
+        /// </summary>
+        public string UserDataPath { get; set; }
+
+        /// <summary>
         /// To persist session cookies (cookies without an expiry date or validity
         /// interval) by default when using the global cookie manager set this value to
-        /// true. Session cookies are generally intended to be transient and most Web
-        /// browsers do not persist them. A |cache_path| value must also be specified to
-        /// enable this feature. Also configurable using the "persist-session-cookies"
-        /// command-line switch.
+        /// true. Session cookies are generally intended to be transient and most
+        /// Web browsers do not persist them. A |cache_path| value must also be
+        /// specified to enable this feature. Also configurable using the
+        /// "persist-session-cookies" command-line switch. Can be overridden for
+        /// individual CefRequestContext instances via the
+        /// CefRequestContextSettings.persist_session_cookies value.
         /// </summary>
         public bool PersistSessionCookies { get; set; }
 
         /// <summary>
         /// To persist user preferences as a JSON file in the cache path directory set
-        /// this value to true (1). A |cache_path| value must also be specified
+        /// this value to true. A |cache_path| value must also be specified
         /// to enable this feature. Also configurable using the
         /// "persist-user-preferences" command-line switch. Can be overridden for
         /// individual CefRequestContext instances via the
         /// CefRequestContextSettings.persist_user_preferences value.
         /// </summary>
-        public bool PersistUserPreferences;
+        public bool PersistUserPreferences { get; set; }
 
         /// <summary>
         /// Value that will be returned as the User-Agent HTTP header. If empty the
@@ -115,10 +130,12 @@
         public string Locale { get; set; }
 
         /// <summary>
-        /// The directory and file name to use for the debug log. If empty, the
-        /// default name of "debug.log" will be used and the file will be written
-        /// to the application directory. Also configurable using the "log-file"
-        /// command-line switch.
+        /// The directory and file name to use for the debug log. If empty a default
+        /// log file name and location will be used. On Windows and Linux a "debug.log"
+        /// file will be written in the main executable directory. On Mac OS X a
+        /// "~/Library/Logs/[app name]_debug.log" file will be written where [app name]
+        /// is the name of the main app executable. Also configurable using the
+        /// "log-file" command-line switch.
         /// </summary>
         public string LogFile { get; set; }
 
@@ -209,7 +226,9 @@
         /// Enabling this setting can lead to potential security vulnerabilities like
         /// "man in the middle" attacks. Applications that load content from the
         /// internet should not enable this setting. Also configurable using the
-        /// "ignore-certificate-errors" command-line switch.
+        /// "ignore-certificate-errors" command-line switch. Can be overridden for
+        /// individual CefRequestContext instances via the
+        /// CefRequestContextSettings.ignore_certificate_errors value.
         /// </summary>
         public bool IgnoreCertificateErrors { get; set; }
 
@@ -221,25 +240,29 @@
         /// </summary>
         public CefColor BackgroundColor { get; set; }
 
-        ///<summary>
+        /// <summary>
         /// Comma delimited ordered list of language codes without any whitespace that
         /// will be used in the "Accept-Language" HTTP header. May be overridden on a
         /// per-browser basis using the CefBrowserSettings.accept_language_list value.
         /// If both values are empty then "en-US,en" will be used. Can be overridden
         /// for individual CefRequestContext instances via the
         /// CefRequestContextSettings.accept_language_list value.
-        ///</summary>
+        /// </summary>
         public string AcceptLanguageList { get; set; }
 
-        ///<summary>
-        /// The location where user data such as spell checking dictionary files will
-        /// be stored on disk. If empty then the default platform-specific user data
-        /// directory will be used ("~/.cef_user_data" directory on Linux,
-        /// "~/Library/Application Support/CEF/User Data" directory on Mac OS X,
-        /// "Local Settings\Application Data\CEF\User Data" directory under the user
-        /// profile directory on Windows).
-        ///</summary>
-        public string UserDataPath { get; set; }
+        ///
+        // Specifies the comma separated white list of domains for which the single sign on
+        // authentication may be used
+        // see https://dev.chromium.org/administrators/policy-list-3#AuthServerWhitelist
+        ///
+        public string AuthServerWhitelist { get; set; }
+
+        ///
+        // Kerberos delegation server whitelist
+        // see
+        // https://dev.chromium.org/administrators/policy-list-3#AuthNegotiateDelegateWhitelist
+        ///
+        public string AuthDelegateWhitelist { get; set; }
 
         internal cef_settings_t* ToNative()
         {
@@ -269,6 +292,8 @@
             ptr->ignore_certificate_errors = IgnoreCertificateErrors ? 1 : 0;
             ptr->background_color = BackgroundColor.ToArgb();
             cef_string_t.Copy(AcceptLanguageList, &ptr->accept_language_list);
+            cef_string_t.Copy(AuthServerWhitelist, &ptr->auth_server_whitelist);
+            cef_string_t.Copy(AuthDelegateWhitelist, &ptr->auth_delegate_whitelist);
             return ptr;
         }
 
@@ -285,12 +310,14 @@
             libcef.string_clear(&ptr->resources_dir_path);
             libcef.string_clear(&ptr->locales_dir_path);
             libcef.string_clear(&ptr->accept_language_list);
+            libcef.string_clear(&ptr->auth_server_whitelist);
+            libcef.string_clear(&ptr->auth_delegate_whitelist);
         }
 
         internal static void Free(cef_settings_t* ptr)
         {
-            Clear((cef_settings_t*)ptr);
-            cef_settings_t.Free((cef_settings_t*)ptr);
+            Clear(ptr);
+            cef_settings_t.Free(ptr);
         }
     }
 }

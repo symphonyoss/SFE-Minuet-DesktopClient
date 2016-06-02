@@ -22,7 +22,6 @@
         /// Method that will be called upon completion. |num_deleted| will be the
         /// number of cookies that were deleted or -1 if unknown.
         /// </summary>
-        protected abstract void OnComplete(int num_deleted);
-
+        protected abstract void OnComplete(int numDeleted);
     }
 }

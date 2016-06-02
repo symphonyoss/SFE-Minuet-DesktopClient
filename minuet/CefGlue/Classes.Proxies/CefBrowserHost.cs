@@ -1,4 +1,4 @@
-namespace Xilium.CefGlue
+﻿namespace Xilium.CefGlue
 {
     using System;
     using System.Collections.Generic;
@@ -147,6 +147,19 @@ namespace Xilium.CefGlue
         }
 
         /// <summary>
+        /// Helper for closing a browser. Call this method from the top-level window
+        /// close handler. Internally this calls CloseBrowser(false) if the close has
+        /// not yet been initiated. This method returns false while the close is
+        /// pending and true after the close has completed. See CloseBrowser() and
+        /// CefLifeSpanHandler::DoClose() documentation for additional usage
+        /// information. This method must be called on the browser process UI thread.
+        /// </summary>
+        public bool TryCloseBrowser()
+        {
+            return cef_browser_host_t.try_close_browser(_self) != 0;
+        }
+
+        /// <summary>
         /// Set whether the browser is focused.
         /// </summary>
         public void SetFocus(bool focus)
@@ -155,16 +168,9 @@ namespace Xilium.CefGlue
         }
 
         /// <summary>
-        /// Set whether the window containing the browser is visible
-        /// (minimized/unminimized, app hidden/unhidden, etc). Only used on Mac OS X.
-        /// </summary>
-        public void SetWindowVisibility(bool visible)
-        {
-            cef_browser_host_t.set_window_visibility(_self, visible ? 1 : 0);
-        }
-
-        /// <summary>
-        /// Retrieve the window handle for this browser.
+        /// Retrieve the window handle for this browser. If this browser is wrapped in
+        /// a CefBrowserView this method should be called on the browser process UI
+        /// thread and it will return the handle for the top-level native window.
         /// </summary>
         public IntPtr GetWindowHandle()
         {
@@ -173,12 +179,21 @@ namespace Xilium.CefGlue
 
         /// <summary>
         /// Retrieve the window handle of the browser that opened this browser. Will
-        /// return NULL for non-popup windows. This method can be used in combination
-        /// with custom handling of modal windows.
+        /// return NULL for non-popup windows or if this browser is wrapped in a
+        /// CefBrowserView. This method can be used in combination with custom handling
+        /// of modal windows.
         /// </summary>
         public IntPtr GetOpenerWindowHandle()
         {
             return cef_browser_host_t.get_opener_window_handle(_self);
+        }
+
+        /// <summary>
+        /// Returns true if this browser is wrapped in a CefBrowserView.
+        /// </summary>
+        public bool HasView
+        {
+            get { return cef_browser_host_t.has_view(_self) != 0; }
         }
 
         /// <summary>
@@ -272,11 +287,60 @@ namespace Xilium.CefGlue
         }
 
         /// <summary>
+        /// Download |image_url| and execute |callback| on completion with the images
+        /// received from the renderer. If |is_favicon| is true then cookies are not
+        /// sent and not accepted during download. Images with density independent
+        /// pixel (DIP) sizes larger than |max_image_size| are filtered out from the
+        /// image results. Versions of the image at different scale factors may be
+        /// downloaded up to the maximum scale factor supported by the system. If there
+        /// are no image results &lt;= |max_image_size| then the smallest image is resized
+        /// to |max_image_size| and is the only result. A |max_image_size| of 0 means
+        /// unlimited. If |bypass_cache| is true then |image_url| is requested from the
+        /// server even if it is present in the browser cache.
+        /// </summary>
+        public void DownloadImage(string imageUrl, bool isFavIcon, uint maxImageSize, bool bypassCache, CefDownloadImageCallback callback)
+        {
+            if (string.IsNullOrEmpty(imageUrl)) throw new ArgumentNullException("imageUrl");
+
+            fixed (char* imageUrl_ptr = imageUrl)
+            {
+                var n_imageUrl = new cef_string_t(imageUrl_ptr, imageUrl.Length);
+                var n_callback = callback.ToNative();
+                cef_browser_host_t.download_image(_self, &n_imageUrl, isFavIcon ? 1 : 0, maxImageSize, bypassCache ? 1 : 0, n_callback);
+            }
+        }
+
+        /// <summary>
         /// Print the current browser contents.
         /// </summary>
         public void Print()
         {
             cef_browser_host_t.print(_self);
+        }
+
+        /// <summary>
+        /// Print the current browser contents to the PDF file specified by |path| and
+        /// execute |callback| on completion. The caller is responsible for deleting
+        /// |path| when done. For PDF printing to work on Linux you must implement the
+        /// CefPrintHandler::GetPdfPaperSize method.
+        /// </summary>
+        public void PrintToPdf(string path, CefPdfPrintSettings settings, CefPdfPrintCallback callback)
+        {
+            fixed (char* path_ptr = path)
+            {
+                var n_path = new cef_string_t(path_ptr, path.Length);
+
+                var n_settings = settings.ToNative();
+
+                cef_browser_host_t.print_to_pdf(_self,
+                    &n_path,
+                    n_settings,
+                    callback.ToNative()
+                    );
+
+                cef_pdf_print_settings_t.Clear(n_settings);
+                cef_pdf_print_settings_t.Free(n_settings);
+            }
         }
 
         /// <summary>
@@ -307,7 +371,9 @@ namespace Xilium.CefGlue
 
         /// <summary>
         /// Open developer tools in its own window. If |inspect_element_at| is non-
-        /// empty the element at the specified (x,y) location will be inspected.
+        /// empty the element at the specified (x,y) location will be inspected. The
+        /// |windowInfo| parameter will be ignored if this browser is wrapped in a
+        /// CefBrowserView.
         /// </summary>
         public void ShowDevTools(CefWindowInfo windowInfo, CefClient client, CefBrowserSettings browserSettings, CefPoint inspectElementAt)
         {
@@ -505,6 +571,30 @@ namespace Xilium.CefGlue
         }
 
         /// <summary>
+        /// Returns the maximum rate in frames per second (fps) that CefRenderHandler::
+        /// OnPaint will be called for a windowless browser. The actual fps may be
+        /// lower if the browser cannot generate frames at the requested rate. The
+        /// minimum value is 1 and the maximum value is 60 (default 30). This method
+        /// can only be called on the UI thread.
+        /// </summary>
+        public int GetWindowlessFrameRate()
+        {
+            return cef_browser_host_t.get_windowless_frame_rate(_self);
+        }
+
+        /// <summary>
+        /// Set the maximum rate in frames per second (fps) that CefRenderHandler::
+        /// OnPaint will be called for a windowless browser. The actual fps may be
+        /// lower if the browser cannot generate frames at the requested rate. The
+        /// minimum value is 1 and the maximum value is 60 (default 30). Can also be
+        /// set at browser creation via CefBrowserSettings.windowless_frame_rate.
+        /// </summary>
+        public void SetWindowlessFrameRate(int frameRate)
+        {
+            cef_browser_host_t.set_windowless_frame_rate(_self, frameRate);
+        }
+
+        /// <summary>
         /// Get the NSTextInputContext implementation for enabling IME on Mac when
         /// window rendering is disabled.
         /// </summary>
@@ -609,21 +699,6 @@ namespace Xilium.CefGlue
         public void DragSourceSystemDragEnded()
         {
             cef_browser_host_t.drag_source_system_drag_ended(_self);
-        }
-
-        /// <summary>
-        /// Print to PDF
-        /// </summary>
-        public void PrintToPDF(string path, CefPdfPrintSettings settings, CefPdfPrintCallback callback)
-        {
-            var n_settings = settings.ToNative();
-            var n_callback = callback.ToNative();
-            fixed (char* path_str = path)
-            {
-                var n_path = new cef_string_t(path_str, path.Length);
-                cef_browser_host_t.print_to_pdf(_self, &n_path, n_settings, callback.ToNative());
-            }
-            CefPdfPrintSettings.Free(n_settings);
         }
     }
 }

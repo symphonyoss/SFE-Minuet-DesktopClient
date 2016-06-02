@@ -109,7 +109,7 @@ namespace Paragon.Runtime.PackagedApplication
         protected override string GetContentTypeCore()
         {
             var extension = Path.GetExtension(_fullPath).ToLower();
-            string contentType = CefRuntime.GetMimeTypeForExtension(extension);
+            string contentType = CefRuntime.GetMimeType(extension);
             if (string.IsNullOrEmpty(contentType))
             {
                 _contentTypesByFileEnding.TryGetValue(extension, out contentType);
