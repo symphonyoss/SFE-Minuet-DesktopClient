@@ -553,6 +553,7 @@ namespace Paragon.Runtime.Kernel.Applications
                         var w = app.WindowManager.AllWindows[0];
                         w.ShowWindow(false);
                         w.BringToFront();
+                        w.ActivateWindow();
                     }
 
                     return;
