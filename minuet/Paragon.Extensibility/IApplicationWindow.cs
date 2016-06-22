@@ -53,6 +53,8 @@ namespace Paragon.Plugins
 
         void FocusWindow();
 
+        void ActivateWindow();
+
         void BringToFront();
 
         void FullScreenWindow();

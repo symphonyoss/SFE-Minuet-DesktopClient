@@ -195,6 +195,11 @@ namespace Paragon.Runtime.Kernel.Windowing
             DispatchIfRequired(() => Focus(), true);
         }
 
+        public void ActivateWindow()
+        {
+            DispatchIfRequired(() => Activate(), true);
+        }
+
         /// <summary>
         /// Bring window to the front.
         /// </summary>
@@ -597,16 +602,6 @@ namespace Paragon.Runtime.Kernel.Windowing
                 _browser.FocusBrowser();
             }
             base.OnGotKeyboardFocus(e);
-        }
-
-        /// <summary>
-        /// Set focus to this window when activated. This does not need to be implemented on the Embedded ApplicationWindow
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnActivated(EventArgs e)
-        {
-            Keyboard.Focus(this);
-            base.OnActivated(e);
         }
 
         /// <summary>
