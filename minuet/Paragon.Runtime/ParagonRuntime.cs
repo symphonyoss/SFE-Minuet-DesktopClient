@@ -65,6 +65,7 @@ namespace Paragon.Runtime
                                       string authserverlist = null,
                                       string authdelgatelist = null,
                                       bool disableSpellChecking = false,
+                                      bool enableMediaStream = false,
                                       bool ignoreCertificateErrors = false,
                                       bool persistSessionCookies = false)
         {
@@ -154,7 +155,7 @@ namespace Paragon.Runtime
                     Logger.Info("Passing Args to CefApp: " + argString);
                     var args = new CefMainArgs(appArgs.ToArray());
 
-                    _cefApp = new CefBrowserApplication(disableSpellChecking, browserLanguage);
+                    _cefApp = new CefBrowserApplication(disableSpellChecking, browserLanguage, enableMediaStream);
                     _cefApp.RenderProcessInitialize += OnRenderProcessInitialize;
                     
                     if (BeforeCefInitialize != null)

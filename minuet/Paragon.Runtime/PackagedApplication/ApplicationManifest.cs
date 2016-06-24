@@ -153,6 +153,8 @@ namespace Paragon.Runtime.PackagedApplication
 
         public bool DisableSpellChecking { get; set; }
 
+        public bool EnableMediaStream { get; set; }
+
         public string BrowserLanguage { get; set; }
 
         public string CustomTheme { get; set; }

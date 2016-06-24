@@ -77,6 +77,12 @@ namespace Paragon.Plugins
         string[] CustomProtocolWhitelist { get; set; }
 
         bool DisableSpellChecking { get; set; }
+        
+        /// <summary>
+        /// if true passes command line --media-stream-enable to chromium - 
+        /// needed to enable screen sharing over webrtc
+        /// </summary>
+        bool EnableMediaStream { get; set; }
 
         string BrowserLanguage { get; set; }
 

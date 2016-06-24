@@ -27,16 +27,26 @@ namespace Paragon.Runtime
         public event EventHandler<RenderProcessInitEventArgs> RenderProcessInitialize;
         private readonly bool _disableSpellChecking = false;
         private readonly string _spellCheckLanguage = string.Empty;
+        private readonly bool _enableMediaStream = false;
 
         public CefBrowserApplication()
-            : this(false, string.Empty)
+            : this(false, string.Empty, false)
         {
         }
 
-        public CefBrowserApplication(bool disableSpellChecking, string spellCheckLanguage)
+        public CefBrowserApplication(bool disableSpellChecking, string spellCheckLanguage, bool enableMediaStream)
         {
             _disableSpellChecking = disableSpellChecking;
             _spellCheckLanguage = spellCheckLanguage;
+            _enableMediaStream = enableMediaStream;
+        }
+
+        protected override void OnBeforeCommandLineProcessing(string processType, CefCommandLine commandLine)
+        {
+            if (_enableMediaStream)
+                commandLine.AppendSwitch("--enable-media-stream");
+
+            base.OnBeforeCommandLineProcessing(processType, commandLine);
         }
 
         protected override CefBrowserProcessHandler GetBrowserProcessHandler()
