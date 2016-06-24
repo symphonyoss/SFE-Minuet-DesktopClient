@@ -126,6 +126,8 @@ namespace Paragon.Runtime.Kernel.Applications
         /// Indicates whether spell checking is enabled.
         /// </summary>
         public bool DisableSpellChecking { get; private set; }
+
+        public bool EnableMediaStream { get; private set; }
         
         /// <summary>
         /// All the running paragon applications
@@ -243,6 +245,7 @@ namespace Paragon.Runtime.Kernel.Applications
             CacheFolder = Path.Combine(_paragonFolder, string.IsNullOrEmpty(manifest.ProcessGroup) ? manifest.Id : manifest.ProcessGroup);
             Environment = metadata.Environment;
             DisableSpellChecking = manifest.DisableSpellChecking;
+            EnableMediaStream = manifest.EnableMediaStream;
 
             // set browser language from manifest - default is en-US
             // "automatic" will set browser language to os culture info
@@ -292,6 +295,7 @@ namespace Paragon.Runtime.Kernel.Applications
                     auth_server_whitelist,
                     auth_delegate_whitelist,
                     DisableSpellChecking,
+                    EnableMediaStream,
                     Environment == ApplicationEnvironment.Development);
             }
 
