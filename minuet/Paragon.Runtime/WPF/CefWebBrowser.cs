@@ -815,7 +815,16 @@ namespace Paragon.Runtime.WPF
 
         bool ICefWebBrowserInternal.OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool isRedirect)
         {
-            var scheme = new Uri(request.Url).Scheme;
+            string scheme = null;
+            try
+            {
+                scheme = new Uri(request.Url).Scheme;
+            }
+            catch
+            {
+                return false;
+            }
+
             return !string.IsNullOrEmpty(scheme) && !CefBrowserApplication.AllowedProtocols.Contains(scheme);
         }
 
