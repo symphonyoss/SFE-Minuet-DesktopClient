@@ -28,7 +28,7 @@ namespace Paragon.Runtime.Win32
 {
     [ExcludeFromCodeCoverage]
     [StructLayout(LayoutKind.Explicit)]
-    internal struct PropVariant
+    internal struct PropVariant : IDisposable
     {
         [FieldOffset(0)]
         private ushort vt;
@@ -83,6 +83,11 @@ namespace Paragon.Runtime.Win32
         public void Clear()
         {
             NativeMethods.PropVariantClear(ref this);
+        }
+
+        public void Dispose()
+        {
+            Clear();
         }
     }
 

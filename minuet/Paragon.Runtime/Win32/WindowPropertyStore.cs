@@ -81,7 +81,10 @@ namespace Paragon.Runtime.Win32
                     return false;
                 }
 
-                comment = GetProperty(hwnd, PropertyKeys.Comment).GetStringValue();
+                using (var propVariant = GetProperty(hwnd, PropertyKeys.Comment))
+                {
+                    comment = propVariant.GetStringValue();
+                }
                 return true;
             }
             catch (Exception e)
@@ -123,7 +126,11 @@ namespace Paragon.Runtime.Win32
                     return false;
                 }
 
-                appId = GetProperty(hwnd, PropertyKeys.AppId).GetStringValue();
+                using (var propVariant = GetProperty(hwnd, PropertyKeys.AppId))
+                {
+                    appId = propVariant.GetStringValue();
+                }
+                    
                 return true;
             }
             catch (Exception e)
@@ -136,17 +143,21 @@ namespace Paragon.Runtime.Win32
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         private static void SetBool(IntPtr hwnd, PropertyKey key, bool value)
         {
-            var pv = new PropVariant();
-            pv.SetValue(value);
-            SetProperty(hwnd, key, pv);
+            using (var pv = new PropVariant())
+            {
+                pv.SetValue(value);
+                SetProperty(hwnd, key, pv);
+            }
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         private static void SetString(IntPtr hwnd, PropertyKey key, string value)
         {
-            var pv = new PropVariant();
-            pv.SetValue(value);
-            SetProperty(hwnd, key, pv);
+            using (var pv = new PropVariant())
+            {
+                pv.SetValue(value);
+                SetProperty(hwnd, key, pv);
+            }
         }
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]

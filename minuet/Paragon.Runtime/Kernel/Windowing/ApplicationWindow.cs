@@ -1184,9 +1184,11 @@ namespace Paragon.Runtime.Kernel.Windowing
             if (_browser != null)
             {
                 DetachFromBrowser();
+
                 _browser.BrowserClosed -= OnBrowserClosed;
                 _browser.Dispose();
                 _browser = null;
+
                 if (_windowManager != null)
                 {
                     _windowManager.RemoveApplicationWindow(this);
@@ -1194,6 +1196,8 @@ namespace Paragon.Runtime.Kernel.Windowing
                 }
                 Content = null;
             }
+
+            SystemEvents.SessionEnding -= OnSessionEnding;
 
             if (_autoSaveWindowPositionBehavior != null)
             {
