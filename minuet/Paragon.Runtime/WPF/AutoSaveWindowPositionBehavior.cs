@@ -76,12 +76,9 @@ namespace Paragon.Runtime.WPF
 
             try
             {
-                if (AssociatedObject != null)
-                {
-                    AssociatedObject.LocationChanged -= OnSizeOrLocationChanged;
-                    AssociatedObject.SizeChanged -= OnSizeOrLocationChanged;
-                    AssociatedObject.Activated -= OnActivated;
-                }
+                AssociatedObject.LocationChanged -= OnSizeOrLocationChanged;
+                AssociatedObject.SizeChanged -= OnSizeOrLocationChanged;
+                AssociatedObject.Activated -= OnActivated;
                 SystemEvents.SessionSwitch -= OnSessionSwitch;
                 SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
             }
@@ -118,10 +115,6 @@ namespace Paragon.Runtime.WPF
             {
                 Logger.Debug("Size or location changed. Persisting window placement settings.");
                 PersistWindowPlacement();
-            }
-            else
-            {
-                ApplyWindowPlacement();
             }
         }
 
@@ -175,15 +168,17 @@ namespace Paragon.Runtime.WPF
                 WINDOWPLACEMENT placement;
                 if (TryGetPosition(out placement))
                 {
-                    Logger.Debug(string.Format("Placement details being applied (virtual): Top {0} Left {1} Width {2} Height {3} State {4}",
+                    Logger.Info(string.Format("Placement details being applied (virtual): Top {0} Left {1} Width {2} Height {3} State {4}",
                         placement.rcNormalPosition.Top, placement.rcNormalPosition.Left, placement.rcNormalPosition.Width, placement.rcNormalPosition.Height, placement.showCmd));
 
-                    var virtualSize = new Vector(placement.rcNormalPosition.Width, placement.rcNormalPosition.Height);
-                    var realSize = AssociatedObject.GetRealSize(virtualSize);
-                    placement.rcNormalPosition.Right = placement.rcNormalPosition.Left + (int) realSize.Width;
-                    placement.rcNormalPosition.Bottom = placement.rcNormalPosition.Top + (int) realSize.Height;
+                    var ddPoint = AssociatedObject.GetDeviceDependentPoint(new Point(placement.rcNormalPosition.Left, placement.rcNormalPosition.Top));
+                    var ddSize = AssociatedObject.GetDeviceDependentSize(new Vector(placement.rcNormalPosition.Width, placement.rcNormalPosition.Height));
+                    placement.rcNormalPosition.Left = (int)ddPoint.X;
+                    placement.rcNormalPosition.Top = (int)ddPoint.Y;
+                    placement.rcNormalPosition.Right = placement.rcNormalPosition.Left + (int)ddSize.Width;
+                    placement.rcNormalPosition.Bottom = placement.rcNormalPosition.Top + (int)ddSize.Height;
 
-                    Logger.Debug(string.Format("Placement details being applied (real): Top {0} Left {1} Width {2} Height {3} State {4}",
+                    Logger.Info(string.Format("Placement details being applied (real): Top {0} Left {1} Width {2} Height {3} State {4}",
                         placement.rcNormalPosition.Top, placement.rcNormalPosition.Left, placement.rcNormalPosition.Width, placement.rcNormalPosition.Height, placement.showCmd));
 
                     NativeMethods.SetWindowPlacement(_hwnd.Value, ref placement);
@@ -258,11 +253,13 @@ namespace Paragon.Runtime.WPF
                     placement.rcNormalPosition.Right = rectangle.Right;
                 }
 
-                //convert real settings to virtual
-                var realSize = new Vector(placement.rcNormalPosition.Width, placement.rcNormalPosition.Height);
-                var virtualSize = AssociatedObject.GetVirtualSize(realSize);
-                placement.rcNormalPosition.Right = placement.rcNormalPosition.Left + (int)virtualSize.Width;
-                placement.rcNormalPosition.Bottom = placement.rcNormalPosition.Top + (int)virtualSize.Height;
+                //convert device dependent settings to device independent settings
+                var didPoint = AssociatedObject.GetDeviceIndependentPoint(new Point(placement.rcNormalPosition.Left, placement.rcNormalPosition.Top));
+                var didSize = AssociatedObject.GetDeviceIndependentSize(new Vector(placement.rcNormalPosition.Width, placement.rcNormalPosition.Height));
+                placement.rcNormalPosition.Left = (int)didPoint.X;
+                placement.rcNormalPosition.Top = (int)didPoint.Y;
+                placement.rcNormalPosition.Right = placement.rcNormalPosition.Left + (int)didSize.Width;
+                placement.rcNormalPosition.Bottom = placement.rcNormalPosition.Top + (int)didSize.Height;
             }
             else
             {

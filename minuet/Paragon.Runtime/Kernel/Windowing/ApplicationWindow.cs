@@ -470,28 +470,32 @@ namespace Paragon.Runtime.Kernel.Windowing
                     width = bounds.Width > 0 ? (int)bounds.Width : (int)Width,
                     height = bounds.Height > 0 ? (int)bounds.Height : (int)Height;
 
-                var virtualSize = new Vector(width, height);
-                var realSize = GetRealSize(virtualSize);
+                var ddSize = GetDeviceDependentSize(new Vector(width, height));
+                var minDdSize = GetDeviceDependentSize(new Vector(bounds.MinWidth, bounds.MinHeight));
+                var maxDdSize = GetDeviceDependentSize(new Vector(bounds.MaxWidth, bounds.MaxHeight));
+                var ddPoint = GetDeviceDependentPoint(new Point(left, top));
 
-                Win32Api.SetWindowPosition(Handle, IntPtr.Zero, left, top, 
-                    (int)realSize.Width, (int)realSize.Height, SWP.NOACTIVATE | SWP.NOZORDER);           
+                Win32Api.SetWindowPosition(Handle, IntPtr.Zero, (int)ddPoint.X, (int)ddPoint.Y, (int)ddSize.Width, (int)ddSize.Height, SWP.NOACTIVATE | SWP.NOZORDER);
 
                 if (bounds.MinHeight > 0)
                 {
-                    MinHeight = bounds.MinHeight;
+                    MinHeight = minDdSize.Height;
                 }
                 if (bounds.MinWidth > 0)
                 {
-                    MinWidth = bounds.MinWidth;
+                    MinWidth = minDdSize.Width;
                 }
                 if (bounds.MaxHeight > 0)
                 {
-                    MaxHeight = bounds.MaxHeight;
+                    MaxHeight = maxDdSize.Height;
                 }
                 if (bounds.MaxWidth > 0)
                 {
-                    MaxWidth = bounds.MaxWidth;
+                    MaxWidth = maxDdSize.Width;
                 }
+
+                Logger.Debug(string.Format("Get bounds: top {0} left {1} width {2} height {3} max height {4} max width {5} min height {6} min width {7}",
+                                            ddPoint.Y, ddPoint.X, ddSize.Width, ddSize.Height, MaxHeight, MaxWidth, MinHeight, MinWidth));
             }, true);
         }
 
@@ -1046,9 +1050,9 @@ namespace Paragon.Runtime.Kernel.Windowing
             _browser.ProtocolExecution += OnProtocolExecution;
         }
 
-        internal Size GetRealSize(Vector virtualSize)
+        internal Size GetDeviceDependentSize(Vector deviceIndependentSize)
         {
-            var realSize = new Size(virtualSize.X, virtualSize.Y);
+            var deviceDependentSize = new Size(deviceIndependentSize.X, deviceIndependentSize.Y);
 
             try
             {
@@ -1056,20 +1060,41 @@ namespace Paragon.Runtime.Kernel.Windowing
                 if (source != null && source.CompositionTarget != null)
                 {
                     var transformToDevice = source.CompositionTarget.TransformToDevice;
-                    realSize = (Size) transformToDevice.Transform((Vector) virtualSize);
+                    deviceDependentSize = (Size)transformToDevice.Transform((Vector)deviceIndependentSize);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(string.Format("Failed to get real size: {0}", ex.Message));
+                Logger.Error(string.Format("Failed to get device dependent size: {0}", ex.Message));
             }
 
-            return realSize;
+            return deviceDependentSize;
         }
 
-        internal Size GetVirtualSize(Vector realSize)
+        internal Point GetDeviceDependentPoint(Point deviceIndependentPoint)
         {
-            var virtualSize = new Size(realSize.X, realSize.Y);
+            var deviceDependentPoint = new Point(deviceIndependentPoint.X, deviceIndependentPoint.Y);
+
+            try
+            {
+                var source = PresentationSource.FromVisual(this);
+                if (source != null && source.CompositionTarget != null)
+                {
+                    var transformToDevice = source.CompositionTarget.TransformToDevice;
+                    deviceDependentPoint = (Point)transformToDevice.Transform((Point)deviceIndependentPoint);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(string.Format("Failed to get device dependent point: {0}", ex.Message));
+            }
+
+            return deviceDependentPoint;
+        }
+
+        internal Size GetDeviceIndependentSize(Vector deviceDependentSize)
+        {
+            var deviceIndependentSize = new Size(deviceDependentSize.X, deviceDependentSize.Y);
 
             try
             {
@@ -1077,15 +1102,36 @@ namespace Paragon.Runtime.Kernel.Windowing
                 if (source != null && source.CompositionTarget != null)
                 {
                     var transformFromDevice = source.CompositionTarget.TransformFromDevice;
-                    virtualSize = (Size)transformFromDevice.Transform((Vector)realSize);
+                    deviceIndependentSize = (Size)transformFromDevice.Transform((Vector)deviceDependentSize);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(string.Format("Failed to get virtual size: {0}", ex.Message));
+                Logger.Error(string.Format("Failed to get device independent size: {0}", ex.Message));
             }
 
-            return virtualSize;
+            return deviceIndependentSize;
+        }
+
+        internal Point GetDeviceIndependentPoint(Point deviceDependentPoint)
+        {
+            var deviceIndependentPoint = new Point(deviceDependentPoint.X, deviceDependentPoint.Y);
+
+            try
+            {
+                var source = PresentationSource.FromVisual(this);
+                if (source != null && source.CompositionTarget != null)
+                {
+                    var transformFromDevice = source.CompositionTarget.TransformFromDevice;
+                    deviceIndependentPoint = (Point)transformFromDevice.Transform((Point)deviceDependentPoint);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(string.Format("Failed to get device independent point: {0}", ex.Message));
+            }
+
+            return deviceIndependentPoint;
         }
 
         private void OnProtocolExecution(object sender, ProtocolExecutionEventArgs e)
