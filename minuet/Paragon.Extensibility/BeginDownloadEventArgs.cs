@@ -28,6 +28,12 @@ namespace Paragon.Plugins
         }
 
         public string DownloadPath { get; set; }
+        public uint ID { get; set; }
+        public string SuggestedName { get; set; }
+        public long RecvdBytes { get; set; }
+        public bool IsComplete { get; set; }
+        public bool IsCanceled { get; set; }
+
         public string MimeType { get; private set; }
         public string Uri { get; private set; }
     }
