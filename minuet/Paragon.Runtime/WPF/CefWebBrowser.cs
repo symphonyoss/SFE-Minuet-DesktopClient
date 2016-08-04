@@ -31,10 +31,6 @@ using System.Linq;
 using Paragon.Runtime.PackagedApplication;
 using System.Threading;
 using System.Windows.Interop;
-using System.IO;
-using System.Security.AccessControl;
-using System.Windows.Controls;
-using System.Windows.Threading;
 
 namespace Paragon.Runtime.WPF
 {
@@ -59,9 +55,6 @@ namespace Paragon.Runtime.WPF
         private string _name = Guid.NewGuid().ToString();
         private IBrowserSideMessageRouter _router;
         private string _sourceUrl = "about:blank";
-
-        Dispatcher _mainUiDispatcher;
-        Grid _mainPanel;
 
         public event EventHandler<BrowserCreateEventArgs> BeforeBrowserCreate;
         public event EventHandler<ContextMenuEventArgs> BeforeContextMenu;
@@ -89,24 +82,6 @@ namespace Paragon.Runtime.WPF
             KeyboardNavigation.SetDirectionalNavigation(this, KeyboardNavigationMode.Cycle);
             _disablePopups = false;
             _disableContextMenu = false;
-
-            _mainPanel = new Grid();
-            RowDefinition browserRow = new RowDefinition();
-            browserRow.Height = new GridLength(1, GridUnitType.Star);
-
-            RowDefinition downloadRow = new RowDefinition();
-            downloadRow.Height = GridLength.Auto;
-
-            _mainPanel.RowDefinitions.Add(browserRow);
-            _mainPanel.RowDefinitions.Add(downloadRow);
-            _mainPanel.Visibility = System.Windows.Visibility.Visible;
-
-            this.AddVisualChild(_mainPanel);
-
-
-            _mainUiDispatcher = Dispatcher.CurrentDispatcher;
-
-
             Loaded += OnLoaded;
             ParagonRuntime.AddBrowser(this);
             _allowedProtocols.AddRange(CefBrowserApplication.AllowedProtocols);
@@ -411,42 +386,10 @@ namespace Paragon.Runtime.WPF
             }
         }
 
-        DownloadControl downloadCtrl;
-
-        void CreateDownloadControl()
-        {
-            if (downloadCtrl == null)
-            {
-                downloadCtrl = new DownloadControl();
-                downloadCtrl.CloseHandlerEvent += downloadCtrl_CloseHandlerEvent;
-                downloadCtrl.SetValue(Grid.RowProperty, 1);
-
-                _mainPanel.Children.Add(downloadCtrl);
-            }
-        }
-
-        void downloadCtrl_CloseHandlerEvent(object sender, EventArgs e)
-        {
-            if (downloadCtrl != null)
-            {
-                _mainPanel.Children.Remove(downloadCtrl);
-                downloadCtrl.CloseHandlerEvent -= downloadCtrl_CloseHandlerEvent;
-                downloadCtrl = null;
-            }
-        }
-
         public void OnBeforeDownload(BeginDownloadEventArgs args)
         {
-
-            _mainUiDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
-            {
-                CreateDownloadControl();
-                downloadCtrl.AddItem(args.ID, args.SuggestedName, args.DownloadPath, args.RecvdBytes, args.IsComplete, args.IsCanceled);
-            }));
-            
             BeforeDownload.Raise(this, args);
         }
-
 
         void ICefWebBrowserInternal.OnBeforePopup(BeforePopupEventArgs e)
         {
@@ -665,15 +608,7 @@ namespace Paragon.Runtime.WPF
                     di.CurrentSpeed, di.PercentComplete, di.TotalBytes, di.ReceivedBytes,
                     di.FullPath, di.Id, di.SuggestedFileName, di.ContentDisposition, di.MimeType);
                 InvokeHandler(DownloadUpdated, ea);
-
-                bool shouldCancel = false;
-                _mainUiDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
-                {
-                    if (downloadCtrl != null)
-                        shouldCancel = downloadCtrl.UpdateItem(di.Id, di.ReceivedBytes, di.IsComplete, di.IsCanceled);
-                }));
-
-                if (ea.Cancel || shouldCancel == true)
+                if (ea.Cancel)
                 {
                     e.Callback.Cancel();
                 }

@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Microsoft.Windows.Themes;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -15,7 +17,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using Wpf.Controls;
 
-namespace Paragon.Runtime.WPF
+namespace Paragon.Runtime.WPF.Download
 {
     /// <summary>
     /// Interaction logic for DownloadControl.xaml
@@ -25,7 +27,7 @@ namespace Paragon.Runtime.WPF
         public DownloadControl()
         {
             InitializeComponent();
-            closeButton.Click += OnCloseButtonClicked;
+            closeButton.Click += new RoutedEventHandler(OnCloseButtonClicked);
         }
 
         class DownloadItem : SplitButton
@@ -103,8 +105,6 @@ namespace Paragon.Runtime.WPF
                 this.Items.Add(_openItem);
                 this.Items.Add(_showInFolderItem);
                 this.Items.Add(_cancelItem);
-
-                this.Click += DownloadItem_Click;
             }
 
             bool _shouldCancel = false;
@@ -306,10 +306,30 @@ namespace Paragon.Runtime.WPF
         public delegate void CloseHandler(object sender, EventArgs e);
         public event CloseHandler CloseHandlerEvent;
 
+        void closeButtonClicked(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+        }
+
         void OnCloseButtonClicked(object sender, RoutedEventArgs e)
         {
             if (CloseHandlerEvent != null)
                 CloseHandlerEvent(this, new EventArgs());
+            e.Handled = true;
+        }
+
+        public void buttonChrome_MouseLeftButtonDown(object sender, RoutedEventArgs e)
+        {
+            SplitButton b = (SplitButton)sender;
+            b.Button_Click();
+            e.Handled = true;
+        }
+
+        public void chrome_MouseLeftButtonDown(object sender, RoutedEventArgs e)
+        {
+            SplitButton b = (SplitButton)sender;
+            b.Dropdown_Click();
+            e.Handled = true;
         }
 
     }
