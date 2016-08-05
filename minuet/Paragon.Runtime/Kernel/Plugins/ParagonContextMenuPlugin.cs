@@ -24,6 +24,7 @@ using Paragon.Plugins;
 using Paragon.Runtime.Annotations;
 using Paragon.Runtime.Kernel.Windowing;
 using Xilium.CefGlue;
+using System.Diagnostics;
 
 namespace Paragon.Runtime.Kernel.Plugins
 {
@@ -46,7 +47,7 @@ namespace Paragon.Runtime.Kernel.Plugins
             Id = (int) CefMenuId.UserFirst + 2,
             Type = "normal",
             Title = "Reload",
-            Contexts = new List<string> {"page", "frame"}
+            Contexts = new List<string> {"page", "frame", "link"}
         };
 
         public static readonly ContextMenuProperties PrintMenuItem = new ContextMenuProperties
@@ -54,7 +55,7 @@ namespace Paragon.Runtime.Kernel.Plugins
             Id = (int) CefMenuId.Print,
             Type = "normal",
             Title = "Print...",
-            Contexts = new List<string> {"page", "frame"}
+            Contexts = new List<string> { "page", "frame", "link" }
         };
 
         public static readonly ContextMenuProperties ViewSourceMenuItem = new ContextMenuProperties
@@ -64,6 +65,25 @@ namespace Paragon.Runtime.Kernel.Plugins
             Title = "View Source",
             Contexts = new List<string> {"page", "frame"}
         };
+
+        //DES-10489
+        public static readonly ContextMenuProperties OpenLinkMenuItem = new ContextMenuProperties
+        {
+            Id = (int)CefMenuId.OpenLink,
+            Type = "normal",
+            Title = "Open Link",
+            Contexts = new List<string> {"link"}
+        };
+
+        //DES-10489
+        public static readonly ContextMenuProperties CopyLinkMenuItem = new ContextMenuProperties
+        {
+            Id = (int)CefMenuId.Copy,
+            Type = "normal",
+            Title = "Copy Link",
+            Contexts = new List<string> {"link"}
+        };
+
 
         private readonly List<ContextMenuProperties> _items = new List<ContextMenuProperties>();
         private int _id;
@@ -100,6 +120,16 @@ namespace Paragon.Runtime.Kernel.Plugins
                     {
                         window.RefreshWindow();
                     }
+                    else if (e.Command == OpenLinkMenuItem.Id) //DES-10489
+                    {
+                        //Open link on default browser.
+                        Process.Start(e.State.LinkUrl);
+                    }
+                    else if (e.Command == CopyLinkMenuItem.Id) //DES-10489
+                    {
+                        //Copy link to Clipboard
+                        Clipboard.SetText(e.State.LinkUrl);
+                    }
                     else
                     {
                         RaiseClicked(e.Command, e.State);
@@ -134,14 +164,26 @@ namespace Paragon.Runtime.Kernel.Plugins
                 model.AddSeparator();
             }
 
+            //Open link menu item. DES-10489
+            OpenLinkMenuItem.Populate(ref model, ea.State);
+
+            //Copy link menu item. DES-10489
+            CopyLinkMenuItem.Populate(ref model, ea.State);
+
+            //Print menu item. 
+            PrintMenuItem.Populate(ref model, ea.State);
+
+            //Reload menu item. Moved outside dev env as DES-10489.
+            ReloadMenuItem.Populate(ref model, ea.State);
+            
+            prevCount = model.Count;
+            
             if (Application.Metadata.Environment != ApplicationEnvironment.Production)
             {
-                ReloadMenuItem.Populate(ref model, ea.State);
+                model.InsertSeparatorAt(prevCount);
                 ViewSourceMenuItem.Populate(ref model, ea.State);
                 DevToolsMenuItem.Populate(ref model, ea.State);
             }
-
-            PrintMenuItem.Populate(ref model, ea.State);
 
             ea.Handled = true;
         }

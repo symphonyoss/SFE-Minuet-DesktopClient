@@ -30,6 +30,7 @@ namespace Xilium.CefGlue
         Find = 130,
         Print = 131,
         ViewSource = 132,
+        OpenLink = 133,
 
         // Spell checking word correction suggestions.
         SpellcheckSuggestion0 = 200,
