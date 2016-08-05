@@ -177,14 +177,16 @@ namespace Paragon.Runtime.Kernel.Plugins
             ReloadMenuItem.Populate(ref model, ea.State);
             
             prevCount = model.Count;
-            
+
+            model.InsertSeparatorAt(prevCount);
+
             if (Application.Metadata.Environment != ApplicationEnvironment.Production)
             {
-                model.InsertSeparatorAt(prevCount);
                 ViewSourceMenuItem.Populate(ref model, ea.State);
-                DevToolsMenuItem.Populate(ref model, ea.State);
             }
-
+            //Inspect should always be available as DES-10489
+            DevToolsMenuItem.Populate(ref model, ea.State);
+            
             ea.Handled = true;
         }
 
