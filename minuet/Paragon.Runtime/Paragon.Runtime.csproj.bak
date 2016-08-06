@@ -52,7 +52,6 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="PresentationFramework.Luna" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -269,11 +268,6 @@
     <Compile Include="WPF\AutoSaveWindowPositionBehavior.cs" />
     <Compile Include="WPF\BrowserHwndHost.cs" />
     <Compile Include="WPF\CefWebBrowser.cs" />
-    <Compile Include="WPF\Download\DownloadControl.xaml.cs">
-      <DependentUpon>DownloadControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="WPF\Download\SplitButton.cs" />
-    <Compile Include="WPF\Download\SplitButtonMode.cs" />
     <Compile Include="WPF\GlowWindow.xaml.cs">
       <DependentUpon>GlowWindow.xaml</DependentUpon>
     </Compile>
@@ -322,10 +316,6 @@
     <Page Include="Themes\ParagonWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="WPF\Download\DownloadControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="WPF\GlowWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
