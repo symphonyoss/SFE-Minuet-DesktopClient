@@ -36,7 +36,7 @@ namespace Paragon.AppPackager
             if (certificate == null)
                 throw new Exception("certificate");
 
-            using (Package signedPackage = Package.Open(outputPath, FileMode.Create))
+            using (Package signedPackage = Package.Open(outputPath, FileMode.CreateNew))
             {
                 var uriString = "/" + InnerPackageName + ".pgx";
                 var uri = new Uri(uriString, UriKind.Relative);
