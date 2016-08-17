@@ -25,6 +25,12 @@ using Paragon.Plugins;
 using Paragon.Properties;
 using Paragon.Runtime;
 using Paragon.Runtime.Kernel.Applications;
+using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.IO.Packaging;
+using System.Text;
+using Paragon.Runtime.Win32;
+using Paragon.Runtime.Desktop;
 
 namespace Paragon
 {
@@ -128,12 +134,143 @@ namespace Paragon
             }
         }
 
+        private static Dictionary<string, string> _contentTypesGiven = new Dictionary<string, string>();
+
+        private static Uri GetRelativeUri(string currentFile)
+        {
+            var uriString = currentFile;
+            if (!uriString.StartsWith("\\"))
+            {
+                uriString = "\\" + uriString;
+            }
+
+            var relPath = uriString.Substring(
+                uriString.IndexOf('\\')).Replace('\\', '/').Replace(' ', '_');
+
+            var normalized = relPath.Normalize(NormalizationForm.FormKD);
+
+            var removal = Encoding.GetEncoding(
+                Encoding.ASCII.CodePage,
+                new EncoderReplacementFallback(string.Empty),
+                new DecoderReplacementFallback(string.Empty));
+
+            var bytes = removal.GetBytes(normalized);
+            var uri = Encoding.ASCII.GetString(bytes);
+            return new Uri(uri, UriKind.Relative);
+        }
+
+
+        public static void CopyStream(Stream input, Stream output)
+        {
+            byte[] buffer = new byte[32768];
+            int read;
+            while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                output.Write (buffer, 0, read);
+            }
+        }
+
+        private static void AddFilesToZip(string zipFilename, string[] filesToAdd, CompressionOption compression = CompressionOption.Maximum)
+        {
+            using (var memStream = new MemoryStream())
+            {
+                using (Package zip = System.IO.Packaging.Package.Open(memStream, FileMode.OpenOrCreate))
+                {
+                    foreach (string fileToAdd in filesToAdd)
+                    {
+                        //skip zip files.
+                        if (fileToAdd.EndsWith(".zip"))
+                            continue;
+
+                        string destFilename = ".\\" + Path.GetFileName(fileToAdd);
+                        Uri uri = PackUriHelper.CreatePartUri(new Uri(destFilename, UriKind.Relative));
+                        if (zip.PartExists(uri))
+                        {
+                            zip.DeletePart(uri);
+                        }
+                        PackagePart part = zip.CreatePart(uri, "", compression);
+                        try
+                        {
+                            using (FileStream fileStream = new FileStream(fileToAdd, FileMode.Open, FileAccess.Read))
+                            {
+                                using (Stream dest = part.GetStream())
+                                {
+                                    CopyStream(fileStream, part.GetStream());
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw (ex);
+                        }
+                    }
+                    using (FileStream zipfilestream = new FileStream(zipFilename, FileMode.Create, FileAccess.Write))
+                    {
+                        memStream.Position = 0;
+                        CopyStream(memStream, zipfilestream);
+                    }
+                }
+            }
+        }              
+
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var logger = ParagonLogManager.GetLogger();
             logger.Error(string.Format("An unhandled domain exception has occurred: {0}", e.ExceptionObject ?? string.Empty));
-
+            
             var errMessage = "A fatal error has occurred.";
+
+            try
+            {
+                String dstDiretory = ParagonLogManager.LogDirectory;
+                String fileName = "dump-file-" + DateTime.Now.ToString("dd_MM_yyyy_HH-mm-ss-fff") + ".zip";
+                String fullPath = Path.Combine(dstDiretory, fileName);
+
+                //Dump apps.
+                WebApplication runningApp = (WebApplication)_appManager.AllApplicaions.FirstOrDefault();
+                AppInfo appInfo = (AppInfo)runningApp.GetRunningApps().FirstOrDefault();
+
+                //Dump paragon.exe.
+                Process process = Process.GetProcessById(appInfo.BrowserInfo.Pid);// Process.GetProcessesByName("Paragon").First();
+                String fileToDump = Path.Combine(dstDiretory, process.ProcessName+".dmp");
+                MemoryDump.MiniDumpToFile(fileToDump, process);
+                
+                //Dump Paragon.Renderer.
+                process = Process.GetProcessById(appInfo.RenderInfo.Pid);
+                fileToDump = Path.Combine(dstDiretory, process.ProcessName + ".dmp");
+                MemoryDump.MiniDumpToFile(fileToDump, process);
+               
+                String packagePath = Path.Combine(dstDiretory, "package");
+                
+                //delete temp directory. Ensure cleanup.
+                if (System.IO.Directory.Exists(packagePath))
+                    System.IO.Directory.Delete(packagePath, true);
+
+                //Create temp directory
+                System.IO.Directory.CreateDirectory(packagePath);
+
+                //Copy files to temp directory to avoid denied access to files with open handler.
+                string[] fileEntries = Directory.GetFiles(dstDiretory);
+                System.Collections.Generic.List<string> files = fileEntries.ToList();
+                foreach (string file in fileEntries)
+                {
+                    if (!file.EndsWith(".zip"))
+                    {
+                        File.Copy(file, Path.Combine(packagePath, Path.GetFileName(file)));
+                    }
+                }
+
+                //Zip files.
+                fileEntries = Directory.GetFiles(packagePath);
+                AddFilesToZip(fullPath, fileEntries);
+
+                errMessage += string.Format("\n\nLog files and application dump files are zipped in:\n{0}.", fullPath);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(string.Format("Failed to collect log files & dump running apps: {0}", e.ExceptionObject ?? string.Empty));
+            }
+
             if (_appManager != null && _appManager.AllApplicaions != null)
             {
                 var apps = _appManager.AllApplicaions.Select(app => app.Name).ToArray();

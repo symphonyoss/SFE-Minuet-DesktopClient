@@ -15,14 +15,13 @@
 //specific language governing permissions and limitations
 //under the License.
 
-using System.Linq;
-using System.Text;
 using Paragon.Plugins;
 using Paragon.Runtime.Desktop;
 using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Paragon.Runtime.Win32
 {
@@ -89,6 +88,27 @@ namespace Paragon.Runtime.Win32
             }
 
             return success;
+        }
+
+        public static void MiniDumpToFile(String fileToDump, Process process)
+        {
+            FileStream fsToDump = null;
+            if (File.Exists(fileToDump))
+                fsToDump = File.Open(fileToDump, FileMode.Append);
+            else
+                fsToDump = File.Create(fileToDump);
+
+            try
+            {
+                NativeMethods.MiniDumpWriteDump(process.Handle, process.Id,
+                    fsToDump.SafeFileHandle.DangerousGetHandle(), NativeMethods.MINIDUMP_TYPE.MiniDumpNormal,
+                    IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+                fsToDump.Close();
+            }
+            catch (Exception ex)
+            {
+                throw (ex);
+            }
         }
     }
 }
