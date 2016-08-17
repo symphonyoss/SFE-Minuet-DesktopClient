@@ -26,9 +26,16 @@ namespace Paragon.Plugins
             Uri = uri;
             MimeType = mimeType;
         }
-
+        
         public string DownloadPath { get; set; }
         public string MimeType { get; private set; }
         public string Uri { get; private set; }
+        public string SuggestedName { get; set; }
+        public bool IsValid { get; set; }
+        public uint Id { get; set; }
+        public long RecvdBytes { get; set; }
+        public bool IsComplete { get; set; }
+        public bool IsCanceled { get; set; }
+
     }
 }

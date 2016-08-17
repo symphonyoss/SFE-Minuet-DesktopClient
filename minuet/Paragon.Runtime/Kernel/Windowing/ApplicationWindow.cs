@@ -40,6 +40,12 @@ using DownloadProgressEventArgs = Paragon.Plugins.DownloadProgressEventArgs;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Timer = System.Threading.Timer;
+using System.Windows.Controls;
+using System.Runtime.InteropServices;
+using System.Windows.Threading;
+using Paragon.Runtime.WPF.Download;
+using System.IO;
+using System.Security.AccessControl;
 
 namespace Paragon.Runtime.Kernel.Windowing
 {
@@ -61,6 +67,8 @@ namespace Paragon.Runtime.Kernel.Windowing
         private IApplicationWindowManagerEx _windowManager;
         private JavaScriptPluginCallback _closeHandler;
         private AutoSaveWindowPositionBehavior _autoSaveWindowPositionBehavior;
+
+        private Grid _mainPanel;
 
         public ApplicationWindow()
         {
@@ -593,19 +601,6 @@ namespace Paragon.Runtime.Kernel.Windowing
         public void Dock(string edge, bool autoHide)
         {
             // TODO: Implement this.
-        }
-
-        /// <summary>
-        /// When the window gets keyboard focus, transfer the focus to the browser. This does not need to be implemented on the Embedded ApplicationWindow
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
-        {
-            if (_browser != null)
-            {
-                _browser.FocusBrowser();
-            }
-            base.OnGotKeyboardFocus(e);
         }
 
         /// <summary>
@@ -1145,6 +1140,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private void OnDownloadUpdated(object sender, DownloadProgressEventArgs e)
         {
+            OnDownloadUpdated(e);
             if (DownloadProgress != null)
             {
                 DownloadProgress(this, e);
@@ -1158,11 +1154,153 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private void OnBeginDownload(object sender, BeginDownloadEventArgs e)
         {
+            OnBeforeDownload(e);
+            
+            DispatchIfRequired(new Action(delegate
+            {
+                downloadCtrl.Visibility = System.Windows.Visibility.Visible;
+            }),true);
+
             if (BeginDownload != null)
             {
                 BeginDownload(this, e);
             }
+
         }
+
+        #region downloaderHandler
+
+        bool hasDirWritePerms(string dirPath)
+        {
+            var writeAllow = false;
+            var writeDeny = false;
+            var accessControlList = Directory.GetAccessControl(dirPath);
+            if (accessControlList == null)
+                return false;
+            var accessRules = accessControlList.GetAccessRules(true, true,
+                                        typeof(System.Security.Principal.SecurityIdentifier));
+            if (accessRules == null)
+                return false;
+
+            foreach (FileSystemAccessRule rule in accessRules)
+            {
+                if ((FileSystemRights.Write & rule.FileSystemRights) != FileSystemRights.Write)
+                    continue;
+
+                if (rule.AccessControlType == AccessControlType.Allow)
+                    writeAllow = true;
+                else if (rule.AccessControlType == AccessControlType.Deny)
+                    writeDeny = true;
+            }
+
+            return writeAllow && !writeDeny;
+        }
+
+        string getDownLoadFullPath(string fileName)
+        {
+
+            string pathUser = Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+            string pathDownload = Path.Combine(pathUser, "Downloads");
+
+            // fall back to a temp file if directory doesn't exist or doesn't have write permissions
+            if (!System.IO.Directory.Exists(pathDownload) || !hasDirWritePerms(pathDownload))
+            {
+                string newfileName = Path.GetTempFileName();
+                string newFullPath = System.IO.Path.ChangeExtension(newfileName, System.IO.Path.GetExtension(fileName));
+                return newFullPath;
+            }
+
+            return Path.Combine(pathDownload, fileName);
+        }
+
+        string GetUniqueFileName(string fullPath)
+        {
+            string tmpFullPath = fullPath;
+            string extn = System.IO.Path.GetExtension(tmpFullPath);
+            string fileNameWithoutExtn = Path.GetFileNameWithoutExtension(tmpFullPath);
+            string fullPathToFile = System.IO.Path.GetFullPath(fullPath);
+            string directoy = System.IO.Path.GetDirectoryName(fullPath);
+            int num = 1;
+            while (File.Exists(tmpFullPath))
+            {
+                tmpFullPath = System.IO.Path.Combine(directoy, fileNameWithoutExtn) + " (" + num + ")" + extn;
+                num++;
+
+                if (num > 20)
+                    return tmpFullPath; // give up
+            }
+
+            return tmpFullPath;
+        }
+        
+        DownloadControl downloadCtrl;
+
+        void CreateDownloadControl()
+        {
+            if (downloadCtrl == null)
+            {
+                downloadCtrl = new DownloadControl();
+                downloadCtrl.CloseHandlerEvent += downloadCtrl_CloseHandlerEvent;
+                downloadCtrl.SetValue(Grid.RowProperty, 1);
+                DispatchIfRequired(new Action(delegate
+                {
+                    downloadCtrl.Visibility = System.Windows.Visibility.Collapsed;
+                    _mainPanel.Children.Add(downloadCtrl);
+                }), true);                
+            }
+        }
+
+        void downloadCtrl_CloseHandlerEvent(object sender, EventArgs e)
+        {
+            if (downloadCtrl != null)
+            {
+                DispatchIfRequired(new Action(delegate
+                {
+                    downloadCtrl.Visibility = System.Windows.Visibility.Collapsed;
+                }), true);                
+            }
+        }
+
+        public void OnBeforeDownload(BeginDownloadEventArgs e)
+        {
+            if (e.IsValid)
+            {
+                if (String.IsNullOrEmpty(e.SuggestedName))
+                    e.SuggestedName = Path.GetRandomFileName();
+
+                string fullPath = getDownLoadFullPath(e.SuggestedName);
+
+                fullPath = GetUniqueFileName(fullPath);
+
+                e.SuggestedName = Path.GetFileName(fullPath);
+
+                e.DownloadPath = fullPath;
+                DispatchIfRequired(new Action(delegate
+                {
+                    downloadCtrl.AddItem(e.Id, e.SuggestedName, e.DownloadPath, e.RecvdBytes, e.IsComplete, e.IsCanceled);
+                }), true);
+            }
+        }
+
+        public void OnDownloadUpdated(DownloadProgressEventArgs e)
+        {
+            if (e.IsValid)
+            {
+                uint id = e.Id;
+                long recvdBytes = e.ReceivedBytes;
+                bool isComplete = e.IsComplete;
+                bool isCanceled = e.IsCanceled;
+
+                if (downloadCtrl != null)
+                {
+                    DispatchIfRequired(new Action(delegate
+                    {
+                        downloadCtrl.UpdateItem(id, recvdBytes, isComplete, isCanceled);
+                    }), true);
+                }
+            }
+        }
+        #endregion
 
         private void OnBeforeResourceLoad(object sender, ResourceLoadEventArgs e)
         {
@@ -1230,6 +1368,9 @@ namespace Paragon.Runtime.Kernel.Windowing
             if (_browser != null)
             {
                 DetachFromBrowser();
+                
+                //Remove Download Control from App Window
+                _mainPanel.Children.Remove(downloadCtrl);
 
                 _browser.BrowserClosed -= OnBrowserClosed;
                 _browser.Dispose();
@@ -1314,7 +1455,32 @@ namespace Paragon.Runtime.Kernel.Windowing
         {
             if (_browser != null && Content == null && _browser.BrowserWindowHandle != IntPtr.Zero)
             {
-                Content = _browser;
+
+                _mainPanel = new Grid();
+                RowDefinition browserRow = new RowDefinition();
+                browserRow.Height = new GridLength(1, GridUnitType.Star);
+
+                RowDefinition downloadRow = new RowDefinition();
+                downloadRow.Height = GridLength.Auto;
+
+                _mainPanel.RowDefinitions.Add(browserRow);
+                _mainPanel.RowDefinitions.Add(downloadRow);
+
+                CreateDownloadControl();
+
+                this.AddChild(_mainPanel);
+
+                Content = _mainPanel;
+
+                var browserHwnd = _browser as BrowserHwndHost;
+                
+                IntPtr hwnd = browserHwnd.BrowserWindowHandle;
+                if (hwnd != null && hwnd != IntPtr.Zero)
+                {
+                    browserHwnd.SetValue(Grid.RowProperty, 0);
+                    _mainPanel.Children.Add(browserHwnd);
+                }
+
                 LoadComplete.Raise(this, EventArgs.Empty);
                 InvalidateArrange();
             }

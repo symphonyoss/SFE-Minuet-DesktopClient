@@ -44,16 +44,18 @@ namespace Paragon.Runtime
         protected override void OnBeforeDownload(CefBrowser browser, CefDownloadItem downloadItem, string suggestedName, CefBeforeDownloadCallback callback)
         {
             var args = new BeginDownloadEventArgs(downloadItem.Url, downloadItem.MimeType);
+            
+            args.Id = downloadItem.Id;
+            args.SuggestedName = suggestedName;
+            args.IsValid = downloadItem.IsValid;
+            args.RecvdBytes = downloadItem.ReceivedBytes;
+            args.IsComplete = downloadItem.IsComplete;
+            args.IsCanceled = downloadItem.IsCanceled;
+
             _owner.OnBeforeDownload(args);
 
-            if (string.IsNullOrEmpty(args.DownloadPath))
-            {
-                callback.Continue(string.Empty, true);
-            }
-            else
-            {
-                callback.Continue(args.DownloadPath, false);
-            }
+            callback.Continue(args.DownloadPath, false);
+
         }
     }
 }
