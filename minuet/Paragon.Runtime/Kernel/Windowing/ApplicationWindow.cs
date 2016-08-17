@@ -69,7 +69,6 @@ namespace Paragon.Runtime.Kernel.Windowing
         private AutoSaveWindowPositionBehavior _autoSaveWindowPositionBehavior;
 
         private Grid _mainPanel;
-        private Dispatcher _mainUiDispatcher;
 
         public ApplicationWindow()
         {
@@ -604,20 +603,6 @@ namespace Paragon.Runtime.Kernel.Windowing
             // TODO: Implement this.
         }
 
-        /// <summary>
-        /// When the window gets keyboard focus, transfer the focus to the browser. This does not need to be implemented on the Embedded ApplicationWindow
-        /// </summary>
-        /// <param name="e"></param>
-        /*
-        protected override void OnGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
-        {
-            if (_browser != null)
-            {
-                _browser.FocusBrowser();
-            }
-            base.OnGotKeyboardFocus(e);
-        }
-        */
         /// <summary>
         /// The JavaScript 'window' object for the created child.
         /// </summary>
@@ -1171,10 +1156,10 @@ namespace Paragon.Runtime.Kernel.Windowing
         {
             OnBeforeDownload(e);
             
-            _mainUiDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+            DispatchIfRequired(new Action(delegate
             {
                 downloadCtrl.Visibility = System.Windows.Visibility.Visible;
-            }));
+            }),true);
 
             if (BeginDownload != null)
             {
@@ -1257,11 +1242,11 @@ namespace Paragon.Runtime.Kernel.Windowing
                 downloadCtrl = new DownloadControl();
                 downloadCtrl.CloseHandlerEvent += downloadCtrl_CloseHandlerEvent;
                 downloadCtrl.SetValue(Grid.RowProperty, 1);
-                _mainUiDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+                DispatchIfRequired(new Action(delegate
                 {
                     downloadCtrl.Visibility = System.Windows.Visibility.Collapsed;
                     _mainPanel.Children.Add(downloadCtrl);
-                }));                
+                }), true);                
             }
         }
 
@@ -1269,10 +1254,10 @@ namespace Paragon.Runtime.Kernel.Windowing
         {
             if (downloadCtrl != null)
             {
-                _mainUiDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+                DispatchIfRequired(new Action(delegate
                 {
                     downloadCtrl.Visibility = System.Windows.Visibility.Collapsed;
-                }));                
+                }), true);                
             }
         }
 
@@ -1290,10 +1275,10 @@ namespace Paragon.Runtime.Kernel.Windowing
                 e.SuggestedName = Path.GetFileName(fullPath);
 
                 e.DownloadPath = fullPath;
-                _mainUiDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+                DispatchIfRequired(new Action(delegate
                 {
                     downloadCtrl.AddItem(e.Id, e.SuggestedName, e.DownloadPath, e.RecvdBytes, e.IsComplete, e.IsCanceled);
-                }));
+                }), true);
             }
         }
 
@@ -1308,10 +1293,10 @@ namespace Paragon.Runtime.Kernel.Windowing
 
                 if (downloadCtrl != null)
                 {
-                    _mainUiDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+                    DispatchIfRequired(new Action(delegate
                     {
                         downloadCtrl.UpdateItem(id, recvdBytes, isComplete, isCanceled);
-                    }));
+                    }), true);
                 }
             }
         }
@@ -1470,9 +1455,6 @@ namespace Paragon.Runtime.Kernel.Windowing
         {
             if (_browser != null && Content == null && _browser.BrowserWindowHandle != IntPtr.Zero)
             {
-
-                //Content = _browser;
-                _mainUiDispatcher = Dispatcher.CurrentDispatcher;
 
                 _mainPanel = new Grid();
                 RowDefinition browserRow = new RowDefinition();

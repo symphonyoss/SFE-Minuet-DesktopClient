@@ -257,7 +257,6 @@ namespace Wpf.Controls
             EnsureContextMenuIsValid();
             if (!this.ContextMenu.HasItems)
                 return;
-
             this.ContextMenu.IsOpen = !IsContextMenuOpen; // open it if closed, close it if open
         }
 
@@ -275,11 +274,6 @@ namespace Wpf.Controls
         {
             OnDropdown();
             e.Handled = true;
-        }
-
-        public void Dropdown_Click()
-        {
-            OnDropdown();
         }
     }
 }
