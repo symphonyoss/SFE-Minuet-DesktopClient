@@ -269,6 +269,7 @@ namespace Paragon
             catch (Exception ex)
             {
                 logger.Error(string.Format("Failed to collect log files & dump running apps: {0}", e.ExceptionObject ?? string.Empty));
+                logger.Error(string.Format("Exception when collecting logs: {0}", ex.ToString()));
             }
 
             if (_appManager != null && _appManager.AllApplicaions != null)
