@@ -50,6 +50,7 @@ namespace Paragon.Runtime.Kernel.Plugins
             Contexts = new List<string> {"page", "frame", "link"}
         };
 
+        /* Commented out as DES-11164
         public static readonly ContextMenuProperties PrintMenuItem = new ContextMenuProperties
         {
             Id = (int) CefMenuId.Print,
@@ -57,7 +58,7 @@ namespace Paragon.Runtime.Kernel.Plugins
             Title = "Print...",
             Contexts = new List<string> { "page", "frame", "link" }
         };
-
+        */
         public static readonly ContextMenuProperties ViewSourceMenuItem = new ContextMenuProperties
         {
             Id = (int) CefMenuId.ViewSource,
@@ -170,15 +171,13 @@ namespace Paragon.Runtime.Kernel.Plugins
             //Copy link menu item. DES-10489
             CopyLinkMenuItem.Populate(ref model, ea.State);
 
-            //Print menu item. 
-            PrintMenuItem.Populate(ref model, ea.State);
+            //Print menu item. Commented out as DES-11164
+            //PrintMenuItem.Populate(ref model, ea.State);
 
             //Reload menu item. Moved outside dev env as DES-10489.
             ReloadMenuItem.Populate(ref model, ea.State);
             
             prevCount = model.Count;
-
-            model.InsertSeparatorAt(prevCount);
 
             if (Application.Metadata.Environment != ApplicationEnvironment.Production)
             {
