@@ -38,9 +38,7 @@ namespace Paragon.Plugins.Notifications.Views
 		//DES-11128
         public void ShowOnMonitor(RequestShowEventArgs args)
         {
-            //Win32Api.MoveAndShowWithNoActivate(handle, args);
-            this.Height = 56 * args.NotificationCount;
-            this.Width = 300;
+            this.Height = this.Height * args.NotificationCount;
 
             switch (args.NotificationPosition)
             {
