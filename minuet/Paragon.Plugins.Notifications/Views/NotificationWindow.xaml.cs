@@ -28,6 +28,7 @@ namespace Paragon.Plugins.Notifications.Views
     public partial class NotificationWindow : Window
     {
         private readonly IntPtr handle;
+        private static readonly int notificationHeight = 58;
 
         public NotificationWindow()
         {
@@ -38,7 +39,7 @@ namespace Paragon.Plugins.Notifications.Views
 		//DES-11128
         public void ShowOnMonitor(RequestShowEventArgs args)
         {
-            this.Height = this.Height * args.NotificationCount;
+            this.Height = notificationHeight * args.NotificationCount;
 
             switch (args.NotificationPosition)
             {
