@@ -114,7 +114,7 @@
             <MultiDataTrigger>
                 <MultiDataTrigger.Conditions>
                     <Condition Binding="{Binding Path=IsRemoving}" Value="True" />
-                    <Condition Binding="{Binding Path=Position, Converter={StaticResource PositionLeftOrRightConverter}}" Value="Right" />
+                    <Condition Binding="{Binding Path=Position, Converter={StaticResource PositionLeftOrRightConverter}}" Value="Left" />
                 </MultiDataTrigger.Conditions>
                 <MultiDataTrigger.EnterActions>
                     <BeginStoryboard Storyboard="{StaticResource HideToastRightAnimation}" />

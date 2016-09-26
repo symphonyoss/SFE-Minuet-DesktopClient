@@ -5,8 +5,8 @@
         xmlns:models="clr-namespace:Paragon.Plugins.Notifications.Models"
         xmlns:controls="clr-namespace:Paragon.Plugins.Notifications.Controls"
         Title="NotificationWindow" 
-        Height="300"
-        Width="500" 
+        Height="56"
+        Width="300" 
         Background="Transparent" 
         AllowsTransparency="True"
         ShowActivated="False"  
@@ -42,10 +42,8 @@
         <Grid DockPanel.Dock="Left">
             <ItemsControl ItemsSource="{Binding Path=TopLeftNotifications}" HorizontalAlignment="Left" VerticalAlignment="Top" />
             <ItemsControl ItemsSource="{Binding Path=BottomLeftNotifications}" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-        </Grid>
-        <Grid DockPanel.Dock="Right">
             <ItemsControl ItemsSource="{Binding Path=TopRightNotifications}" HorizontalAlignment="Right" VerticalAlignment="Top" />
-            <ItemsControl ItemsSource="{Binding Path=BottomRightNotifications}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+            <ItemsControl ItemsSource="{Binding Path=BottomRightNotifications}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />            
         </Grid>
     </DockPanel>
 </Window>

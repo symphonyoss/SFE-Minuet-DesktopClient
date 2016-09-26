@@ -16,11 +16,15 @@
 //under the License.
 
 using System;
+using System.Windows;
 
 namespace Paragon.Plugins.Notifications.ViewModels
 {
     public class RequestShowEventArgs : EventArgs
     {
         public IMonitor TargetMonitor { get; set; }
+        //DES-11128
+		public Position NotificationPosition { get; set; }
+        public int NotificationCount { get; set; }
     }
 }

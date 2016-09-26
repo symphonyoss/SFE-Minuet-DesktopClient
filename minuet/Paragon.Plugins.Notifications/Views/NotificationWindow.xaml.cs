@@ -18,7 +18,7 @@
 using System;
 using System.Windows;
 using System.Windows.Interop;
-using Paragon.Plugins.Notifications.Win32;
+using Paragon.Plugins.Notifications.ViewModels;
 
 namespace Paragon.Plugins.Notifications.Views
 {
@@ -33,12 +33,38 @@ namespace Paragon.Plugins.Notifications.Views
         {
             InitializeComponent();
             handle = new WindowInteropHelper(this).EnsureHandle();
-            Win32Api.AddToolWindowStyle(this.handle);
         }
 
-        public void ShowOnMonitor(IMonitor monitor)
+		//DES-11128
+        public void ShowOnMonitor(RequestShowEventArgs args)
         {
-            Win32Api.MoveAndShowWithNoActivate(handle, monitor);
+            this.Height = this.Height * args.NotificationCount;
+
+            switch (args.NotificationPosition)
+            {
+                case Position.TopLeft:
+                    this.Left = args.TargetMonitor.WorkingArea.TopLeft.X;
+                    this.Top = args.TargetMonitor.WorkingArea.TopLeft.Y;
+                    break;
+
+                case Position.BottomLeft:
+                    this.Left = args.TargetMonitor.WorkingArea.BottomLeft.X;
+                    this.Top = args.TargetMonitor.WorkingArea.BottomLeft.Y - this.Height;
+                    break;
+
+                case Position.TopRight:
+                    this.Left = args.TargetMonitor.WorkingArea.TopRight.X - this.Width;
+                    this.Top = args.TargetMonitor.WorkingArea.TopRight.Y;
+                    break;
+
+                case Position.BottomRight:
+                    this.Left = args.TargetMonitor.WorkingArea.BottomRight.X - this.Width;
+                    this.Top = args.TargetMonitor.WorkingArea.BottomRight.Y - this.Height;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
             Show();
         }
     }

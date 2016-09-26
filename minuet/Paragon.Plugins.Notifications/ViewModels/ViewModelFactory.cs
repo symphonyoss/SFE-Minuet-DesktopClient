@@ -43,16 +43,20 @@ namespace Paragon.Plugins.Notifications.ViewModels
             var window = new NotificationWindow();
             var viewModel = createNotificationWindowViewModel();
 
-            EventHandler<RequestShowEventArgs> requestShowHandler = (sender, args) => window.ShowOnMonitor(args.TargetMonitor);
+			//DES-11128
+            EventHandler<RequestShowEventArgs> requestShowHandler = (sender, args) => window.ShowOnMonitor(args);
             EventHandler requestCloseHandler = (sender, args) => window.Close();
+            EventHandler requestHideHandler = (sender, args) => window.Hide();
 
             viewModel.RequestClose += requestCloseHandler;
+            viewModel.RequestHide += requestHideHandler;
             viewModel.RequestShow += requestShowHandler;
 
             window.DataContext = viewModel;
             window.Closed += (sender, args) =>
             {
                 viewModel.RequestClose -= requestCloseHandler;
+                viewModel.RequestHide -= requestHideHandler;
                 viewModel.RequestShow -= requestShowHandler;
             };
 

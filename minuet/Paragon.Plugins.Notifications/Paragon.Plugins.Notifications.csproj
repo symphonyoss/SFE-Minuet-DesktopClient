@@ -114,8 +114,6 @@
     <Compile Include="Views\UserConfigurationWindow.xaml.cs">
       <DependentUpon>UserConfigurationWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Win32\NativeMethods.cs" />
-    <Compile Include="Win32\Win32Api.cs" />
     <Compile Include="WindowInteropHelperUtilities.cs" />
   </ItemGroup>
   <ItemGroup>
