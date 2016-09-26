@@ -24,5 +24,6 @@ namespace Paragon.Plugins.Notifications.ViewModels
     {
         public Notification Notification { get; set; }
         public RemovedBy RemovedBy { get; set; }
+        public Boolean Hide { get; set; } //DES-11128
     }
 }

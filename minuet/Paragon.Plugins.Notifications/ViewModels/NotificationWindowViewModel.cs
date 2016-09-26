@@ -28,11 +28,12 @@ namespace Paragon.Plugins.Notifications.ViewModels
     {
         private readonly NotificationCollection bottomLeftNotifications;
         private readonly NotificationCollection bottomRightNotifications;
+        private readonly NotificationCollection topLeftNotifications;
+        private readonly NotificationCollection topRightNotifications;
+
         private readonly IEventAggregator eventAggregator;
         private readonly IMonitors monitors;
         private readonly INotificationSettings notificationSettings;
-        private readonly NotificationCollection topLeftNotifications;
-        private readonly NotificationCollection topRightNotifications;
 
         public NotificationWindowViewModel(
             IMonitors monitors,
@@ -101,6 +102,7 @@ namespace Paragon.Plugins.Notifications.ViewModels
         }
 
         public event EventHandler RequestClose;
+        public event EventHandler RequestHide;
         public event EventHandler<RequestShowEventArgs> RequestShow;
 
         public void Add(Notification notification)
@@ -126,6 +128,16 @@ namespace Paragon.Plugins.Notifications.ViewModels
         public void Show()
         {
             OnRequestShow();
+        }
+		
+		//DES-11128
+        public void OnRequestHide()
+        {
+            var onRequestHide = RequestHide;
+            if (onRequestHide != null)
+            {
+                onRequestHide(this, EventArgs.Empty);
+            }            
         }
 
         protected void OnRequestClose()
@@ -164,15 +176,17 @@ namespace Paragon.Plugins.Notifications.ViewModels
         protected void OnRequestShow()
         {
             var targetMonitor = GetTargetMonitor();
-            OnRequestShow(targetMonitor);
+            //DES-11128
+			OnRequestShow(new RequestShowEventArgs { TargetMonitor = targetMonitor });
         }
-
-        protected void OnRequestShow(IMonitor monitor)
+		
+		//DES-11128
+        protected void OnRequestShow(RequestShowEventArgs args)
         {
             var onRequestActivate = RequestShow;
             if (onRequestActivate != null)
             {
-                onRequestActivate(this, new RequestShowEventArgs {TargetMonitor = monitor});
+                onRequestActivate(this, args);
             }
         }
 
@@ -240,7 +254,9 @@ namespace Paragon.Plugins.Notifications.ViewModels
             notification.Position = position;
 
             AddNotification(notification);
-            OnRequestShow(monitor);
+            
+			//DES-11128
+            OnRequestShow(new RequestShowEventArgs {TargetMonitor = monitor, NotificationCount = GetNotificationCollection(position).Items.Count, NotificationPosition = position});
         }
 
         private void OnClearAll(EmptyArgs args)
@@ -265,6 +281,14 @@ namespace Paragon.Plugins.Notifications.ViewModels
             eventAggregator
                 .GetEvent<NotificationEvents.CloseNotification>()
                 .Publish(new NotificationEvents.CloseNotificationArgs {RemovedBy = removedArgs.RemovedBy, Notification = removedArgs.Notification});
+			//DES-11128
+            if (topLeftNotifications.Items.Count == 0 && 
+                topRightNotifications.Items.Count == 0 && 
+                bottomLeftNotifications.Items.Count == 0 &&
+                bottomRightNotifications.Items.Count == 0)
+            {
+                OnRequestHide();
+            }
         }
 
         private void OnRefresh(EmptyArgs args)

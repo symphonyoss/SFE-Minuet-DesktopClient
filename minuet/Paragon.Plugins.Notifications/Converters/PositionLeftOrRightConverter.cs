@@ -34,7 +34,7 @@ namespace Paragon.Plugins.Notifications.Converters
                     return "Left";
                 case Position.BottomRight:
                 case Position.TopRight:
-                    return "Right";
+                    return "Left"; //DES-11128
             }
 
             return null;

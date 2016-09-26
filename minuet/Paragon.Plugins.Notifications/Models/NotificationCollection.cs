@@ -82,7 +82,15 @@ namespace Paragon.Plugins.Notifications.Models
             var removed = collection.Remove(notification);
             if (removed)
             {
-                OnRemoved(notification, removedBy);
+				//DES-11128
+                if (collection.Count > 0)
+                {
+                    OnRemoved(notification, removedBy);
+                }
+                else //is empty
+                {
+                    OnRemoved(notification, removedBy, true);
+                }
             }
         }
 
@@ -105,13 +113,23 @@ namespace Paragon.Plugins.Notifications.Models
         {
             RemoveWithDelay(items, item => item.IsRemoving = true, removedBy, 200);
         }
+		
+		//DES-11128
+        private void OnRemoved(Notification notification, RemovedBy removedBy, Boolean hide)
+        {
+            var onRemoved = Removed;
+            if (onRemoved != null)
+            {
+                onRemoved(this, new NotificationRemovedArgs { Notification = notification, RemovedBy = removedBy, Hide = hide });
+            }
+        }
 
         private void OnRemoved(Notification notification, RemovedBy removedBy)
         {
             var onRemoved = Removed;
             if (onRemoved != null)
             {
-                onRemoved(this, new NotificationRemovedArgs {Notification = notification, RemovedBy = removedBy});
+                onRemoved(this, new NotificationRemovedArgs { Notification = notification, RemovedBy = removedBy });
             }
         }
 
