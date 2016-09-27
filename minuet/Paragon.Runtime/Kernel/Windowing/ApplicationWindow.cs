@@ -61,6 +61,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         private bool _isClosed;
         private bool _isClosing;
         private bool _minimizeOnClose;
+        private bool _launchOnStartup;
         private CreateWindowOptions _options;
         private string _title;
         private DeveloperToolsWindow _tools;
@@ -684,6 +685,33 @@ namespace Paragon.Runtime.Kernel.Windowing
             _minimizeOnClose = minimizeOnClose;
         }
 
+        /// <summary>
+        /// Set whether paragon window should launch at windows startup
+        /// </summary>
+        [JavaScriptPluginMember, UsedImplicitly]
+        public void SetLaunchOnStartup(bool launchOnStartup)
+        {
+            _launchOnStartup = launchOnStartup;
+
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
+            {
+                if (_launchOnStartup)
+                {
+
+                    String path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+                    String pgx = Path.GetDirectoryName(path);
+                    pgx = Path.Combine(pgx, "apps\\Symphony.pgx");
+                    path = System.IO.Path.Combine(path, "paragon.exe");
+                    String cmd = path + " /start-app=\"" + pgx + "\"";
+                    key.SetValue("Symphony", cmd);
+                }
+                else
+                {
+                    key.DeleteValue("Symphony", false);
+                }
+            }
+        }
+
         [JavaScriptPluginMember(Name = "setHotKeys"), UsedImplicitly]
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         public void SetHotKeys(string name, string modifiers, string keys)
@@ -1010,6 +1038,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
             Topmost = _options.AlwaysOnTop;
             _minimizeOnClose = _options.MinimizeOnClose;
+            _launchOnStartup = _options.LaunchOnStartup;
 
             if (!_options.Focused)
             {
