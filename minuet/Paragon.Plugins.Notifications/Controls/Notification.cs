@@ -15,6 +15,7 @@
 //specific language governing permissions and limitations
 //under the License.
 
+using Paragon.Plugins.Notifications.Views;
 using System;
 using System.Media;
 using System.Windows;
@@ -58,6 +59,8 @@ namespace Paragon.Plugins.Notifications.Controls
             DependencyProperty.Register("Title", typeof (string), typeof (Notification), new PropertyMetadata(default(string)));
 
         private readonly DispatcherTimer blinkTimer;
+        
+        private NotificationWindow notificationWindow;
 
         private readonly Storyboard loadedStoryboard;
         private readonly Storyboard mouseEnterStoryboard;
@@ -123,6 +126,11 @@ namespace Paragon.Plugins.Notifications.Controls
 
                 loadedStoryboard.Children.Add(loadAnimation);
                 loadedStoryboard.Begin(this, true);
+
+                //resize and move NotificationWindow.
+                notificationWindow = GetNotificationWindow(this);
+                notificationWindow.Height += this.ActualHeight + 8;
+                notificationWindow.MoveNotificationWindow();
             };
 
             Unloaded += (sender, args) =>
@@ -131,6 +139,9 @@ namespace Paragon.Plugins.Notifications.Controls
                 {
                     blinkTimer.Stop();
                 }
+                //resize and move NotificationWindow.
+                notificationWindow.Height -= this.ActualHeight + 8;
+                notificationWindow.MoveNotificationWindow();
             };
 
             MouseEnter += (sender, args) =>
@@ -156,6 +167,16 @@ namespace Paragon.Plugins.Notifications.Controls
                     blinkTimer.Start();
                 }
             };
+        }
+
+        private NotificationWindow GetNotificationWindow(DependencyObject obj){
+            //find NotificationWindow.
+            DependencyObject parent = VisualTreeHelper.GetParent(obj);
+            while (parent.GetType() != typeof(NotificationWindow))
+            {
+                parent = GetNotificationWindow(parent);
+            }
+            return (NotificationWindow)parent;
         }
 
         public Brush BlinkBackground

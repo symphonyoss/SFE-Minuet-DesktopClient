@@ -19,6 +19,9 @@ using System;
 using System.Windows;
 using System.Windows.Interop;
 using Paragon.Plugins.Notifications.ViewModels;
+using System.Collections.Generic;
+using Paragon.Plugins.Notifications.Controls;
+using System.Collections;
 
 namespace Paragon.Plugins.Notifications.Views
 {
@@ -28,7 +31,8 @@ namespace Paragon.Plugins.Notifications.Views
     public partial class NotificationWindow : Window
     {
         private readonly IntPtr handle;
-        private static readonly int notificationHeight = 58;
+        private IMonitor monitor;
+        private Position notificationPosition;
 
         public NotificationWindow()
         {
@@ -39,34 +43,40 @@ namespace Paragon.Plugins.Notifications.Views
 		//DES-11128
         public void ShowOnMonitor(RequestShowEventArgs args)
         {
-            this.Height = notificationHeight * args.NotificationCount;
+            monitor = args.TargetMonitor;
+            notificationPosition = args.NotificationPosition;
 
-            switch (args.NotificationPosition)
+
+            Show();
+        }
+
+        public void MoveNotificationWindow()
+        {
+            switch (notificationPosition)
             {
                 case Position.TopLeft:
-                    this.Left = args.TargetMonitor.WorkingArea.TopLeft.X;
-                    this.Top = args.TargetMonitor.WorkingArea.TopLeft.Y;
+                    this.Left = monitor.WorkingArea.TopLeft.X;
+                    this.Top = monitor.WorkingArea.TopLeft.Y;
                     break;
 
                 case Position.BottomLeft:
-                    this.Left = args.TargetMonitor.WorkingArea.BottomLeft.X;
-                    this.Top = args.TargetMonitor.WorkingArea.BottomLeft.Y - this.Height;
+                    this.Left = monitor.WorkingArea.BottomLeft.X;
+                    this.Top = monitor.WorkingArea.BottomLeft.Y - this.Height;
                     break;
 
                 case Position.TopRight:
-                    this.Left = args.TargetMonitor.WorkingArea.TopRight.X - this.Width;
-                    this.Top = args.TargetMonitor.WorkingArea.TopRight.Y;
+                    this.Left = monitor.WorkingArea.TopRight.X - this.Width;
+                    this.Top = monitor.WorkingArea.TopRight.Y;
                     break;
 
                 case Position.BottomRight:
-                    this.Left = args.TargetMonitor.WorkingArea.BottomRight.X - this.Width;
-                    this.Top = args.TargetMonitor.WorkingArea.BottomRight.Y - this.Height;
+                    this.Left = monitor.WorkingArea.BottomRight.X - this.Width;
+                    this.Top = monitor.WorkingArea.BottomRight.Y - this.Height;
                     break;
 
                 default:
                     throw new NotSupportedException();
             }
-            Show();
         }
     }
 }
