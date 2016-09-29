@@ -5,7 +5,7 @@
         xmlns:models="clr-namespace:Paragon.Plugins.Notifications.Models"
         xmlns:controls="clr-namespace:Paragon.Plugins.Notifications.Controls"
         Title="NotificationWindow" 
-        Height="56"
+        Height="0"
         Width="300" 
         Background="Transparent" 
         AllowsTransparency="True"

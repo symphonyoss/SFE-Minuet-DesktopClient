@@ -256,7 +256,7 @@ namespace Paragon.Plugins.Notifications.ViewModels
             AddNotification(notification);
             
 			//DES-11128
-            OnRequestShow(new RequestShowEventArgs {TargetMonitor = monitor, NotificationCount = GetNotificationCollection(position).Items.Count, NotificationPosition = position});
+            OnRequestShow(new RequestShowEventArgs {TargetMonitor = monitor, NotificationPosition = position});
         }
 
         private void OnClearAll(EmptyArgs args)
