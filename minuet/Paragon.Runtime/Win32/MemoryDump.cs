@@ -53,8 +53,8 @@ namespace Paragon.Runtime.Win32
                 {
                     string msg = "Failed to convert dump file to base 64 format";
                     throw new Exception(msg);
-                }
             }
+        }
         }
 
         public static void CreateMemoryDump(AppInfo appInfo, ProcessDumpType processDumpType)
@@ -90,19 +90,23 @@ namespace Paragon.Runtime.Win32
             return success;
         }
 
-        public static void MiniDumpToFile(String fileToDump, Process process)
+        public static void MiniDumpToFile(String fileToDump, Process process, IntPtr exPointer)
         {
             FileStream fsToDump = null;
-            if (File.Exists(fileToDump))
-                fsToDump = File.Open(fileToDump, FileMode.Append);
-            else
-                fsToDump = File.Create(fileToDump);
-
+            if (File.Exists(fileToDump)){
+                File.Delete(fileToDump);
+            }
+            fsToDump = File.Create(fileToDump);
             try
             {
+                NativeMethods.MiniDumpExceptionInformation exp;
+                exp.ThreadId = NativeMethods.GetCurrentThreadId();
+                exp.ClientPointers = false;
+                exp.ExceptionPointers = exPointer;
+
                 NativeMethods.MiniDumpWriteDump(process.Handle, process.Id,
-                    fsToDump.SafeFileHandle.DangerousGetHandle(), NativeMethods.MINIDUMP_TYPE.MiniDumpNormal,
-                    IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+                    fsToDump.SafeFileHandle.DangerousGetHandle(), NativeMethods.MINIDUMP_TYPE.MiniDumpWithFullMemory,
+                    ref exp, IntPtr.Zero, IntPtr.Zero);
                 fsToDump.Close();
             }
             catch (Exception ex)
