@@ -49,8 +49,34 @@ namespace Paragon.Runtime.Win32
             MiniDumpWithThreadInfo = 0x00001000,
             MiniDumpWithCodeSegs = 0x00002000
         }
+
+        internal enum EXCEPTION_INFO
+        {
+            None,
+            Present
+        }
+
+        //typedef struct _MINIDUMP_EXCEPTION_INFORMATION {
+        //    DWORD ThreadId;
+        //    PEXCEPTION_POINTERS ExceptionPointers;
+        //    BOOL ClientPointers;
+        //} MINIDUMP_EXCEPTION_INFORMATION, *PMINIDUMP_EXCEPTION_INFORMATION;
+
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]  // Pack=4 is important! So it works also for x64!
+        public struct MiniDumpExceptionInformation
+        {
+            public uint ThreadId;
+            public IntPtr ExceptionPointers;
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool ClientPointers;
+        }
+
         [DllImport("dbghelp.dll")]
-        public static extern bool MiniDumpWriteDump(IntPtr hProcess,Int32 ProcessId,IntPtr hFile,MINIDUMP_TYPE DumpType,IntPtr ExceptionParam,IntPtr UserStreamParam,IntPtr CallackParam);
+        public static extern bool MiniDumpWriteDump(IntPtr hProcess, Int32 ProcessId, IntPtr hFile, MINIDUMP_TYPE DumpType, EXCEPTION_INFO ExceptionParam, IntPtr UserStreamParam, IntPtr CallackParam);
+
+        // Overload requiring MiniDumpExceptionInformation
+        [DllImport("dbghelp.dll")]
+        public static extern bool MiniDumpWriteDump(IntPtr hProcess, Int32 ProcessId, IntPtr hFile, MINIDUMP_TYPE DumpType, ref MiniDumpExceptionInformation expParam, IntPtr UserStreamParam, IntPtr CallackParam);
 
         [DllImport("user32.dll")]
         public static extern IntPtr CallNextHookEx(IntPtr hhook, int code, IntPtr wParam, IntPtr lParam);

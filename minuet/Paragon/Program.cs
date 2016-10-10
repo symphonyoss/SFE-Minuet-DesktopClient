@@ -38,6 +38,9 @@ namespace Paragon
     {
         private static ApplicationManager _appManager;
 
+        private static readonly ILogger Logger = ParagonLogManager.GetLogger();
+        private static readonly object Lock = new object();
+
         [STAThread]
         public static void Main()
         {
@@ -129,89 +132,116 @@ namespace Paragon
                     ? ex.InnerException.Message : ex.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
                 Environment.ExitCode = 1;
+                
+                MessageBoxResult result = MessageBox.Show("Critical error. Should collect log files?", "Error", MessageBoxButton.YesNo);
 
+                if (result == MessageBoxResult.Yes)
+                {
+                    string errMessage = "";
+                    try
+                    {
+                        String dstDiretory = ParagonLogManager.LogDirectory;
+                        String fileName = "dump-file-" + DateTime.Now.ToString("dd_MM_yyyy_HH-mm-ss-fff") + ".zip";
+                        String fullPath = Path.Combine(dstDiretory, fileName);
+
+                        //Dump apps.
+                        WebApplication runningApp = (WebApplication)_appManager.AllApplicaions.FirstOrDefault();
+
+                        AppInfo appInfo = (AppInfo)runningApp.GetRunningApps().FirstOrDefault();
+
+                        if (string.IsNullOrEmpty(fileName))
+                            throw new ArgumentNullException("fileName", "Memory dump file name not provided.");
+
+                        lock (Lock)
+                        {
+                            var browserFileName = string.Format("browser-{0}.dmp", appInfo.AppId);
+                            var browserFilePath = Path.Combine(ParagonLogManager.LogDirectory, browserFileName);
+                            MemoryDump.MiniDumpToFile(browserFilePath, Process.GetProcessById(appInfo.BrowserInfo.Pid), System.Runtime.InteropServices.Marshal.GetExceptionPointers());
+
+                            var rendererFileName = string.Format("renderer-{0}.dmp", appInfo.AppId);
+                            var rendererFilePath = Path.Combine(ParagonLogManager.LogDirectory, rendererFileName);
+                            MemoryDump.MiniDumpToFile(rendererFilePath, Process.GetProcessById(appInfo.RenderInfo.Pid), System.Runtime.InteropServices.Marshal.GetExceptionPointers());
+                        }
+
+
+                        String packagePath = Path.Combine(dstDiretory, "package");
+
+                        //delete temp directory. Ensure cleanup.
+                        if (System.IO.Directory.Exists(packagePath))
+                            System.IO.Directory.Delete(packagePath, true);
+
+                        //Create temp directory
+                        System.IO.Directory.CreateDirectory(packagePath);
+
+                        //Copy files to temp directory to avoid denied access to files with open handler.
+                        string[] fileEntries = Directory.GetFiles(dstDiretory);
+                        System.Collections.Generic.List<string> files = fileEntries.ToList();
+                        foreach (string file in fileEntries)
+                        {
+                            if (!file.EndsWith(".zip"))
+                            {
+                                File.Copy(file, Path.Combine(packagePath, Path.GetFileName(file)));
+                            }
+                        }
+
+                        //Zip files.
+                        fileEntries = Directory.GetFiles(packagePath);
+                        AddFilesToZip(fullPath, fileEntries);
+
+                        errMessage += string.Format("\n\nLog files and application dump files are zipped in:\n{0}.", fullPath);
+                    }
+                    catch (Exception ex1)
+                    {
+                        var logger = ParagonLogManager.GetLogger();
+                        errMessage = string.Format("Failed to collect log files & dump running apps: {0}", ex1.ToString());
+                        logger.Error(errMessage);
+                    }
+
+                    MessageBox.Show(errMessage, "Exception", MessageBoxButton.OK);
+                }
                 throw;
             }
         }
 
         private static Dictionary<string, string> _contentTypesGiven = new Dictionary<string, string>();
 
-        private static Uri GetRelativeUri(string currentFile)
+        private static void AddFilesToZip(string zipFilename, string[] fileEntries)
         {
-            var uriString = currentFile;
-            if (!uriString.StartsWith("\\"))
+            foreach (string fileToAdd in fileEntries)
             {
-                uriString = "\\" + uriString;
-            }
-
-            var relPath = uriString.Substring(
-                uriString.IndexOf('\\')).Replace('\\', '/').Replace(' ', '_');
-
-            var normalized = relPath.Normalize(NormalizationForm.FormKD);
-
-            var removal = Encoding.GetEncoding(
-                Encoding.ASCII.CodePage,
-                new EncoderReplacementFallback(string.Empty),
-                new DecoderReplacementFallback(string.Empty));
-
-            var bytes = removal.GetBytes(normalized);
-            var uri = Encoding.ASCII.GetString(bytes);
-            return new Uri(uri, UriKind.Relative);
-        }
-
-
-        public static void CopyStream(Stream input, Stream output)
-        {
-            byte[] buffer = new byte[32768];
-            int read;
-            while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-            {
-                output.Write (buffer, 0, read);
-            }
-        }
-
-        private static void AddFilesToZip(string zipFilename, string[] filesToAdd, CompressionOption compression = CompressionOption.Maximum)
-        {
-            using (var memStream = new MemoryStream())
-            {
-                using (Package zip = System.IO.Packaging.Package.Open(memStream, FileMode.OpenOrCreate))
+                using (Package zip = System.IO.Packaging.Package.Open(zipFilename, FileMode.OpenOrCreate))
                 {
-                    foreach (string fileToAdd in filesToAdd)
+                    string destFilename = ".\\" + Path.GetFileName(fileToAdd);
+                    Uri uri = PackUriHelper.CreatePartUri(new Uri(destFilename, UriKind.Relative));
+                    if (zip.PartExists(uri))
                     {
-                        //skip zip files.
-                        if (fileToAdd.EndsWith(".zip"))
-                            continue;
-
-                        string destFilename = ".\\" + Path.GetFileName(fileToAdd);
-                        Uri uri = PackUriHelper.CreatePartUri(new Uri(destFilename, UriKind.Relative));
-                        if (zip.PartExists(uri))
-                        {
-                            zip.DeletePart(uri);
-                        }
-                        PackagePart part = zip.CreatePart(uri, "", compression);
-                        try
-                        {
-                            using (FileStream fileStream = new FileStream(fileToAdd, FileMode.Open, FileAccess.Read))
-                            {
-                                using (Stream dest = part.GetStream())
-                                {
-                                    CopyStream(fileStream, part.GetStream());
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            throw (ex);
-                        }
+                        zip.DeletePart(uri);
                     }
-                    using (FileStream zipfilestream = new FileStream(zipFilename, FileMode.Create, FileAccess.Write))
+                    PackagePart part = zip.CreatePart(uri, "", CompressionOption.Normal);
+                    using (FileStream fileStream = new FileStream(fileToAdd, FileMode.Open, FileAccess.Read))
                     {
-                        memStream.Position = 0;
-                        CopyStream(memStream, zipfilestream);
+                        using (Stream dest = part.GetStream())
+                        {
+                            CopyStream(fileStream, dest);
+                        }
                     }
                 }
             }
-        }              
+        }
+
+        private static void CopyStream(System.IO.FileStream inputStream, System.IO.Stream outputStream)
+        {
+            long BUFFER_SIZE = 4096;
+            long bufferSize = inputStream.Length < BUFFER_SIZE ? inputStream.Length : BUFFER_SIZE;
+            byte[] buffer = new byte[bufferSize];
+            int bytesRead = 0;
+            long bytesWritten = 0;
+            while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) != 0)
+            {
+                outputStream.Write(buffer, 0, bytesRead);
+                bytesWritten += bufferSize;
+            }
+        }          
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
@@ -219,58 +249,6 @@ namespace Paragon
             logger.Error(string.Format("An unhandled domain exception has occurred: {0}", e.ExceptionObject ?? string.Empty));
             
             var errMessage = "A fatal error has occurred.";
-
-            try
-            {
-                String dstDiretory = ParagonLogManager.LogDirectory;
-                String fileName = "dump-file-" + DateTime.Now.ToString("dd_MM_yyyy_HH-mm-ss-fff") + ".zip";
-                String fullPath = Path.Combine(dstDiretory, fileName);
-
-                //Dump apps.
-                WebApplication runningApp = (WebApplication)_appManager.AllApplicaions.FirstOrDefault();
-                AppInfo appInfo = (AppInfo)runningApp.GetRunningApps().FirstOrDefault();
-
-                //Dump paragon.exe.
-                Process process = Process.GetProcessById(appInfo.BrowserInfo.Pid);// Process.GetProcessesByName("Paragon").First();
-                String fileToDump = Path.Combine(dstDiretory, process.ProcessName+".dmp");
-                MemoryDump.MiniDumpToFile(fileToDump, process);
-                
-                //Dump Paragon.Renderer.
-                process = Process.GetProcessById(appInfo.RenderInfo.Pid);
-                fileToDump = Path.Combine(dstDiretory, process.ProcessName + ".dmp");
-                MemoryDump.MiniDumpToFile(fileToDump, process);
-               
-                String packagePath = Path.Combine(dstDiretory, "package");
-                
-                //delete temp directory. Ensure cleanup.
-                if (System.IO.Directory.Exists(packagePath))
-                    System.IO.Directory.Delete(packagePath, true);
-
-                //Create temp directory
-                System.IO.Directory.CreateDirectory(packagePath);
-
-                //Copy files to temp directory to avoid denied access to files with open handler.
-                string[] fileEntries = Directory.GetFiles(dstDiretory);
-                System.Collections.Generic.List<string> files = fileEntries.ToList();
-                foreach (string file in fileEntries)
-                {
-                    if (!file.EndsWith(".zip"))
-                    {
-                        File.Copy(file, Path.Combine(packagePath, Path.GetFileName(file)));
-                    }
-                }
-
-                //Zip files.
-                fileEntries = Directory.GetFiles(packagePath);
-                AddFilesToZip(fullPath, fileEntries);
-
-                errMessage += string.Format("\n\nLog files and application dump files are zipped in:\n{0}.", fullPath);
-            }
-            catch (Exception ex)
-            {
-                logger.Error(string.Format("Failed to collect log files & dump running apps: {0}", e.ExceptionObject ?? string.Empty));
-                logger.Error(string.Format("Exception when collecting logs: {0}", ex.ToString()));
-            }
 
             if (_appManager != null && _appManager.AllApplicaions != null)
             {
