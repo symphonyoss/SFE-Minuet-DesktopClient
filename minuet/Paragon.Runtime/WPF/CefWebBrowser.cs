@@ -31,6 +31,8 @@ using System.Linq;
 using Paragon.Runtime.PackagedApplication;
 using System.Threading;
 using System.Windows.Interop;
+using System.Web;
+using System.Collections.Specialized;
 
 namespace Paragon.Runtime.WPF
 {
@@ -391,6 +393,13 @@ namespace Paragon.Runtime.WPF
             BeforeDownload.Raise(this, args);
         }
 
+        RECT? _initialWindowPlacement;
+        public RECT? initialWindowPlacement
+        {
+            get { return _initialWindowPlacement; }
+            internal set { _initialWindowPlacement = value; }
+        }
+
         void ICefWebBrowserInternal.OnBeforePopup(BeforePopupEventArgs e)
         {
             try
@@ -420,6 +429,28 @@ namespace Paragon.Runtime.WPF
                             var newBrowser = CreatePopupBrowser(Identifier, _router); 
                             if (newBrowser != null)
                             {
+                                // extract x, y from url parameters
+                                NameValueCollection query = HttpUtility.ParseQueryString(e.TargetUrl);
+                                int x;
+                                if (!Int32.TryParse(query["x"], out x))
+                                    x = -1;
+
+                                int y;
+                                if (!Int32.TryParse(query["y"], out y))
+                                    y = -1;
+                                
+                                if (x != -1 && y != -1)
+                                {
+                                    var rect = new RECT();
+                                    rect.Left = x;
+                                    rect.Top = y;
+                                    rect.Right = x + e.WindowInfo.Width;
+                                    rect.Bottom = y + e.WindowInfo.Height;
+                                    newBrowser.initialWindowPlacement = rect;
+                                }
+                                else
+                                    newBrowser.initialWindowPlacement = null;
+
                                 newBrowser.Source = e.TargetUrl;
                                 newBrowser._currentUrl = e.TargetUrl;
                                 newBrowser.Width = e.WindowInfo.Width;

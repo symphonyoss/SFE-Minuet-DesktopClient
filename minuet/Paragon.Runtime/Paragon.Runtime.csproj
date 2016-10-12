@@ -60,6 +60,7 @@
     <Reference Include="System.Threading">
       <HintPath>..\..\external_binaries\System.Threading.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity">
       <HintPath>..\..\external_binaries\System.Windows.Interactivity.dll</HintPath>

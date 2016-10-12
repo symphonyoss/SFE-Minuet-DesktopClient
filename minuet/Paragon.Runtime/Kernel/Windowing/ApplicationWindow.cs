@@ -827,7 +827,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                     !string.IsNullOrEmpty(_options.Id) && 
                     _options.AutoSaveLocation)
                 {
-                    _autoSaveWindowPositionBehavior = new AutoSaveWindowPositionBehavior();
+                    _autoSaveWindowPositionBehavior = new AutoSaveWindowPositionBehavior(_browser.initialWindowPlacement);
                     _autoSaveWindowPositionBehavior.Attach(this);
                 }
             }
@@ -1501,18 +1501,22 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private void OnLocationChanged(object sender, EventArgs e)
         {
-            if (_isClosing || _isClosed)
-                return;
-            var bounds = GetBounds();
-            WindowBoundsChanged.Raise(() => new object[] { bounds });
+            RaiseBoundChangeEvent();
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
+            RaiseBoundChangeEvent();
+        }
+
+        private void RaiseBoundChangeEvent()
+        {
             if (_isClosing || _isClosed)
                 return;
             var bounds = GetBounds();
-            WindowBoundsChanged.Raise(() => new object[] { bounds });
+            Point deviceIndependentPoint = GetDeviceIndependentPoint(new Point(bounds.Left, bounds.Top));
+            Size deviceIndependentSize = GetDeviceIndependentSize(new Vector(bounds.Width, bounds.Height));
+            WindowBoundsChanged.Raise(() => new object[] { this, deviceIndependentPoint, deviceIndependentSize });
         }
 
         private BoundsSpecification GetBounds()

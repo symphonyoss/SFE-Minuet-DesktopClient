@@ -36,6 +36,15 @@ namespace Paragon.Runtime.WPF
         private IsolatedStorageFile _store;
         private string _storageFilePath;
         private bool _blockChanges;
+        private RECT? _initialWindowPlacement;
+
+        private int _tileX = 0;
+        private int _tileY = 0;
+
+        public AutoSaveWindowPositionBehavior(RECT? initialWindowPlacement)
+        {
+            _initialWindowPlacement = initialWindowPlacement;
+        }
 
         protected override void OnAttached()
         {
@@ -156,6 +165,45 @@ namespace Paragon.Runtime.WPF
             }
         }
 
+        private void ApplyWindowPlacement(RECT placement)
+        {
+            try
+            {
+                Logger.Info(string.Format("Placement being applied (virtual): Top {0} Left {1} Width {2} Height {3}",
+                    placement.Top, placement.Left, placement.Width, placement.Height));
+
+                var ddPoint = AssociatedObject.GetDeviceDependentPoint(new Point(placement.Left, placement.Top));
+                var ddSize = AssociatedObject.GetDeviceDependentSize(new Vector(placement.Width, placement.Height));
+
+                Logger.Info(string.Format("Placement details being applied (real): X {0} Y {1} Width {2} Height {3}",
+                    ddPoint.X, ddPoint.Y, ddSize.Width, ddSize.Height));
+
+                int x = (int)ddPoint.X;
+                int y = (int)ddPoint.Y;
+                int width = (int)ddSize.Width;
+                int height = (int)ddSize.Height;
+
+                System.Drawing.Rectangle rect = new System.Drawing.Rectangle(x, y, width, height);
+                System.Windows.Forms.Screen screen = System.Windows.Forms.Screen.FromRectangle(rect);
+
+                // don't want window to overlap on other windows or be displayed off screen, 
+                // so by default put into primary window and tile window starting at (0,0)
+                if (!screen.WorkingArea.Contains(rect))
+                {
+                    x = _tileX;
+                    y = _tileY;
+                    _tileX += 10;
+                    _tileY += 10;
+                }
+                
+                NativeMethods.SetWindowPos(_hwnd.Value, IntPtr.Zero, x, y, width, height, SWP.SHOWWINDOW);
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Error setting window position", e);
+            }
+        }
+
         private void ApplyWindowPlacement()
         {
             if (!_hwnd.HasValue)
@@ -195,7 +243,14 @@ namespace Paragon.Runtime.WPF
             try
             {
                 _hwnd = new WindowInteropHelper(AssociatedObject).Handle;
-                ApplyWindowPlacement();
+                if (_initialWindowPlacement == null)
+                    ApplyWindowPlacement();
+                else
+                {
+                    RECT placement = _initialWindowPlacement.Value;
+                    ApplyWindowPlacement(placement);
+
+                }
             }
             catch (Exception e)
             {
