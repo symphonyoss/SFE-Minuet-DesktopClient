@@ -1501,15 +1501,15 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private void OnLocationChanged(object sender, EventArgs e)
         {
-            RaiseBoundChangeEvent();
+            RaiseBoundsChangeEvent();
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            RaiseBoundChangeEvent();
+            RaiseBoundsChangeEvent();
         }
 
-        private void RaiseBoundChangeEvent()
+        public void RaiseBoundsChangeEvent()
         {
             if (_isClosing || _isClosed)
                 return;

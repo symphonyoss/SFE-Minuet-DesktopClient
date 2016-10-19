@@ -106,5 +106,7 @@ namespace Paragon.Plugins
         void SetZoomLevel(double level);
 
         void RunFileDialog(FileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, JavaScriptPluginCallback callback);
+
+        void RaiseBoundsChangeEvent();
     }
 }
