@@ -211,5 +211,8 @@ namespace Paragon.Runtime
         void SetZoomLevel(double level);
 
         void RunFileDialog(CefFileDialogMode mode, string title, string defaultFileName, string[] acceptTypes, int selectedAcceptFilter, CefRunFileDialogCallback callback);
+
+        // if supplied this (not null) this is the initial placement of the window
+        Paragon.Runtime.Win32.RECT? initialWindowPlacement { get; }
     }
 }
