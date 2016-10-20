@@ -38,9 +38,6 @@ namespace Paragon.Runtime.WPF
         private bool _blockChanges;
         private RECT? _initialWindowPlacement;
 
-        private int _tileX = 0;
-        private int _tileY = 0;
-
         public AutoSaveWindowPositionBehavior(RECT? initialWindowPlacement)
         {
             _initialWindowPlacement = initialWindowPlacement;
@@ -187,13 +184,11 @@ namespace Paragon.Runtime.WPF
                 System.Windows.Forms.Screen screen = System.Windows.Forms.Screen.FromRectangle(rect);
 
                 // don't want window to overlap on other windows or be displayed off screen, 
-                // so by default put into primary window and tile window starting at (0,0)
+                // so by default put into primary window and at (0,0)
                 if (!screen.WorkingArea.Contains(rect))
                 {
-                    x = _tileX;
-                    y = _tileY;
-                    _tileX += 10;
-                    _tileY += 10;
+                    x = 0;
+                    y = 0;
                 }
                 
                 NativeMethods.SetWindowPos(_hwnd.Value, IntPtr.Zero, x, y, width, height, SWP.SHOWWINDOW);
