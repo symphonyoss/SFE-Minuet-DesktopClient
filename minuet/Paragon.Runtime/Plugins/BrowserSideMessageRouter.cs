@@ -186,6 +186,11 @@ namespace Paragon.Runtime.Plugins
                 return;
             }
 
+            if (!handler.IsValid)
+            {
+                return;
+            }
+
             switch (pluginMessage.MessageType)
             {
                 case PluginMessageType.FunctionInvoke:

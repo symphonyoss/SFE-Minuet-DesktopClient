@@ -82,9 +82,12 @@ namespace Paragon.Runtime.WPF
 
             try
             {
-                AssociatedObject.LocationChanged -= OnSizeOrLocationChanged;
-                AssociatedObject.SizeChanged -= OnSizeOrLocationChanged;
-                AssociatedObject.Activated -= OnActivated;
+                if (AssociatedObject != null)
+                {
+                    AssociatedObject.LocationChanged -= OnSizeOrLocationChanged;
+                    AssociatedObject.SizeChanged -= OnSizeOrLocationChanged;
+                    AssociatedObject.Activated -= OnActivated;
+                }
                 SystemEvents.SessionSwitch -= OnSessionSwitch;
                 SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
             }
