@@ -1514,6 +1514,11 @@ namespace Paragon.Runtime.Kernel.Windowing
             if (_isClosing || _isClosed)
                 return;
             var bounds = GetBounds();
+            
+            // indicates minimzed window
+            if (bounds.Left <= -32000 || bounds.Top <= -32000)
+                return;
+
             Point deviceIndependentPoint = GetDeviceIndependentPoint(new Point(bounds.Left, bounds.Top));
             Size deviceIndependentSize = GetDeviceIndependentSize(new Vector(bounds.Width, bounds.Height));
             WindowBoundsChanged.Raise(() => new object[] { this, deviceIndependentPoint, deviceIndependentSize });
