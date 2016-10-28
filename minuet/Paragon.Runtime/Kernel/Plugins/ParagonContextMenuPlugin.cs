@@ -129,7 +129,11 @@ namespace Paragon.Runtime.Kernel.Plugins
                     else if (e.Command == CopyLinkMenuItem.Id) //DES-10489
                     {
                         //Copy link to Clipboard
-                        Clipboard.SetText(e.State.LinkUrl);
+                        //Check LinkURL - DES-11001
+                        if (e.State.LinkUrl != null)
+                            Clipboard.SetText(e.State.LinkUrl);
+                        else
+                            Clipboard.SetText(String.Empty);
                     }
                     else
                     {
