@@ -127,8 +127,6 @@ namespace Paragon.Runtime
                         Locale = browserLanguage,
                         CachePath = cachePath,
                         PersistSessionCookies = persistSessionCookies,
-                        AuthServerWhitelist = authserverlist,
-                        AuthDelegateWhitelist = authdelgatelist,
                         ProductVersion = string.Format("Paragon/{0} Chrome/{1}", Assembly.GetExecutingAssembly().GetName().Version, CefRuntime.ChromeVersion)
                         
                     };

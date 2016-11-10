@@ -12,64 +12,20 @@ namespace Xilium.CefGlue
     public sealed unsafe partial class CefSslInfo
     {
         /// <summary>
-        /// Returns the subject of the X.509 certificate. For HTTPS server
-        /// certificates this represents the web server.  The common name of the
-        /// subject should match the host name of the web server.
+        /// Returns a bitmask containing any and all problems verifying the server
+        /// certificate.
         /// </summary>
-        public cef_sslcert_principal_t* GetSubject()
+        public CefCertStatus GetCertStatus()
         {
-            throw new NotImplementedException(); // TODO: CefSslInfo.GetSubject
+            throw new NotImplementedException(); // TODO: CefSslInfo.GetCertStatus
         }
         
         /// <summary>
-        /// Returns the issuer of the X.509 certificate.
+        /// Returns the X.509 certificate.
         /// </summary>
-        public cef_sslcert_principal_t* GetIssuer()
+        public cef_x509certificate_t* GetX509Certificate()
         {
-            throw new NotImplementedException(); // TODO: CefSslInfo.GetIssuer
-        }
-        
-        /// <summary>
-        /// Returns the DER encoded serial number for the X.509 certificate. The value
-        /// possibly includes a leading 00 byte.
-        /// </summary>
-        public cef_binary_value_t* GetSerialNumber()
-        {
-            throw new NotImplementedException(); // TODO: CefSslInfo.GetSerialNumber
-        }
-        
-        /// <summary>
-        /// Returns the date before which the X.509 certificate is invalid.
-        /// CefTime.GetTimeT() will return 0 if no date was specified.
-        /// </summary>
-        public cef_time_t GetValidStart()
-        {
-            throw new NotImplementedException(); // TODO: CefSslInfo.GetValidStart
-        }
-        
-        /// <summary>
-        /// Returns the date after which the X.509 certificate is invalid.
-        /// CefTime.GetTimeT() will return 0 if no date was specified.
-        /// </summary>
-        public cef_time_t GetValidExpiry()
-        {
-            throw new NotImplementedException(); // TODO: CefSslInfo.GetValidExpiry
-        }
-        
-        /// <summary>
-        /// Returns the DER encoded data for the X.509 certificate.
-        /// </summary>
-        public cef_binary_value_t* GetDEREncoded()
-        {
-            throw new NotImplementedException(); // TODO: CefSslInfo.GetDEREncoded
-        }
-        
-        /// <summary>
-        /// Returns the PEM encoded data for the X.509 certificate.
-        /// </summary>
-        public cef_binary_value_t* GetPEMEncoded()
-        {
-            throw new NotImplementedException(); // TODO: CefSslInfo.GetPEMEncoded
+            throw new NotImplementedException(); // TODO: CefSslInfo.GetX509Certificate
         }
         
     }

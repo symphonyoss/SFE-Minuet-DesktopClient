@@ -20,6 +20,7 @@ namespace Xilium.CefGlue.Interop
         public int no_sandbox;
         public cef_string_t browser_subprocess_path;
         public int multi_threaded_message_loop;
+        public int external_message_pump;
         public int windowless_rendering_enabled;
         public int command_line_args_disabled;
         public cef_string_t cache_path;
@@ -41,8 +42,6 @@ namespace Xilium.CefGlue.Interop
         public int ignore_certificate_errors;
         public uint background_color;
         public cef_string_t accept_language_list;
-        public cef_string_t auth_server_whitelist;
-        public cef_string_t auth_delegate_whitelist;
 
         #region Alloc & Free
         private static int _sizeof;

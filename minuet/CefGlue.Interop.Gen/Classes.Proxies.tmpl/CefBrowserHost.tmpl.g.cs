@@ -61,6 +61,19 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
+        /// Helper for closing a browser. Call this method from the top-level window
+        /// close handler. Internally this calls CloseBrowser(false) if the close has
+        /// not yet been initiated. This method returns false while the close is
+        /// pending and true after the close has completed. See CloseBrowser() and
+        /// CefLifeSpanHandler::DoClose() documentation for additional usage
+        /// information. This method must be called on the browser process UI thread.
+        /// </summary>
+        public int TryCloseBrowser()
+        {
+            throw new NotImplementedException(); // TODO: CefBrowserHost.TryCloseBrowser
+        }
+        
+        /// <summary>
         /// Set whether the browser is focused.
         /// </summary>
         public void SetFocus(int focus)
@@ -69,16 +82,9 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Set whether the window containing the browser is visible
-        /// (minimized/unminimized, app hidden/unhidden, etc). Only used on Mac OS X.
-        /// </summary>
-        public void SetWindowVisibility(int visible)
-        {
-            throw new NotImplementedException(); // TODO: CefBrowserHost.SetWindowVisibility
-        }
-        
-        /// <summary>
-        /// Retrieve the window handle for this browser.
+        /// Retrieve the window handle for this browser. If this browser is wrapped in
+        /// a CefBrowserView this method should be called on the browser process UI
+        /// thread and it will return the handle for the top-level native window.
         /// </summary>
         public IntPtr GetWindowHandle()
         {
@@ -87,12 +93,21 @@ namespace Xilium.CefGlue
         
         /// <summary>
         /// Retrieve the window handle of the browser that opened this browser. Will
-        /// return NULL for non-popup windows. This method can be used in combination
-        /// with custom handling of modal windows.
+        /// return NULL for non-popup windows or if this browser is wrapped in a
+        /// CefBrowserView. This method can be used in combination with custom handling
+        /// of modal windows.
         /// </summary>
         public IntPtr GetOpenerWindowHandle()
         {
             throw new NotImplementedException(); // TODO: CefBrowserHost.GetOpenerWindowHandle
+        }
+        
+        /// <summary>
+        /// Returns true if this browser is wrapped in a CefBrowserView.
+        /// </summary>
+        public int HasView()
+        {
+            throw new NotImplementedException(); // TODO: CefBrowserHost.HasView
         }
         
         /// <summary>
@@ -161,6 +176,23 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
+        /// Download |image_url| and execute |callback| on completion with the images
+        /// received from the renderer. If |is_favicon| is true then cookies are not
+        /// sent and not accepted during download. Images with density independent
+        /// pixel (DIP) sizes larger than |max_image_size| are filtered out from the
+        /// image results. Versions of the image at different scale factors may be
+        /// downloaded up to the maximum scale factor supported by the system. If there
+        /// are no image results <= |max_image_size| then the smallest image is resized
+        /// to |max_image_size| and is the only result. A |max_image_size| of 0 means
+        /// unlimited. If |bypass_cache| is true then |image_url| is requested from the
+        /// server even if it is present in the browser cache.
+        /// </summary>
+        public void DownloadImage(cef_string_t* image_url, int is_favicon, uint max_image_size, int bypass_cache, cef_download_image_callback_t* callback)
+        {
+            throw new NotImplementedException(); // TODO: CefBrowserHost.DownloadImage
+        }
+        
+        /// <summary>
         /// Print the current browser contents.
         /// </summary>
         public void Print()
@@ -201,8 +233,13 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Open developer tools in its own window. If |inspect_element_at| is non-
-        /// empty the element at the specified (x,y) location will be inspected.
+        /// Open developer tools (DevTools) in its own browser. The DevTools browser
+        /// will remain associated with this browser. If the DevTools browser is
+        /// already open then it will be focused, in which case the |windowInfo|,
+        /// |client| and |settings| parameters will be ignored. If |inspect_element_at|
+        /// is non-empty then the element at the specified (x,y) location will be
+        /// inspected. The |windowInfo| parameter will be ignored if this browser is
+        /// wrapped in a CefBrowserView.
         /// </summary>
         public void ShowDevTools(cef_window_info_t* windowInfo, cef_client_t* client, cef_browser_settings_t* settings, cef_point_t* inspect_element_at)
         {
@@ -210,12 +247,20 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Explicitly close the developer tools window if one exists for this browser
-        /// instance.
+        /// Explicitly close the associated DevTools browser, if any.
         /// </summary>
         public void CloseDevTools()
         {
             throw new NotImplementedException(); // TODO: CefBrowserHost.CloseDevTools
+        }
+        
+        /// <summary>
+        /// Returns true if this browser currently has an associated DevTools browser.
+        /// Must be called on the browser process UI thread.
+        /// </summary>
+        public int HasDevTools()
+        {
+            throw new NotImplementedException(); // TODO: CefBrowserHost.HasDevTools
         }
         
         /// <summary>
@@ -499,6 +544,15 @@ namespace Xilium.CefGlue
         public void DragSourceSystemDragEnded()
         {
             throw new NotImplementedException(); // TODO: CefBrowserHost.DragSourceSystemDragEnded
+        }
+        
+        /// <summary>
+        /// Returns the current visible navigation entry for this browser. This method
+        /// can only be called on the UI thread.
+        /// </summary>
+        public cef_navigation_entry_t* GetVisibleNavigationEntry()
+        {
+            throw new NotImplementedException(); // TODO: CefBrowserHost.GetVisibleNavigationEntry
         }
         
     }

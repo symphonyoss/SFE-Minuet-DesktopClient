@@ -49,6 +49,18 @@
         public bool MultiThreadedMessageLoop { get; set; }
 
         /// <summary>
+        /// Set to <c>true</c> to control browser process main (UI) thread message pump
+        /// scheduling via the CefBrowserProcessHandler::OnScheduleMessagePumpWork()
+        /// callback. This option is recommended for use in combination with the
+        /// CefDoMessageLoopWork() function in cases where the CEF message loop must be
+        /// integrated into an existing application message loop (see additional
+        /// comments and warnings on CefDoMessageLoopWork). Enabling this option is not
+        /// recommended for most users; leave this option disabled and use either the
+        /// CefRunMessageLoop() function or multi_threaded_message_loop if possible.
+        /// </summary>
+        public bool ExternalMessagePump { get; set; }
+
+        /// <summary>
         /// Set to true (1) to enable windowless (off-screen) rendering support. Do not
         /// enable this value if the application does not use windowless rendering as
         /// it may reduce rendering performance on some systems.
@@ -250,20 +262,6 @@
         /// </summary>
         public string AcceptLanguageList { get; set; }
 
-        ///
-        // Specifies the comma separated white list of domains for which the single sign on
-        // authentication may be used
-        // see https://dev.chromium.org/administrators/policy-list-3#AuthServerWhitelist
-        ///
-        public string AuthServerWhitelist { get; set; }
-
-        ///
-        // Kerberos delegation server whitelist
-        // see
-        // https://dev.chromium.org/administrators/policy-list-3#AuthNegotiateDelegateWhitelist
-        ///
-        public string AuthDelegateWhitelist { get; set; }
-
         internal cef_settings_t* ToNative()
         {
             var ptr = cef_settings_t.Alloc();
@@ -272,6 +270,7 @@
             cef_string_t.Copy(BrowserSubprocessPath, &ptr->browser_subprocess_path);
             ptr->multi_threaded_message_loop = MultiThreadedMessageLoop ? 1 : 0;
             ptr->windowless_rendering_enabled = WindowlessRenderingEnabled ? 1 : 0;
+            ptr->external_message_pump = ExternalMessagePump ? 1 : 0;
             ptr->command_line_args_disabled = CommandLineArgsDisabled ? 1 : 0;
             cef_string_t.Copy(CachePath, &ptr->cache_path);
             cef_string_t.Copy(UserDataPath, &ptr->user_data_path);
@@ -292,8 +291,6 @@
             ptr->ignore_certificate_errors = IgnoreCertificateErrors ? 1 : 0;
             ptr->background_color = BackgroundColor.ToArgb();
             cef_string_t.Copy(AcceptLanguageList, &ptr->accept_language_list);
-            cef_string_t.Copy(AuthServerWhitelist, &ptr->auth_server_whitelist);
-            cef_string_t.Copy(AuthDelegateWhitelist, &ptr->auth_delegate_whitelist);
             return ptr;
         }
 
@@ -310,8 +307,6 @@
             libcef.string_clear(&ptr->resources_dir_path);
             libcef.string_clear(&ptr->locales_dir_path);
             libcef.string_clear(&ptr->accept_language_list);
-            libcef.string_clear(&ptr->auth_server_whitelist);
-            libcef.string_clear(&ptr->auth_delegate_whitelist);
         }
 
         internal static void Free(cef_settings_t* ptr)

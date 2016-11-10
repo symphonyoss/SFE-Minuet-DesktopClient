@@ -43,7 +43,7 @@ namespace Xilium.CefGlue
         /// </summary>
         // protected abstract int GetDataResource(int resource_id, void** data, UIntPtr* data_size);
         
-        private int get_data_resource_for_scale(cef_resource_bundle_handler_t* self, int resource_id, cef_scale_factor_t scale_factor, void** data, UIntPtr* data_size)
+        private int get_data_resource_for_scale(cef_resource_bundle_handler_t* self, int resource_id, CefScaleFactor scale_factor, void** data, UIntPtr* data_size)
         {
             CheckSelf(self);
             throw new NotImplementedException(); // TODO: CefResourceBundleHandler.GetDataResourceForScale
@@ -57,7 +57,7 @@ namespace Xilium.CefGlue
         /// copied and must remain resident in memory. Include cef_pack_resources.h for
         /// a listing of valid resource ID values.
         /// </summary>
-        // protected abstract int GetDataResourceForScale(int resource_id, cef_scale_factor_t scale_factor, void** data, UIntPtr* data_size);
+        // protected abstract int GetDataResourceForScale(int resource_id, CefScaleFactor scale_factor, void** data, UIntPtr* data_size);
         
     }
 }

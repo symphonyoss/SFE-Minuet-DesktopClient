@@ -83,7 +83,7 @@ namespace Xilium.CefGlue
         /// </summary>
         // protected abstract cef_resource_handler_t* GetResourceHandler(cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request);
         
-        private void on_resource_redirect(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_string_t* new_url)
+        private void on_resource_redirect(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response, cef_string_t* new_url)
         {
             CheckSelf(self);
             throw new NotImplementedException(); // TODO: CefRequestHandler.OnResourceRedirect
@@ -92,10 +92,12 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Called on the IO thread when a resource load is redirected. The |request|
         /// parameter will contain the old URL and other request-related information.
-        /// The |new_url| parameter will contain the new URL and can be changed if
-        /// desired. The |request| object cannot be modified in this callback.
+        /// The |response| parameter will contain the response that resulted in the
+        /// redirect. The |new_url| parameter will contain the new URL and can be
+        /// changed if desired. The |request| object cannot be modified in this
+        /// callback.
         /// </summary>
-        // protected abstract void OnResourceRedirect(cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_string_t* new_url);
+        // protected abstract void OnResourceRedirect(cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response, cef_string_t* new_url);
         
         private int on_resource_response(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response)
         {
@@ -110,6 +112,19 @@ namespace Xilium.CefGlue
         /// |response| object cannot be modified in this callback.
         /// </summary>
         // protected abstract int OnResourceResponse(cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response);
+        
+        private cef_response_filter_t* get_resource_response_filter(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response)
+        {
+            CheckSelf(self);
+            throw new NotImplementedException(); // TODO: CefRequestHandler.GetResourceResponseFilter
+        }
+        
+        /// <summary>
+        /// Called on the IO thread to optionally filter resource response content.
+        /// |request| and |response| represent the request and response respectively
+        /// and cannot be modified in this callback.
+        /// </summary>
+        // protected abstract cef_response_filter_t* GetResourceResponseFilter(cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response);
         
         private void on_resource_load_complete(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, cef_response_t* response, CefUrlRequestStatus status, long received_content_length)
         {
@@ -134,10 +149,13 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Called on the IO thread when the browser needs credentials from the user.
         /// |isProxy| indicates whether the host is a proxy server. |host| contains the
-        /// hostname and |port| contains the port number. Return true to continue the
-        /// request and call CefAuthCallback::Continue() either in this method or
-        /// at a later time when the authentication information is available. Return
-        /// false to cancel the request immediately.
+        /// hostname and |port| contains the port number. |realm| is the realm of the
+        /// challenge and may be empty. |scheme| is the authentication scheme used,
+        /// such as "basic" or "digest", and will be empty if the source of the request
+        /// is an FTP server. Return true to continue the request and call
+        /// CefAuthCallback::Continue() either in this method or at a later time when
+        /// the authentication information is available. Return false to cancel the
+        /// request immediately.
         /// </summary>
         // protected abstract int GetAuthCredentials(cef_browser_t* browser, cef_frame_t* frame, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback);
         
@@ -182,12 +200,31 @@ namespace Xilium.CefGlue
         /// Called on the UI thread to handle requests for URLs with an invalid
         /// SSL certificate. Return true and call CefRequestCallback::Continue() either
         /// in this method or at a later time to continue or cancel the request. Return
-        /// false to cancel the request immediately. If |callback| is empty the error
-        /// cannot be recovered from and the request will be canceled automatically.
-        /// If CefSettings.ignore_certificate_errors is set all invalid certificates
-        /// will be accepted without calling this method.
+        /// false to cancel the request immediately. If
+        /// CefSettings.ignore_certificate_errors is set all invalid certificates will
+        /// be accepted without calling this method.
         /// </summary>
         // protected abstract int OnCertificateError(cef_browser_t* browser, CefErrorCode cert_error, cef_string_t* request_url, cef_sslinfo_t* ssl_info, cef_request_callback_t* callback);
+        
+        private int on_select_client_certificate(cef_request_handler_t* self, cef_browser_t* browser, int isProxy, cef_string_t* host, int port, UIntPtr certificatesCount, cef_x509certificate_t** certificates, cef_select_client_certificate_callback_t* callback)
+        {
+            CheckSelf(self);
+            throw new NotImplementedException(); // TODO: CefRequestHandler.OnSelectClientCertificate
+        }
+        
+        /// <summary>
+        /// Called on the UI thread when a client certificate is being requested for
+        /// authentication. Return false to use the default behavior and automatically
+        /// select the first certificate available. Return true and call
+        /// CefSelectClientCertificateCallback::Select either in this method or at a
+        /// later time to select a certificate. Do not call Select or call it with NULL
+        /// to continue without using any certificate. |isProxy| indicates whether the
+        /// host is an HTTPS proxy or the origin server. |host| and |port| contains the
+        /// hostname and port of the SSL server. |certificates| is the list of
+        /// certificates to choose from; this list has already been pruned by Chromium
+        /// so that it only contains certificates from issuers that the server trusts.
+        /// </summary>
+        // protected abstract int OnSelectClientCertificate(cef_browser_t* browser, int isProxy, cef_string_t* host, int port, UIntPtr certificatesCount, cef_x509certificate_t** certificates, cef_select_client_certificate_callback_t* callback);
         
         private void on_plugin_crashed(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* plugin_path)
         {

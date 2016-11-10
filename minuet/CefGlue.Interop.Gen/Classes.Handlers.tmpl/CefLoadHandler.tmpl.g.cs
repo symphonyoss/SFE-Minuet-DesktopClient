@@ -23,11 +23,12 @@ namespace Xilium.CefGlue
         /// Called when the loading state has changed. This callback will be executed
         /// twice -- once when loading is initiated either programmatically or by user
         /// action, and once when loading is terminated due to completion, cancellation
-        /// of failure.
+        /// of failure. It will be called before any calls to OnLoadStart and after all
+        /// calls to OnLoadError and/or OnLoadEnd.
         /// </summary>
         // protected abstract void OnLoadingStateChange(cef_browser_t* browser, int isLoading, int canGoBack, int canGoForward);
         
-        private void on_load_start(cef_load_handler_t* self, cef_browser_t* browser, cef_frame_t* frame)
+        private void on_load_start(cef_load_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, CefTransitionType transition_type)
         {
             CheckSelf(self);
             throw new NotImplementedException(); // TODO: CefLoadHandler.OnLoadStart
@@ -36,13 +37,15 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Called when the browser begins loading a frame. The |frame| value will
         /// never be empty -- call the IsMain() method to check if this frame is the
-        /// main frame. Multiple frames may be loading at the same time. Sub-frames may
-        /// start or continue loading after the main frame load has ended. This method
-        /// may not be called for a particular frame if the load request for that frame
-        /// fails. For notification of overall browser load status use
+        /// main frame. |transition_type| provides information about the source of the
+        /// navigation and an accurate value is only available in the browser process.
+        /// Multiple frames may be loading at the same time. Sub-frames may start or
+        /// continue loading after the main frame load has ended. This method will
+        /// always be called for all frames irrespective of whether the request
+        /// completes successfully. For notification of overall browser load status use
         /// OnLoadingStateChange instead.
         /// </summary>
-        // protected abstract void OnLoadStart(cef_browser_t* browser, cef_frame_t* frame);
+        // protected abstract void OnLoadStart(cef_browser_t* browser, cef_frame_t* frame, CefTransitionType transition_type);
         
         private void on_load_end(cef_load_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, int httpStatusCode)
         {
@@ -56,7 +59,8 @@ namespace Xilium.CefGlue
         /// main frame. Multiple frames may be loading at the same time. Sub-frames may
         /// start or continue loading after the main frame load has ended. This method
         /// will always be called for all frames irrespective of whether the request
-        /// completes successfully.
+        /// completes successfully. For notification of overall browser load status use
+        /// OnLoadingStateChange instead.
         /// </summary>
         // protected abstract void OnLoadEnd(cef_browser_t* browser, cef_frame_t* frame, int httpStatusCode);
         
