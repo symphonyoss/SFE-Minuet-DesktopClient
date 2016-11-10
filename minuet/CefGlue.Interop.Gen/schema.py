@@ -54,6 +54,8 @@ c2cs_types = {
 
     'cef_base_t': 'cef_base_t',
 
+    'cef_color_t': 'uint',
+
     # structs
     'cef_urlparts_t': 'cef_urlparts_t',
     'cef_proxy_info_t': 'cef_proxy_info_t',
@@ -64,19 +66,16 @@ c2cs_types = {
     'cef_settings_t': 'cef_settings_t',
     'cef_key_event_t': 'cef_key_event_t',
     'cef_geoposition_t': 'cef_geoposition_t',
+    'cef_point_t': 'cef_point_t',
+    'cef_size_t': 'cef_size_t',
     'cef_rect_t': 'cef_rect_t',
     'cef_mouse_event_t': 'cef_mouse_event_t',
     'cef_screen_info_t': 'cef_screen_info_t',
-    'cef_point_t': 'cef_point_t',
-    'cef_size_t': 'cef_size_t',
-     'cef_page_range_t': 'cef_page_range_t',
-     'cef_cursor_info_t': 'cef_cursor_info_t',
-     'cef_value_t': 'cef_value_t',
-    'cef_request_context_settings_t' : 'cef_request_context_settings_t',
-    'cef_draggable_region_t' : 
-'cef_draggable_region_t',
-    'cef_pdf_print_settings_t' : 'cef_pdf_print_settings_t',
-
+    'cef_page_range_t': 'cef_page_range_t',
+    'cef_cursor_info_t': 'cef_cursor_info_t',
+    'cef_request_context_settings_t': 'cef_request_context_settings_t',
+    'cef_draggable_region_t': 'cef_draggable_region_t',
+    'cef_pdf_print_settings_t': 'cef_pdf_print_settings_t',
 
     # platform dependend structs
     'cef_main_args_t': 'cef_main_args_t',
@@ -88,13 +87,12 @@ c2cs_types = {
     'cef_duplex_mode_t': 'CefDuplexMode',
 
     'cef_cursor_type_t': 'CefCursorType',
-    'cef_delete_cookies_callback_t': 'cef_delete_cookies_callback_t',
-    'cef_set_cookie_callback_t': 'cef_set_cookie_callback_t',
-    'cef_request_callback_t': 'cef_request_callback_t',
+
+	'cef_range_t': 'cef_range_t',
     }
 
 c2cs_platform_retval = {
-	# generates multiple delegates/methods if return value is platform specific
+    # generates multiple delegates/methods if return value is platform specific
     # 'cef_time_t': ['_other', '_mac']
     }
 
@@ -139,20 +137,26 @@ c2cs_enumtypes = {
     'cef_transition_type_t': 'CefTransitionType',
     'cef_uri_unescape_rule_t': 'CefUriUnescapeRules',
     'cef_window_open_disposition_t': 'CefWindowOpenDisposition',
-    'cef_return_value_t' : 'CefReturnValue',
-    'cef_json_parser_options_t' : 'CefJsonParserOptions',
-
-    'cef_json_parser_error_t' : 'CefJsonParserError',
-
-    'cef_pef_print_margin_type_t' : 'CefJsonWriterOptions',
-
-    'cef_json_writer_options_t' : 'CefJsonWriterOptions',
-
+    'cef_return_value_t': 'CefReturnValue',
+    'cef_json_parser_options_t': 'CefJsonParserOptions',
+    'cef_json_writer_options_t': 'CefJsonWriterOptions',
+    'cef_json_parser_error_t': 'CefJsonParserError',
+    'cef_pdf_print_margin_type_t': 'CefPdfPrintMarginType',
+	'cef_scale_factor_t': 'CefScaleFactor',
+	'cef_plugin_policy_t': 'CefPluginPolicy',
+    'cef_cert_status_t': 'CefCertStatus',
+    'cef_response_filter_status_t': 'CefResponseFilterStatus',
+    'cef_referrer_policy_t': 'CefReferrerPolicy',
+	'cef_color_type_t': 'CefColorType',
+	'cef_alpha_type_t': 'CefAlphaType',
+    'cef_cdm_registration_error_t': 'CefCdmRegistrationError',
+	'cef_ssl_version_t': 'CefSslVersion',
+	'cef_ssl_content_status_t': 'CefSslContentStatus',
     }
 
 c2cs_structtypes = { }
 
-cs_keywords = [ 'object', 'string', 'checked', 'event', 'params' ]
+cs_keywords = [ 'object', 'string', 'checked', 'event', 'params', 'delegate' ]
 
 classdef = { }
 
@@ -285,3 +289,9 @@ def get_overview(cls):
     result.append(role)
 
     return result
+
+def is_autodispose(cls):
+    if classdef.has_key(cls.get_name()):
+        clsinfo = classdef[cls.get_name()]
+        return clsinfo.has_key('autodispose') and clsinfo['autodispose'] == True
+    return False

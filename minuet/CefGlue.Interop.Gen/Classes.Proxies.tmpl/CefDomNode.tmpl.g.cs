@@ -215,5 +215,13 @@ namespace Xilium.CefGlue
             throw new NotImplementedException(); // TODO: CefDomNode.GetElementInnerText
         }
         
+        /// <summary>
+        /// Returns the bounds of the element.
+        /// </summary>
+        public cef_rect_t GetElementBounds()
+        {
+            throw new NotImplementedException(); // TODO: CefDomNode.GetElementBounds
+        }
+        
     }
 }

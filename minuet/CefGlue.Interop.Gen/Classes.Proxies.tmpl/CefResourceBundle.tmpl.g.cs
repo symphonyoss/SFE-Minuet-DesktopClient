@@ -56,7 +56,7 @@ namespace Xilium.CefGlue
         /// be freed. Include cef_pack_resources.h for a listing of valid resource ID
         /// values.
         /// </summary>
-        public int GetDataResourceForScale(int resource_id, cef_scale_factor_t scale_factor, void** data, UIntPtr* data_size)
+        public int GetDataResourceForScale(int resource_id, CefScaleFactor scale_factor, void** data, UIntPtr* data_size)
         {
             throw new NotImplementedException(); // TODO: CefResourceBundle.GetDataResourceForScale
         }

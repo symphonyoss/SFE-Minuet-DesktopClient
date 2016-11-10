@@ -15,6 +15,14 @@ namespace Xilium.CefGlue
     public sealed unsafe partial class CefMenuModel
     {
         /// <summary>
+        /// Create a new MenuModel with the specified |delegate|.
+        /// </summary>
+        public static cef_menu_model_t* CreateMenuModel(cef_menu_model_delegate_t* @delegate)
+        {
+            throw new NotImplementedException(); // TODO: CefMenuModel.CreateMenuModel
+        }
+        
+        /// <summary>
         /// Clears the menu. Returns true on success.
         /// </summary>
         public int Clear()

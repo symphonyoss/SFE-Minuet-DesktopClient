@@ -106,7 +106,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Set the page ranges.
         /// </summary>
-        public void SetPageRanges(UIntPtr rangesCount, cef_page_range_t* ranges)
+        public void SetPageRanges(UIntPtr rangesCount, cef_range_t* ranges)
         {
             throw new NotImplementedException(); // TODO: CefPrintSettings.SetPageRanges
         }
@@ -122,7 +122,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Retrieve the page ranges.
         /// </summary>
-        public void GetPageRanges(UIntPtr* rangesCount, cef_page_range_t* ranges)
+        public void GetPageRanges(UIntPtr* rangesCount, cef_range_t* ranges)
         {
             throw new NotImplementedException(); // TODO: CefPrintSettings.GetPageRanges
         }

@@ -90,5 +90,13 @@ namespace Xilium.CefGlue
             throw new NotImplementedException(); // TODO: CefNavigationEntry.GetHttpStatusCode
         }
         
+        /// <summary>
+        /// Returns the SSL information for this navigation entry.
+        /// </summary>
+        public cef_sslstatus_t* GetSSLStatus()
+        {
+            throw new NotImplementedException(); // TODO: CefNavigationEntry.GetSSLStatus
+        }
+        
     }
 }

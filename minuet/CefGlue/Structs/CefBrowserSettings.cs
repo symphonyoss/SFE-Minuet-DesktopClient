@@ -357,7 +357,7 @@
             get
             {
                 return cef_string_t.ToString(&_self->auth_server_whitelist);
-            }
+    }
             set
             {
                 cef_string_t.Copy(value, &_self->auth_server_whitelist);

@@ -29,18 +29,17 @@ namespace Xilium.CefGlue
         /// </summary>
         // protected abstract int OnRequestGeolocationPermission(cef_browser_t* browser, cef_string_t* requesting_url, int request_id, cef_geolocation_callback_t* callback);
         
-        private void on_cancel_geolocation_permission(cef_geolocation_handler_t* self, cef_browser_t* browser, cef_string_t* requesting_url, int request_id)
+        private void on_cancel_geolocation_permission(cef_geolocation_handler_t* self, cef_browser_t* browser, int request_id)
         {
             CheckSelf(self);
             throw new NotImplementedException(); // TODO: CefGeolocationHandler.OnCancelGeolocationPermission
         }
         
         /// <summary>
-        /// Called when a geolocation access request is canceled. |requesting_url| is
-        /// the URL that originally requested permission and |request_id| is the unique
-        /// ID for the permission request.
+        /// Called when a geolocation access request is canceled. |request_id| is the
+        /// unique ID for the permission request.
         /// </summary>
-        // protected abstract void OnCancelGeolocationPermission(cef_browser_t* browser, cef_string_t* requesting_url, int request_id);
+        // protected abstract void OnCancelGeolocationPermission(cef_browser_t* browser, int request_id);
         
     }
 }

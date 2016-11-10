@@ -250,11 +250,17 @@
 
         /// <summary>
         /// Perform a single iteration of CEF message loop processing. This function is
-        /// used to integrate the CEF message loop into an existing application message
-        /// loop. Care must be taken to balance performance against excessive CPU usage.
-        /// This function should only be called on the main application thread and only
-        /// if CefInitialize() is called with a CefSettings.multi_threaded_message_loop
-        /// value of false. This function will not block.
+        /// provided for cases where the CEF message loop must be integrated into an
+        /// existing application message loop. Use of this function is not recommended
+        /// for most users; use either the CefRunMessageLoop() function or
+        /// CefSettings.multi_threaded_message_loop if possible. When using this function
+        /// care must be taken to balance performance against excessive CPU usage. It is
+        /// recommended to enable the CefSettings.external_message_pump option when using
+        /// this function so that CefBrowserProcessHandler::OnScheduleMessagePumpWork()
+        /// callbacks can facilitate the scheduling process. This function should only be
+        /// called on the main application thread and only if CefInitialize() is called
+        /// with a CefSettings.multi_threaded_message_loop value of false. This function
+        /// will not block.
         /// </summary>
         public static void DoMessageLoopWork()
         {
@@ -500,17 +506,67 @@
 
         #region cef_trace
 
-        // TODO: CefBeginTracing
-        //[DllImport(libcef.DllName, EntryPoint = "cef_begin_tracing", CallingConvention = libcef.CEF_CALL)]
-        //public static extern int begin_tracing(cef_trace_client_t* client, cef_string_t* categories);
 
-        // TODO: CefGetTraceBufferPercentFullAsync
-        //[DllImport(libcef.DllName, EntryPoint = "cef_get_trace_buffer_percent_full_async", CallingConvention = libcef.CEF_CALL)]
-        //public static extern int get_trace_buffer_percent_full_async();
+        /// <summary>
+        /// Start tracing events on all processes. Tracing is initialized asynchronously
+        /// and |callback| will be executed on the UI thread after initialization is
+        /// complete.
+        ///
+        /// If CefBeginTracing was called previously, or if a CefEndTracingAsync call is
+        /// pending, CefBeginTracing will fail and return false.
+        ///
+        /// |categories| is a comma-delimited list of category wildcards. A category can
+        /// have an optional '-' prefix to make it an excluded category. Having both
+        /// included and excluded categories in the same list is not supported.
+        ///
+        /// Example: "test_MyTest*"
+        /// Example: "test_MyTest*,test_OtherStuff"
+        /// Example: "-excluded_category1,-excluded_category2"
+        ///
+        /// This function must be called on the browser process UI thread.
+        /// </summary>
+        public static bool BeginTracing(string categories = null, CefCompletionCallback callback = null)
+        {
+            fixed (char* categories_str = categories)
+            {
+                var n_categories = new cef_string_t(categories_str, categories != null ? categories.Length : 0);
+                var n_callback = callback != null ? callback.ToNative() : null;
+                return libcef.begin_tracing(&n_categories, n_callback) != 0;
+            }
+        }
 
-        // TODO: CefEndTracingAsync
-        //[DllImport(libcef.DllName, EntryPoint = "cef_end_tracing_async", CallingConvention = libcef.CEF_CALL)]
-        //public static extern int end_tracing_async();
+        /// <summary>
+        /// Stop tracing events on all processes.
+        ///
+        /// This function will fail and return false if a previous call to
+        /// CefEndTracingAsync is already pending or if CefBeginTracing was not called.
+        ///
+        /// |tracing_file| is the path at which tracing data will be written and
+        /// |callback| is the callback that will be executed once all processes have
+        /// sent their trace data. If |tracing_file| is empty a new temporary file path
+        /// will be used. If |callback| is empty no trace data will be written.
+        ///
+        /// This function must be called on the browser process UI thread.
+        /// </summary>
+        public static bool EndTracing(string tracingFile = null, CefEndTracingCallback callback = null)
+        {
+            fixed (char* tracingFile_str = tracingFile)
+            {
+                var n_tracingFile = new cef_string_t(tracingFile_str, tracingFile != null ? tracingFile.Length : 0);
+                var n_callback = callback != null ? callback.ToNative() : null;
+                return libcef.end_tracing(&n_tracingFile, n_callback) != 0;
+            }
+        }
+
+        /// <summary>
+        /// Returns the current system trace time or, if none is defined, the current
+        /// high-res time. Can be used by clients to synchronize with the time
+        /// information in trace events.
+        /// </summary>
+        public static long NowFromSystemTraceTime()
+        {
+            return libcef.now_from_system_trace_time();
+        }
 
         // TODO: functions from cef_trace_event.h (not generated automatically)
 
@@ -695,7 +751,7 @@
 
                 CefJsonParserError n_error_code;
                 cef_string_t n_error_msg;
-                var n_result = libcef.parse_jsonand_return_error(&n_value, options, & n_error_code, &n_error_msg);
+                var n_result = libcef.parse_jsonand_return_error(&n_value, options, &n_error_code, &n_error_msg);
 
                 var result = CefValue.FromNativeOrNull(n_result);
                 errorCode = n_error_code;
@@ -868,6 +924,60 @@
             }
         }
 
+        /// <summary>
+        /// Register the Widevine CDM plugin.
+        ///
+        /// The client application is responsible for downloading an appropriate
+        /// platform-specific CDM binary distribution from Google, extracting the
+        /// contents, and building the required directory structure on the local machine.
+        /// The CefBrowserHost::StartDownload method and CefZipArchive class can be used
+        /// to implement this functionality in CEF. Contact Google via
+        /// https://www.widevine.com/contact.html for details on CDM download.
+        ///
+        /// |path| is a directory that must contain the following files:
+        ///   1. manifest.json file from the CDM binary distribution (see below).
+        ///   2. widevinecdm file from the CDM binary distribution (e.g.
+        ///      widevinecdm.dll on on Windows, libwidevinecdm.dylib on OS X,
+        ///      libwidevinecdm.so on Linux).
+        ///   3. widevidecdmadapter file from the CEF binary distribution (e.g.
+        ///      widevinecdmadapter.dll on Windows, widevinecdmadapter.plugin on OS X,
+        ///      libwidevinecdmadapter.so on Linux).
+        ///
+        /// If any of these files are missing or if the manifest file has incorrect
+        /// contents the registration will fail and |callback| will receive a |result|
+        /// value of CEF_CDM_REGISTRATION_ERROR_INCORRECT_CONTENTS.
+        ///
+        /// The manifest.json file must contain the following keys:
+        ///   A. "os": Supported OS (e.g. "mac", "win" or "linux").
+        ///   B. "arch": Supported architecture (e.g. "ia32" or "x64").
+        ///   C. "x-cdm-module-versions": Module API version (e.g. "4").
+        ///   D. "x-cdm-interface-versions": Interface API version (e.g. "8").
+        ///   E. "x-cdm-host-versions": Host API version (e.g. "8").
+        ///   F. "version": CDM version (e.g. "1.4.8.903").
+        ///   G. "x-cdm-codecs": List of supported codecs (e.g. "vp8,vp9.0,avc1").
+        ///
+        /// A through E are used to verify compatibility with the current Chromium
+        /// version. If the CDM is not compatible the registration will fail and
+        /// |callback| will receive a |result| value of
+        /// CEF_CDM_REGISTRATION_ERROR_INCOMPATIBLE.
+        ///
+        /// |callback| will be executed asynchronously once registration is complete.
+        ///
+        /// On Linux this function must be called before CefInitialize() and the
+        /// registration cannot be changed during runtime. If registration is not
+        /// supported at the time that CefRegisterWidevineCdm() is called then |callback|
+        /// will receive a |result| value of CEF_CDM_REGISTRATION_ERROR_NOT_SUPPORTED.
+        /// </summary>
+        public static void CefRegisterWidevineCdm(string path, CefRegisterCdmCallback callback = null)
+        {
+            fixed (char* path_str = path)
+            {
+                var n_path = new cef_string_t(path_str, path.Length);
+                libcef.register_widevine_cdm(&n_path,
+                    callback != null ? callback.ToNative() : null);
+            }
+        }
+
         #endregion
 
         #region cef_path_util
@@ -918,13 +1028,34 @@
         // TODO: investigate using of sandbox on windows and .net
         #endregion
 
-        public static string ChromeVersion
+		public static string ChromeVersion
         {
             get
             {
                 return string.Format("{0}.{1}.{2}.{3}", libcef.CHROME_VERSION_MAJOR, libcef.CHROME_VERSION_MINOR, libcef.CHROME_VERSION_BUILD, libcef.CHROME_VERSION_PATCH);
             }
         }
+
+        #region cef_ssl_info
+
+        /// <summary>
+        /// Returns true if the certificate status has any error, major or minor.
+        /// </summary>
+        public static bool IsCertStatusError(CefCertStatus status)
+        {
+            return libcef.is_cert_status_error(status) != 0;
+        }
+
+        /// <summary>
+        /// Returns true if the certificate status represents only minor errors
+        /// (e.g. failure to verify certificate revocation).
+        /// </summary>
+        public static bool IsCertStatusMinorError(CefCertStatus status)
+        {
+            return libcef.is_cert_status_minor_error(status) != 0;
+        }
+
+        #endregion
 
         private static void LoadIfNeed()
         {

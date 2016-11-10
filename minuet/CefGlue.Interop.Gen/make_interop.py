@@ -482,6 +482,14 @@ def make_handler_g_body(cls):
     result.append('}')
     result.append('')
 
+    if schema.is_autodispose(cls):
+        result.append('private void Dispose()')
+        result.append('{')
+        result.append(indent + 'Dispose(true);')
+        result.append(indent + 'GC.SuppressFinalize(this);')
+        result.append('}')
+        result.append('')
+
     result.append('protected virtual void Dispose(bool disposing)')
     result.append('{')
     # result.append(indent + '_disposed = true;')
@@ -516,6 +524,8 @@ def make_handler_g_body(cls):
     result.append(indent + indent + 'if (result == 0)')
     result.append(indent + indent + '{')
     result.append(indent + indent + indent + 'lock (_roots) { _roots.Remove((IntPtr)_self); }')
+    if schema.is_autodispose(cls):
+        result.append(indent + indent + indent + 'Dispose();')
     result.append(indent + indent + indent + 'return 1;')
     result.append(indent + indent + '}')
     result.append(indent + indent + 'return 0;')
@@ -682,10 +692,8 @@ def make_version_cs(content):
 
     result.append('public const string CEF_VERSION = %s;' % __get_version_constant(content, "CEF_VERSION"))
     result.append('public const int CEF_VERSION_MAJOR = %s;' % __get_version_constant(content, "CEF_VERSION_MAJOR"))
-    result.append('public const int COPYRIGHT_YEAR = %s;' % __get_version_constant(content, "COPYRIGHT_YEAR"))
     result.append('public const int CEF_COMMIT_NUMBER = %s;' % __get_version_constant(content, "CEF_COMMIT_NUMBER"))
     result.append('public const string CEF_COMMIT_HASH = %s;' % __get_version_constant(content, "CEF_COMMIT_HASH"))
-    
     result.append("");
 
     result.append('public const int CHROME_VERSION_MAJOR = %s;' % __get_version_constant(content, "CHROME_VERSION_MAJOR"))
@@ -763,7 +771,7 @@ def write_interop(header, filepath, backup, schema_name, cppheaderdir):
         writect += update_file(filepath + '/' + schema.wrapper_g_path, schema.cpp2csname(cls.get_name()) + ".g.cs", content, backup)
 
     # userdata    
-    userdatacls = obj_class(header, 'CefUserData', '', 'CefUserData', '', '', '', '')
+    userdatacls = obj_class(header, 'CefUserData', '', 'CefUserData', '', '', '', '', [])
     content = make_struct_file(userdatacls)
     writect += update_file(filepath + '/' + schema.struct_path, userdatacls.get_capi_name() + ".g.cs", content, backup)
     content = make_wrapper_g_file(userdatacls)
