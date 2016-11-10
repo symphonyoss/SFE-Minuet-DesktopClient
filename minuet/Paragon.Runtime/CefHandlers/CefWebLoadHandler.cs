@@ -28,7 +28,7 @@ namespace Paragon.Runtime
             _core = core;
         }
 
-        protected override void OnLoadStart(CefBrowser browser, CefFrame frame)
+        protected override void OnLoadStart(CefBrowser browser, CefFrame frame, CefTransitionType transition_type)
         {
             _core.OnLoadStart(new LoadStartEventArgs(frame));
         }
