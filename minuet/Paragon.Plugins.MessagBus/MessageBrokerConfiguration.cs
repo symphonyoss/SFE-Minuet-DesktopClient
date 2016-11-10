@@ -31,9 +31,8 @@ namespace Paragon.Plugins.MessageBus
         public const string AppSettingKeyBrokerPort = "BrokerPort";
         public const string AppSettingKeyBrokerLoggingConfig = "BrokerLoggingConfigFile";
 
-        private const string DefaultBrokerExePath = "\\\\{0}\\appstore\\51\\Production";
-        private const string DefaultBrokerLibPath = "\\\\{0}\\appstore\\1188\\Production\\messagebus.jar";
-        private const string DefaultBrokerLibPath2 = "\\\\{0}\\appstore\\1188\\Test\\messagebus.jar";
+        private readonly string defaultBrokerExePath = Environment.CurrentDirectory;
+        private readonly string defaultBrokerLibPath = Path.Combine(Environment.CurrentDirectory, "messagebus.jar");
 
         private readonly ILogger _logger;
 
@@ -113,11 +112,9 @@ namespace Paragon.Plugins.MessageBus
         {
             try
             {
-                var javaReleasePath = string.Format(DefaultBrokerExePath, Domain);
-
                 // The java release is 2 POD packages - 32-bit and 64-bit variants.
                 // Find the 32-bit version by parsing the 'release' file in the root folder of each POD.
-                return Directory.GetDirectories(javaReleasePath)
+                return Directory.GetDirectories(this.defaultBrokerExePath)
                     .Select(Get32BitJavaPath)
                     .FirstOrDefault(path => !string.IsNullOrEmpty(path));
             }
@@ -156,17 +153,9 @@ namespace Paragon.Plugins.MessageBus
         {
             try
             {
-                // Use the domain of the local machine to figure out DFS share domain
-                var defaultBrokerLibPath = string.Format(DefaultBrokerLibPath, Domain);
-                if (File.Exists(defaultBrokerLibPath))
+                if (File.Exists(this.defaultBrokerLibPath))
                 {
                     return defaultBrokerLibPath;
-                }
-
-                var defaultBrokerLibPath2 = string.Format(DefaultBrokerLibPath2, Domain);
-                if (File.Exists(defaultBrokerLibPath2))
-                {
-                    return defaultBrokerLibPath2;
                 }
             }
             catch (Exception ex)
@@ -177,25 +166,12 @@ namespace Paragon.Plugins.MessageBus
             return string.Empty;
         }
 
-        private string Domain
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_domain))
-                {
-                    var hostnameParts = Dns.GetHostEntry("localhost").HostName.Split('.');
-                    _domain = hostnameParts.Length > 1 ? hostnameParts[1] : string.Empty;
-                }
-                return _domain;
-            }
-        }
-
         private static string GetSetting(Configuration config, string key)
         {
             try
             {
-                var entry = (config != null) ? (config.AppSettings.Settings[key]) : (null);
-                return (entry != null) ? (entry.Value) : (null);
+                var entry = config != null ? (config.AppSettings.Settings[key]) : (null);
+                return entry != null ? (entry.Value) : (null);
             }
             catch
             {
