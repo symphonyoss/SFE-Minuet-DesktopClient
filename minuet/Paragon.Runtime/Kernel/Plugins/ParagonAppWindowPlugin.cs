@@ -19,6 +19,8 @@ using System.Linq;
 using Paragon.Plugins;
 using Paragon.Runtime.Annotations;
 using Paragon.Runtime.Kernel.Windowing;
+using Microsoft.Win32;
+using System;
 
 namespace Paragon.Runtime.Kernel.Plugins
 {
@@ -70,6 +72,22 @@ namespace Paragon.Runtime.Kernel.Plugins
         [JavaScriptPluginMember, UsedImplicitly]
         public void Create(string startUrl, CreateWindowOptions options, JavaScriptPluginCallback callback)
         {
+            String podUrl = "";
+
+            using (RegistryKey symphony = Registry.ClassesRoot.OpenSubKey("symphony"))
+            {
+                podUrl = (string)symphony.GetValue("PodUrl", "");
+            }
+            if (!String.IsNullOrEmpty(podUrl))
+            {
+                Uri uri;
+                if (Uri.TryCreate(podUrl, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps)
+                {
+                    startUrl = uri.ToString();
+                    Logger.Info(string.Format("PodUrl at Registry key : {0}", startUrl));
+                }
+            }            
+
             Logger.Info(string.Format("Create window : {0}", startUrl));
             var windowManager = Application.WindowManager as IApplicationWindowManagerEx;
             if (windowManager != null)
