@@ -274,17 +274,6 @@ namespace Paragon.Runtime.Kernel.Applications
                 Logger.Info(string.Format("Browser language being used is {0}", BrowserLanguage));
             }
 
-            string auth_server_whitelist = null;
-            string auth_delegate_whitelist = null;
-            if (cmdLine != null)
-            {
-                cmdLine.GetValue("auth-server-whitelist", out auth_server_whitelist);
-                Logger.Info(string.Format("auth-server-whitelist [{0}]", auth_server_whitelist));
-                cmdLine.GetValue("auth-delegate-whitelist", out auth_delegate_whitelist);
-                Logger.Info(string.Format("auth-delegate-whitelist [{0}]", auth_delegate_whitelist));
-
-            }
-
             // Initialize CEF
             using (AutoStopwatch.TimeIt("CEF initialization"))
             {
@@ -292,8 +281,6 @@ namespace Paragon.Runtime.Kernel.Applications
                     CacheFolder,
                     null,
                     BrowserLanguage,
-                    auth_server_whitelist,
-                    auth_delegate_whitelist,
                     DisableSpellChecking,
                     EnableMediaStream,
                     Environment == ApplicationEnvironment.Development);

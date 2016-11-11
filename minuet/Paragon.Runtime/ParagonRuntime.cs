@@ -62,8 +62,6 @@ namespace Paragon.Runtime
         public static void Initialize(string cachePath = null,
                                       string paragonPath = null,
                                       string browserLanguage = null,
-                                      string authserverlist = null,
-                                      string authdelgatelist = null,
                                       bool disableSpellChecking = false,
                                       bool enableMediaStream = false,
                                       bool ignoreCertificateErrors = false,
