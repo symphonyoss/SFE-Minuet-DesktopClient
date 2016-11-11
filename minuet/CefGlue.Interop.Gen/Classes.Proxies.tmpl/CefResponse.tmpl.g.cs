@@ -29,6 +29,23 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
+        /// Get the response error code. Returns ERR_NONE if there was no error.
+        /// </summary>
+        public CefErrorCode GetError()
+        {
+            throw new NotImplementedException(); // TODO: CefResponse.GetError
+        }
+        
+        /// <summary>
+        /// Set the response error code. This can be used by custom scheme handlers
+        /// to return errors during initial request processing.
+        /// </summary>
+        public void SetError(CefErrorCode error)
+        {
+            throw new NotImplementedException(); // TODO: CefResponse.SetError
+        }
+        
+        /// <summary>
         /// Get the response status code.
         /// </summary>
         public int GetStatus()

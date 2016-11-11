@@ -59,16 +59,6 @@
         /// </summary>
         public string AcceptLanguageList { get; set; }
 
-        public string AuthServerWhitelist
-        {
-            get; set;
-        }
-
-        public string AuthDelegateWhitelist
-        {
-            get; set;
-        }
-
         internal unsafe cef_request_context_settings_t* ToNative()
         {
             var ptr = cef_request_context_settings_t.Alloc();
@@ -77,8 +67,6 @@
             ptr->persist_user_preferences = PersistUserPreferences ? 1 : 0;
             ptr->ignore_certificate_errors = IgnoreCertificateErrors ? 1 : 0;
             cef_string_t.Copy(CachePath, &ptr->accept_language_list);
-            cef_string_t.Copy(AuthServerWhitelist, &ptr->auth_server_whitelist);
-            cef_string_t.Copy(AuthDelegateWhitelist, &ptr->auth_delegate_whitelist);
             return ptr;
         }
 
@@ -86,8 +74,6 @@
         {
             libcef.string_clear(&ptr->cache_path);
             libcef.string_clear(&ptr->accept_language_list);
-            libcef.string_clear(&ptr->auth_server_whitelist);
-            libcef.string_clear(&ptr->auth_delegate_whitelist);
         }
 
         internal static unsafe void Free(cef_request_context_settings_t* ptr)

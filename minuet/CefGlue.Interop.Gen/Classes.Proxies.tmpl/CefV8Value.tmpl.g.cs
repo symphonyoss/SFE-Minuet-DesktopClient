@@ -83,13 +83,13 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Create a new CefV8Value object of type object with optional accessor. This
-        /// method should only be called from within the scope of a
+        /// Create a new CefV8Value object of type object with optional accessor and/or
+        /// interceptor. This method should only be called from within the scope of a
         /// CefRenderProcessHandler, CefV8Handler or CefV8Accessor callback, or in
         /// combination with calling Enter() and Exit() on a stored CefV8Context
         /// reference.
         /// </summary>
-        public static cef_v8value_t* CreateObject(cef_v8accessor_t* accessor)
+        public static cef_v8value_t* CreateObject(cef_v8accessor_t* accessor, cef_v8interceptor_t* interceptor)
         {
             throw new NotImplementedException(); // TODO: CefV8Value.CreateObject
         }
@@ -225,8 +225,7 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Return a bool value.  The underlying data will be converted to if
-        /// necessary.
+        /// Return a bool value.
         /// </summary>
         public int GetBoolValue()
         {
@@ -234,8 +233,7 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Return an int value.  The underlying data will be converted to if
-        /// necessary.
+        /// Return an int value.
         /// </summary>
         public int GetIntValue()
         {
@@ -243,8 +241,7 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Return an unisgned int value.  The underlying data will be converted to if
-        /// necessary.
+        /// Return an unsigned int value.
         /// </summary>
         public uint GetUIntValue()
         {
@@ -252,8 +249,7 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Return a double value.  The underlying data will be converted to if
-        /// necessary.
+        /// Return a double value.
         /// </summary>
         public double GetDoubleValue()
         {
@@ -261,8 +257,7 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Return a Date value.  The underlying data will be converted to if
-        /// necessary.
+        /// Return a Date value.
         /// </summary>
         public cef_time_t GetDateValue()
         {
@@ -270,8 +265,7 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
-        /// Return a string value.  The underlying data will be converted to if
-        /// necessary.
+        /// Return a string value.
         /// </summary>
         public cef_string_userfree* GetStringValue()
         {

@@ -202,5 +202,49 @@ namespace Xilium.CefGlue
             throw new NotImplementedException(); // TODO: CefRequestContext.SetPreference
         }
         
+        /// <summary>
+        /// Clears all certificate exceptions that were added as part of handling
+        /// CefRequestHandler::OnCertificateError(). If you call this it is
+        /// recommended that you also call CloseAllConnections() or you risk not
+        /// being prompted again for server certificates if you reconnect quickly.
+        /// If |callback| is non-NULL it will be executed on the UI thread after
+        /// completion.
+        /// </summary>
+        public void ClearCertificateExceptions(cef_completion_callback_t* callback)
+        {
+            throw new NotImplementedException(); // TODO: CefRequestContext.ClearCertificateExceptions
+        }
+        
+        /// <summary>
+        /// Clears all active and idle connections that Chromium currently has.
+        /// This is only recommended if you have released all other CEF objects but
+        /// don't yet want to call CefShutdown(). If |callback| is non-NULL it will be
+        /// executed on the UI thread after completion.
+        /// </summary>
+        public void CloseAllConnections(cef_completion_callback_t* callback)
+        {
+            throw new NotImplementedException(); // TODO: CefRequestContext.CloseAllConnections
+        }
+        
+        /// <summary>
+        /// Attempts to resolve |origin| to a list of associated IP addresses.
+        /// |callback| will be executed on the UI thread after completion.
+        /// </summary>
+        public void ResolveHost(cef_string_t* origin, cef_resolve_callback_t* callback)
+        {
+            throw new NotImplementedException(); // TODO: CefRequestContext.ResolveHost
+        }
+        
+        /// <summary>
+        /// Attempts to resolve |origin| to a list of associated IP addresses using
+        /// cached data. |resolved_ips| will be populated with the list of resolved IP
+        /// addresses or empty if no cached data is available. Returns ERR_NONE on
+        /// success. This method must be called on the browser process IO thread.
+        /// </summary>
+        public CefErrorCode ResolveHostCached(cef_string_t* origin, cef_string_list* resolved_ips)
+        {
+            throw new NotImplementedException(); // TODO: CefRequestContext.ResolveHostCached
+        }
+        
     }
 }

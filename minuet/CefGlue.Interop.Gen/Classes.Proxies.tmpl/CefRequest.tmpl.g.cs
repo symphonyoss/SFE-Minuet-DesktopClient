@@ -66,7 +66,7 @@ namespace Xilium.CefGlue
         /// fully qualified with an HTTP or HTTPS scheme component. Any username,
         /// password or ref component will be removed.
         /// </summary>
-        public void SetReferrer(cef_string_t* referrer_url, cef_referrer_policy_t policy)
+        public void SetReferrer(cef_string_t* referrer_url, CefReferrerPolicy policy)
         {
             throw new NotImplementedException(); // TODO: CefRequest.SetReferrer
         }
@@ -82,7 +82,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Get the referrer policy.
         /// </summary>
-        public cef_referrer_policy_t GetReferrerPolicy()
+        public CefReferrerPolicy GetReferrerPolicy()
         {
             throw new NotImplementedException(); // TODO: CefRequest.GetReferrerPolicy
         }

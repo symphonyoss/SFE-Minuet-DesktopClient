@@ -28,7 +28,7 @@ classdef = {
     'CefAuthCallback': { 'role': ROLE_PROXY },
     'CefRequestHandler': { 'role': ROLE_HANDLER },
     'CefResourceBundleHandler': { 'role': ROLE_HANDLER },
-    'CefResourceHandler': { 'role': ROLE_HANDLER },
+    'CefResourceHandler': { 'role': ROLE_HANDLER, 'autodispose': True },
     'CefResponse': { 'role': ROLE_PROXY },
     'CefSchemeHandlerFactory': { 'role': ROLE_HANDLER },
     'CefReadHandler': { 'role': ROLE_HANDLER },
@@ -44,7 +44,6 @@ classdef = {
     'CefV8Value': { 'role': ROLE_PROXY },
     'CefV8StackTrace': { 'role': ROLE_PROXY },
     'CefV8StackFrame': { 'role': ROLE_PROXY },
-    'CefValue': { 'role': ROLE_PROXY },
     'CefBinaryValue': { 'role': ROLE_PROXY },
     'CefDictionaryValue': { 'role': ROLE_PROXY },
     'CefListValue': { 'role': ROLE_PROXY },
@@ -54,7 +53,7 @@ classdef = {
     'CefContextMenuParams': { 'role': ROLE_PROXY },
     'CefCommandLine': { 'role': ROLE_PROXY },
     'CefCookieManager': { 'role': ROLE_PROXY },
-    'CefCookieVisitor': { 'role': ROLE_HANDLER },
+    'CefCookieVisitor': { 'role': ROLE_HANDLER, 'autodispose': True },
     'CefDOMVisitor': { 'role': ROLE_HANDLER, 'name': 'CefDomVisitor' },
     'CefDOMDocument': { 'role': ROLE_PROXY, 'name': 'CefDomDocument' },
     'CefDOMNode': { 'role': ROLE_PROXY, 'name': 'CefDomNode' },
@@ -114,14 +113,30 @@ classdef = {
     'CefFindHandler': { 'role': ROLE_HANDLER },
     'CefSSLCertPrincipal': { 'role': ROLE_PROXY, 'name': 'CefSslCertPrincipal' },
     'CefSSLInfo': { 'role': ROLE_PROXY, 'name': 'CefSslInfo' },
-    # 2357 branch
+    # 2357
+    'CefSetCookieCallback': { 'role': ROLE_HANDLER, 'autodispose': True },
+    'CefDeleteCookiesCallback': { 'role': ROLE_HANDLER, 'autodispose': True },
     'CefRequestCallback': { 'role': ROLE_PROXY },
-    'CefSetCookieCallback': { 'role': ROLE_HANDLER },
-    'CefDeleteCookiesCallback': { 'role': ROLE_HANDLER },
-    # 2454 branch
+    'CefValue': { 'role': ROLE_PROXY },
+    # 2424
     'CefPdfPrintCallback': { 'role': ROLE_HANDLER },
-    # 2526 branch
-    'CefRunContextMenuCallback': { 'role': ROLE_PROXY },
-    'CefResourceBundle': { 'role': ROLE_PROXY },
-    'CefResourceBundleHandler': { 'role': ROLE_HANDLER },    
-}
+    # 2454
+    'CefRunContextMenuCallback': {'role': ROLE_PROXY },
+    'CefResourceBundle': {'role': ROLE_PROXY },
+    # 2526
+    'CefResponseFilter': { 'role': ROLE_HANDLER, 'autodispose': True },
+    # 2623
+    'CefResolveCallback': { 'role': ROLE_HANDLER },
+    # 51 (without views)
+	'CefDownloadImageCallback': { 'role': ROLE_HANDLER },
+	'CefImage': { 'role': ROLE_PROXY },
+	'CefMenuModelDelegate': { 'role': ROLE_HANDLER },
+	# 53
+	'CefRegisterCdmCallback': { 'role': ROLE_HANDLER },
+	# 54
+	'CefSelectClientCertificateCallback': { 'role': ROLE_PROXY },
+	'CefSSLStatus': { 'role': ROLE_PROXY, 'name': 'CefSslStatus' },
+	'CefV8Interceptor': { 'role': ROLE_HANDLER },
+	'CefX509CertPrincipal': { 'role': ROLE_PROXY },
+	'CefX509Certificate': { 'role': ROLE_PROXY },
+    }

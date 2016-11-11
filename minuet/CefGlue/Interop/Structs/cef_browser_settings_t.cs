@@ -50,9 +50,6 @@ namespace Xilium.CefGlue.Interop
 
         public cef_string_t accept_language_list;
 
-        public cef_string_t auth_server_whitelist;
-        public cef_string_t auth_delegate_whitelist;
-
         #region Alloc & Free
         private static int _sizeof;
 
