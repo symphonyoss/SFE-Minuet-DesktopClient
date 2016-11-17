@@ -259,7 +259,7 @@ namespace Paragon
                 }
             }
 
-            errMessage += "\n\nPlease contact Technology Client Services if you require assistance.\n";
+            errMessage += "\n\nPlease contact your internal helpdesk.\n";
             MessageBox.Show(errMessage, "Unhandled Exception", MessageBoxButton.OK);
         }
     }
