@@ -40,7 +40,7 @@ namespace Paragon.Plugins.ScreenCapture
             base.Top = position.Top;
             base.Size = position.Size;
             base.DoubleBuffered = true;
-
+            StartPosition = FormStartPosition.Manual;
             // if window loses focus for whatever reason, exit
             Deactivate += OnSnippingToolDeactivate;
             base.Load += OnLoad;
@@ -52,7 +52,9 @@ namespace Paragon.Plugins.ScreenCapture
         {
             var height = SystemInformation.VirtualScreen.Height;
             var width = SystemInformation.VirtualScreen.Width;
-            var rectangle = new Rectangle(0, 0, width, height);
+            var X = SystemInformation.VirtualScreen.X;
+            var Y = SystemInformation.VirtualScreen.Y;
+            var rectangle = new Rectangle(X, Y, width, height);
 
             using (var bmp = new Bitmap(rectangle.Width, rectangle.Height, PixelFormat.Format32bppPArgb))
             {
@@ -60,7 +62,7 @@ namespace Paragon.Plugins.ScreenCapture
                 {
                     using (var snipper = new SnippingTool(bmp, rectangle))
                     {
-                        graphics.CopyFromScreen(0, 0, 0, 0, bmp.Size);
+                        graphics.CopyFromScreen(X, Y, 0, 0, bmp.Size);
 
                         if (snipper.ShowDialog() == DialogResult.OK)
                         {
