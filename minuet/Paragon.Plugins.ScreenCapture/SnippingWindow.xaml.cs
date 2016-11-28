@@ -15,11 +15,13 @@
 //specific language governing permissions and limitations
 //under the License.
 
+using Paragon.Runtime.Kernel.Windowing;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Forms;
 using System.Windows.Ink;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -64,14 +66,17 @@ namespace Paragon.Plugins.ScreenCapture
             WindowState = WindowState.Normal;
 
             var rect = result.SelectedRectangle;
-
             // reposition the window so there's a neat effect of showing 
             // the screenshot edit window in place of the selected region
-            var top = rect.Top - 80;
-            var left = rect.Left - 80;
+            
+            var top = rect.Top - 80 + SystemInformation.VirtualScreen.Top;
+            var left = rect.Left - 80 + SystemInformation.VirtualScreen.Left;
+            rect.Y = rect.Top - 80 + SystemInformation.VirtualScreen.Top;
+            rect.X = rect.Left - 80 + SystemInformation.VirtualScreen.Left;
 
-            Top = top > 0 ? top : 0;
-            Left = left > 0 ? left : 0;
+            var screen = Screen.GetBounds(rect);
+            Top = top < screen.Top ? screen.Top : top;
+            Left = left < screen.Left ? screen.Left : left;
 
             var image = result.Image;
 
@@ -102,7 +107,7 @@ namespace Paragon.Plugins.ScreenCapture
 
         private void OnColorClick(object sender, RoutedEventArgs e)
         {
-            var menuItem = (MenuItem) sender;
+            var menuItem = (System.Windows.Controls.MenuItem) sender;
             var color = (DrawingAttributes) menuItem.Header;
 
             InkCanvas.DefaultDrawingAttributes = color;
@@ -167,7 +172,7 @@ namespace Paragon.Plugins.ScreenCapture
             Close();
         }
 
-        private void ShowContextMenu(ToggleButton sender, ContextMenu contextMenu)
+        private void ShowContextMenu(ToggleButton sender, System.Windows.Controls.ContextMenu contextMenu)
         {
             contextMenu.Placement = PlacementMode.Bottom;
             contextMenu.PlacementTarget = sender;
