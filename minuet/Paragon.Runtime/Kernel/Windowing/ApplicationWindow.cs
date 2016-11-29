@@ -67,14 +67,22 @@ namespace Paragon.Runtime.Kernel.Windowing
         private IApplicationWindowManagerEx _windowManager;
         private JavaScriptPluginCallback _closeHandler;
         private AutoSaveWindowPositionBehavior _autoSaveWindowPositionBehavior;
+        private bool _taskbarYellowState;
 
         private Grid _mainPanel;
 
         public ApplicationWindow()
         {
+            Activated += ApplicationWindow_Activated;
             Loaded += OnLoaded;
             var nativeWindow = new NativeApplicationWindow(this);
             nativeWindow.AddHook(WndProc);
+        }
+
+        void ApplicationWindow_Activated(object sender, EventArgs e)
+        {
+            _taskbarYellowState = false;
+            throw new NotImplementedException();
         }
 
         public event EventHandler LoadComplete;
@@ -191,7 +199,11 @@ namespace Paragon.Runtime.Kernel.Windowing
         [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         public void DrawAttention(bool autoclear, int maxFlashes, int timeOut)
         {
-            DispatchIfRequired(() => Flash(false, autoclear, maxFlashes, timeOut), true);
+            if (!_taskbarYellowState) {
+                _taskbarYellowState = true;
+                Logger.Info("DrawAttention, maxFlashes " + maxFlashes);
+                DispatchIfRequired(() => Flash(false, autoclear, maxFlashes, timeOut), true);
+            }
         }
 
         /// <summary>
