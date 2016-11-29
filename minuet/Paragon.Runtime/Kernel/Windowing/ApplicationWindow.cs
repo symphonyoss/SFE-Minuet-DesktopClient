@@ -82,7 +82,6 @@ namespace Paragon.Runtime.Kernel.Windowing
         void ApplicationWindow_Activated(object sender, EventArgs e)
         {
             _taskbarYellowState = false;
-            throw new NotImplementedException();
         }
 
         public event EventHandler LoadComplete;
