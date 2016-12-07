@@ -25,6 +25,8 @@ using Paragon.Plugins.Notifications.Annotations;
 using Paragon.Plugins.Notifications.Client;
 using Paragon.Plugins.Notifications.Configuration;
 using Paragon.Plugins.Notifications.Contracts;
+using Paragon.Runtime;
+using System.Reflection;
 
 namespace Paragon.Plugins.Notifications
 {
@@ -81,8 +83,23 @@ namespace Paragon.Plugins.Notifications
         }
 
         [JavaScriptPluginMember, UsedImplicitly]
-        public string Create(NotificationOptions options)
+        public string Create( object param)
         {
+            NotificationOptions options = null;
+
+            try
+            {
+                if (param.GetType().IsAssignableFrom((new JObject()).GetType())) {
+                    options = JsonConvert.DeserializeObject<NotificationOptions>(((JObject)param).ToString());
+                }
+            }
+            catch (Newtonsoft.Json.JsonReaderException ex)
+            {
+                ILogger Logger = ParagonLogManager.GetLogger();
+                Logger.Error("error Creating desktop notification: " + ex.Message);
+                throw new TargetInvocationException(ex);
+            }
+            
             if (_dnd)
             {
                 return null;
