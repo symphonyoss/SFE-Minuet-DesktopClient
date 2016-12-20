@@ -76,17 +76,18 @@ namespace Paragon.Runtime.Kernel.Plugins
 
             using (RegistryKey symphony = Registry.ClassesRoot.OpenSubKey("symphony"))
             {
-                podUrl = (string)symphony.GetValue("PodUrl", "");
-            }
-            if (!String.IsNullOrEmpty(podUrl))
-            {
-                Uri uri;
-                if (Uri.TryCreate(podUrl, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps)
+                if (symphony != null && !String.IsNullOrEmpty(podUrl))
                 {
-                    startUrl = uri.ToString();
-                    Logger.Info(string.Format("PodUrl at Registry key : {0}", startUrl));
-                }
-            }            
+                    podUrl = (string)symphony.GetValue("PodUrl", "");
+                    Uri uri;
+                    if (Uri.TryCreate(podUrl, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps)
+                    {
+                        startUrl = uri.ToString();
+                        Logger.Info(string.Format("PodUrl at Registry key : {0}", startUrl));
+                    }
+                }            
+
+            }
 
             Logger.Info(string.Format("Create window : {0}", startUrl));
             var windowManager = Application.WindowManager as IApplicationWindowManagerEx;
