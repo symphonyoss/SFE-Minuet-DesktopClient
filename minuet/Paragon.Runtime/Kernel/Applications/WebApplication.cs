@@ -547,7 +547,6 @@ namespace Paragon.Runtime.Kernel.Applications
                 var renderPluginInfo = ParagonJsonSerializer.Serialize(_renderPlugins);
                 e.InitArgs.SetString(index, renderPluginInfo);
             }
-            ParagonRuntime.RenderProcessInitialize -= OnRenderProcessInitialize;
         }
 
         /// <summary>
