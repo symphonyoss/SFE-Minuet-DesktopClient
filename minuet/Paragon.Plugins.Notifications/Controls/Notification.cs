@@ -59,6 +59,8 @@ namespace Paragon.Plugins.Notifications.Controls
             DependencyProperty.Register("Title", typeof (string), typeof (Notification), new PropertyMetadata(default(string)));
 
         private readonly DispatcherTimer blinkTimer;
+
+        private Object lockNotification = new Object();  
         
         private NotificationWindow notificationWindow;
 
@@ -91,57 +93,73 @@ namespace Paragon.Plugins.Notifications.Controls
 
             Loaded += (sender, args) =>
             {
-                originalBackground = Background;
-
-                var backgroundOverBrush = GetBackgroundOver();
-                var color = GetColor(backgroundOverBrush);
-
-                var mouseEnterAnimation = new BackgroundColorAnimationBuilder()
-                    .Duration(AnimationDurations.MouseEvents)
-                    .To(color)
-                    .Build();
-
-                var mouseLeaveAnimation = new BackgroundColorAnimationBuilder()
-                    .Duration(AnimationDurations.MouseEvents)
-                    .From(color)
-                    .Build();
-
-                mouseEnterStoryboard.Children.Add(mouseEnterAnimation);
-                mouseLeaveStoryboard.Children.Add(mouseLeaveAnimation);
-
-                if (CanBlink)
+                lock (lockNotification)
                 {
-                    blinkTimer.Start();
+                    originalBackground = Background;
+
+                    var backgroundOverBrush = GetBackgroundOver();
+                    var color = GetColor(backgroundOverBrush);
+
+                    var mouseEnterAnimation = new BackgroundColorAnimationBuilder()
+                        .Duration(AnimationDurations.MouseEvents)
+                        .To(color)
+                        .Build();
+
+                    var mouseLeaveAnimation = new BackgroundColorAnimationBuilder()
+                        .Duration(AnimationDurations.MouseEvents)
+                        .From(color)
+                        .Build();
+
+                    mouseEnterStoryboard.Children.Add(mouseEnterAnimation);
+                    mouseLeaveStoryboard.Children.Add(mouseLeaveAnimation);
+
+                    if (CanBlink)
+                    {
+                        blinkTimer.Start();
+                    }
+
+                    if (CanPlaySound)
+                    {
+                        SystemSounds.Asterisk.Play();
+                    }
+
+                    var loadAnimation = new TranslateXAnimationBuilder()
+                        .Duration(AnimationDurations.Loaded)
+                        .From(GetOffScreenXPosition())
+                        .Build();
+
+                    loadedStoryboard.Children.Add(loadAnimation);
+                    loadedStoryboard.Begin(this, true);
+
+                    //resize and move NotificationWindow.
+                    notificationWindow = GetNotificationWindow(this);
+                    if ((notificationWindow.Height + this.ActualHeight + 8) > 0)                    
+                        notificationWindow.Height += this.ActualHeight + 8;
+                    else
+                        notificationWindow.Height = 0;
+                    
+                    notificationWindow.MoveNotificationWindow();
+
                 }
-
-                if (CanPlaySound)
-                {
-                    SystemSounds.Asterisk.Play();
-                }
-
-                var loadAnimation = new TranslateXAnimationBuilder()
-                    .Duration(AnimationDurations.Loaded)
-                    .From(GetOffScreenXPosition())
-                    .Build();
-
-                loadedStoryboard.Children.Add(loadAnimation);
-                loadedStoryboard.Begin(this, true);
-
-                //resize and move NotificationWindow.
-                notificationWindow = GetNotificationWindow(this);
-                notificationWindow.Height += this.ActualHeight + 8;
-                notificationWindow.MoveNotificationWindow();
             };
 
             Unloaded += (sender, args) =>
             {
-                if (blinkTimer.IsEnabled)
+                lock (lockNotification)
                 {
-                    blinkTimer.Stop();
+                    if (blinkTimer.IsEnabled)
+                    {
+                        blinkTimer.Stop();
+                    }
+
+                    //resize and move NotificationWindow.
+                    if ((notificationWindow.Height - this.ActualHeight + 8) > 0)
+                        notificationWindow.Height -= this.ActualHeight + 8;
+                    else
+                        notificationWindow.Height = 0;
+
+                    notificationWindow.MoveNotificationWindow();
                 }
-                //resize and move NotificationWindow.
-                notificationWindow.Height -= this.ActualHeight + 8;
-                notificationWindow.MoveNotificationWindow();
             };
 
             MouseEnter += (sender, args) =>
