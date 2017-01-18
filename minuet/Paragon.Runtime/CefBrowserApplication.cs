@@ -22,7 +22,7 @@ namespace Paragon.Runtime
 {
     public sealed class CefBrowserApplication : CefApp
     {
-        public static string[] AllowedProtocols = new string[] { "http", "https", "ws", "wss", "blob" };
+        public static string[] AllowedProtocols = new string[] { "http", "https", "ws", "wss", "blob", "data" };
         private CefWebBrowserProcessHandler _browserProcessHandler;
         public event EventHandler<RenderProcessInitEventArgs> RenderProcessInitialize;
         private readonly bool _disableSpellChecking = false;
