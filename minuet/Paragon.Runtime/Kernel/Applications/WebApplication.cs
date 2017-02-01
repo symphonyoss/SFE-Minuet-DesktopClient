@@ -46,6 +46,8 @@ namespace Paragon.Runtime.Kernel.Applications
         private IBrowserSideMessageRouter _router;
         private PackagedApplicationSchemeHandlerFactory _schemeHandler;
         private bool _sessionEnding;
+        // Number of times we have tried to refresh the renderer process
+        private int _refreshAttempts;
         private ApplicationState _state = ApplicationState.Created;
         private IApplicationWindowManagerEx _windowManager;
         private RenderSidePluginData _renderPlugins;
@@ -73,7 +75,7 @@ namespace Paragon.Runtime.Kernel.Applications
             _eventPageLaunchTimeout = TimeSpan.FromSeconds(startupTimeout);
             _renderPlugins = new RenderSidePluginData() { PackagePath = Package != null ? Package.PackageFilePath : string.Empty, Plugins = new List<ApplicationPlugin>() };
             SystemEvents.SessionEnding += OnSessionEnding;
-            ParagonRuntime.RenderProcessInitialize += OnRenderProcessInitialize;
+            _refreshAttempts = 0;
         }
 
         public CefCookieManager CookieManager
@@ -336,6 +338,9 @@ namespace Paragon.Runtime.Kernel.Applications
                 // Before unloading the event page, the onSuspend() event is fired.
                 // This gives the event page opportunity to do simple clean-up tasks before the app is closed.
                 State = ApplicationState.Launched;
+
+                // Set the handler so we can do the necessary processing when render process is up and running.
+                ParagonRuntime.RenderProcessInitialize += OnRenderProcessInitialize;
                 LoadEventPage();
             }
             catch (Exception ex)
@@ -406,19 +411,22 @@ namespace Paragon.Runtime.Kernel.Applications
 
         protected virtual void OnLaunchTimerExpired(object state)
         {
-            Close();
+            // retry 3 times just in case chrome is in weird state. 
+            if (_refreshAttempts < 3)
+            {
+                // Tried to refresh but the window is not up yet. Lets do it one more time. 
+                Refresh();
+            }
+            else
+            {
+                Close();
+            }
         }
 
         private void CloseEventPage(bool closeApp)
         {
             // Fire the closed event
-            if (_windowManager != null)
-            {
-                WindowManager.NoWindowsOpen -= OnWindowManagerNoWindowsOpen;
-                _windowManager.Shutdown();
-                _windowManager = null;
-            }
-
+            
             if (_eventPageUnloadTimer != null)
             {
                 _eventPageUnloadTimer.Dispose();
@@ -428,9 +436,19 @@ namespace Paragon.Runtime.Kernel.Applications
             if (_eventPageBrowser != null)
             {
                 _eventPageBrowser.RenderProcessTerminated -= OnRenderProcessTerminated;
-                _eventPageBrowser.Close(true);
-                if( closeApp )
-                    CloseApplication();
+                    
+            }
+
+            if (closeApp)
+            {
+                // Shutdown the window manager as we are closing the app
+                if (_windowManager != null)
+                {
+                    WindowManager.NoWindowsOpen -= OnWindowManagerNoWindowsOpen;
+                    _windowManager.Shutdown();
+                    _windowManager = null;
+                }
+                CloseApplication();
             }
         }
 
@@ -470,6 +488,12 @@ namespace Paragon.Runtime.Kernel.Applications
             using (AutoStopwatch.TimeIt("Creating browser control"))
             {
                 _eventPageBrowser.CreateControl();
+            }
+
+            if (_windowManager != null)
+            {
+                // Now that a new _eventPageBrowser has been created, let window manager know about it. 
+                _windowManager.Initialize(this, _createNewWindow, () => _eventPageBrowser);
             }
         }
 
@@ -515,16 +539,31 @@ namespace Paragon.Runtime.Kernel.Applications
 
         private void OnRenderProcessTerminated(object sender, RenderProcessTerminatedEventArgs e)
         {
-            // TODO : Decide on how to handle the render process termination. If re-launching is needed, do so.
-            /*
+            // Post the message so it can be called on the main UI thread. 
+            ParagonRuntime.MainThreadContext.Post(
+                    o => ReStartRenderProcess(), null);
+        }
+
+        private void ReStartRenderProcess()
+        {
+            // Trying to re-create render process lets close the current windows etc
+            _refreshAttempts++;
+            foreach (var w in _windowManager.AllWindows)
+            {
+                w.CloseWindow();
+            }                
+
             CloseEventPage(false);
             if (_eventPageBrowser != null)
             {
-                _eventPageBrowser.Dispose();
+                _eventPageBrowser.Close();
                 _eventPageBrowser = null;
-            }
-            Launch();
-             */
+            }            
+        }
+
+        public void Refresh()
+        {
+            _eventPageBrowser.SendKillRenderer();
         }
 
         private void OnSessionEnding(object sender, SessionEndingEventArgs e)
@@ -575,7 +614,11 @@ namespace Paragon.Runtime.Kernel.Applications
             switch (_state)
             {
                 case ApplicationState.Running:
-                    _appRegistrationToken = ParagonDesktop.RegisterApp(Metadata.Id, Metadata.InstanceId);
+                    // Do it only for regular loads, not for refresh as it was already done before. 
+                    if (_refreshAttempts == 0)
+                    {
+                        _appRegistrationToken = ParagonDesktop.RegisterApp(Metadata.Id, Metadata.InstanceId);
+                    }                    
                     break;
 
                 case ApplicationState.Closed:
@@ -586,17 +629,26 @@ namespace Paragon.Runtime.Kernel.Applications
 
         protected virtual void OnWindowManagerCreatedWindow(IApplicationWindow w, bool isFirst)
         {
-            // Used by subclasses to be notified when a new window has been created.
+            // Window manager was able to create a new window, refresh has been successful.
+            _refreshAttempts = 0;
         }
 
         private void OnWindowManagerNoWindowsOpen(object sender, EventArgs e)
         {
-            if (Metadata.UpdateLaunchStatus != null)
+            if (_refreshAttempts > 0)
             {
-                Metadata.UpdateLaunchStatus("No windows created. Shutting down ...");
+                // Refresh in progress and all the windows have died, lets open a new instance
+                Launch();
             }
+            else
+            {
+                if (Metadata.UpdateLaunchStatus != null)
+                {
+                    Metadata.UpdateLaunchStatus("No windows created. Shutting down ...");
+                }
 
-            Close();
+                Close();
+            }
         }
 
         /// <summary>

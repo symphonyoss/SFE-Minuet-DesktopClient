@@ -370,6 +370,23 @@ namespace Paragon.Runtime.Plugins
         }
 
         /// <summary>
+        /// Sends a message to renderer so we can kill the renderer.
+        /// Can be called on any thread as the CEF API involved (<see cref="CefBrowser.SendProcessMessage"/>) can be called on any thread when in the browser process.
+        /// </summary>
+        /// <param name="browser">
+        /// The browser to send the response to.
+        /// </param>
+        public void SendKillRenderer(CefBrowser browser)
+        {
+            var responseMessage = new PluginMessage
+            {
+                MessageType = PluginMessageType.KillRenderer
+            };
+
+            SendMessage(browser, responseMessage);
+        }
+
+        /// <summary>
         /// Send a response to a function call, which can include the call being cancelled.
         /// Can be called on any thread as the CEF API involved (<see cref="CefBrowser.SendProcessMessage"/>) can be called on any thread when in the browser process.
         /// </summary>

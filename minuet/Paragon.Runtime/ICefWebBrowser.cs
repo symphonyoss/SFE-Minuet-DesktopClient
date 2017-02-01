@@ -214,5 +214,11 @@ namespace Paragon.Runtime
 
         // if supplied this (not null) this is the initial placement of the window
         Paragon.Runtime.Win32.RECT? initialWindowPlacement { get; }
+
+        /// <summary>
+        /// Sends a kill message to renderer process
+        /// </summary>
+        /// <param name="set"></param>
+        void SendKillRenderer();
     }
 }

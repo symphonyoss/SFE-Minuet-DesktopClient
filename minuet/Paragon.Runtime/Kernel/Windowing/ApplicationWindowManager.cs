@@ -71,6 +71,9 @@ namespace Paragon.Runtime.Kernel.Windowing
             Application = application;
             CreateNewApplicationWindow = createNewWindow;
             _getRootBrowser = getRootBrowser;
+
+            // Updating the _getRootBrowser pointer clear _rootBrowser so it gets updated.
+            _rootBrowser = null; 
         }
 
         public virtual void CreateWindow(CreateWindowRequest request)

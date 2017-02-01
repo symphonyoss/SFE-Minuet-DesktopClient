@@ -238,7 +238,7 @@ namespace Paragon.Runtime.PackagedApplication
     {
         public AppInfo()
         {
-            StartupTimeout = 10;
+            StartupTimeout = System.Diagnostics.Debugger.IsAttached ? 1000 : 10;
         }
 
         /// <summary>
