@@ -71,6 +71,7 @@ namespace Paragon.Runtime.Kernel.Windowing
             Application = application;
             CreateNewApplicationWindow = createNewWindow;
             _getRootBrowser = getRootBrowser;
+            _rootBrowser = null; 
         }
 
         public virtual void CreateWindow(CreateWindowRequest request)

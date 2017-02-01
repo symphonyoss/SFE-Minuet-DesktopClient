@@ -485,6 +485,9 @@ namespace Paragon.Runtime.Plugins
                     var payload = ParagonJsonSerializer.Deserialize<ResultData>(pluginMessage.Data);
                     OnBrowserCallbackInvokeReceived(pluginMessage, payload);
                     break;
+                case PluginMessageType.KillRenderer:
+                    System.Environment.Exit(1);
+                    break;
                 case PluginMessageType.RemoveRetained:
                     // Remove a listener in the render process (handles browser side dynamic plugin dispose scenario)
                     var retainedCallback = _pendingCallbacks.Remove(pluginMessage.MessageId);

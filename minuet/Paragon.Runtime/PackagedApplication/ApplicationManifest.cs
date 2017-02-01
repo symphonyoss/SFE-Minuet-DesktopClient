@@ -238,7 +238,11 @@ namespace Paragon.Runtime.PackagedApplication
     {
         public AppInfo()
         {
+#if DEBUG
+            StartupTimeout = 1000;
+#else 
             StartupTimeout = 10;
+#endif
         }
 
         /// <summary>

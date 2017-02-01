@@ -23,5 +23,6 @@ namespace Paragon.Runtime.Plugins
     {
         IPluginManager PluginManager { get; }
         CefListValue CreatePluginInitMessage();
+        void SendKillRenderer(CefBrowser browser);
     }
 }

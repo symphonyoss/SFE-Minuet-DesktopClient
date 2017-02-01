@@ -31,6 +31,7 @@ using Paragon.Plugins;
 using Paragon.Runtime.Annotations;
 using Paragon.Runtime.Desktop;
 using Paragon.Runtime.Kernel.HotKeys;
+using Paragon.Runtime.Kernel.Applications;
 using Paragon.Runtime.Win32;
 using Paragon.Runtime.WinForms;
 using Paragon.Runtime.WPF;
@@ -549,7 +550,8 @@ namespace Paragon.Runtime.Kernel.Windowing
         [JavaScriptPluginMember(Name = "refresh")]
         public void RefreshWindow(bool ignoreCache = true)
         {
-            DispatchIfRequired(() => _browser.Reload(ignoreCache), true);
+            WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
+            runningApp.Refresh();
         }
 
         [JavaScriptPluginMember(Name = "executeJavaScript")]

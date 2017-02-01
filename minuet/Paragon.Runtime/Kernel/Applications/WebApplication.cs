@@ -46,6 +46,7 @@ namespace Paragon.Runtime.Kernel.Applications
         private IBrowserSideMessageRouter _router;
         private PackagedApplicationSchemeHandlerFactory _schemeHandler;
         private bool _sessionEnding;
+        private bool _refreshInProgress;
         private ApplicationState _state = ApplicationState.Created;
         private IApplicationWindowManagerEx _windowManager;
         private RenderSidePluginData _renderPlugins;
@@ -73,7 +74,7 @@ namespace Paragon.Runtime.Kernel.Applications
             _eventPageLaunchTimeout = TimeSpan.FromSeconds(startupTimeout);
             _renderPlugins = new RenderSidePluginData() { PackagePath = Package != null ? Package.PackageFilePath : string.Empty, Plugins = new List<ApplicationPlugin>() };
             SystemEvents.SessionEnding += OnSessionEnding;
-            ParagonRuntime.RenderProcessInitialize += OnRenderProcessInitialize;
+            _refreshInProgress = false;
         }
 
         public CefCookieManager CookieManager
@@ -336,6 +337,7 @@ namespace Paragon.Runtime.Kernel.Applications
                 // Before unloading the event page, the onSuspend() event is fired.
                 // This gives the event page opportunity to do simple clean-up tasks before the app is closed.
                 State = ApplicationState.Launched;
+                ParagonRuntime.RenderProcessInitialize += OnRenderProcessInitialize;
                 LoadEventPage();
             }
             catch (Exception ex)
@@ -412,13 +414,7 @@ namespace Paragon.Runtime.Kernel.Applications
         private void CloseEventPage(bool closeApp)
         {
             // Fire the closed event
-            if (_windowManager != null)
-            {
-                WindowManager.NoWindowsOpen -= OnWindowManagerNoWindowsOpen;
-                _windowManager.Shutdown();
-                _windowManager = null;
-            }
-
+            
             if (_eventPageUnloadTimer != null)
             {
                 _eventPageUnloadTimer.Dispose();
@@ -428,9 +424,18 @@ namespace Paragon.Runtime.Kernel.Applications
             if (_eventPageBrowser != null)
             {
                 _eventPageBrowser.RenderProcessTerminated -= OnRenderProcessTerminated;
-                _eventPageBrowser.Close(true);
-                if( closeApp )
-                    CloseApplication();
+                    
+            }
+
+            if (closeApp)
+            {
+                if (_windowManager != null)
+                {
+                    WindowManager.NoWindowsOpen -= OnWindowManagerNoWindowsOpen;
+                    _windowManager.Shutdown();
+                    _windowManager = null;
+                }
+                CloseApplication();
             }
         }
 
@@ -470,6 +475,11 @@ namespace Paragon.Runtime.Kernel.Applications
             using (AutoStopwatch.TimeIt("Creating browser control"))
             {
                 _eventPageBrowser.CreateControl();
+            }
+
+            if (_windowManager != null)
+            {
+                _windowManager.Initialize(this, _createNewWindow, () => _eventPageBrowser);
             }
         }
 
@@ -515,16 +525,30 @@ namespace Paragon.Runtime.Kernel.Applications
 
         private void OnRenderProcessTerminated(object sender, RenderProcessTerminatedEventArgs e)
         {
-            // TODO : Decide on how to handle the render process termination. If re-launching is needed, do so.
-            /*
+            ParagonRuntime.MainThreadContext.Post(
+                    o => ReStartRenderProcess(), null);
+        }
+
+        private void ReStartRenderProcess()
+        {
+            _refreshInProgress = true;
+            foreach (var w in _windowManager.AllWindows)
+            {
+                w.CloseWindow();
+            }                
+
             CloseEventPage(false);
             if (_eventPageBrowser != null)
             {
-                _eventPageBrowser.Dispose();
+                _eventPageBrowser.Close();
                 _eventPageBrowser = null;
             }
             Launch();
-             */
+        }
+
+        public void Refresh()
+        {
+            _eventPageBrowser.SendKillRenderer();
         }
 
         private void OnSessionEnding(object sender, SessionEndingEventArgs e)
@@ -576,7 +600,10 @@ namespace Paragon.Runtime.Kernel.Applications
             switch (_state)
             {
                 case ApplicationState.Running:
-                    _appRegistrationToken = ParagonDesktop.RegisterApp(Metadata.Id, Metadata.InstanceId);
+                    if (!_refreshInProgress)
+                    {
+                        _appRegistrationToken = ParagonDesktop.RegisterApp(Metadata.Id, Metadata.InstanceId);
+                    }                    
                     break;
 
                 case ApplicationState.Closed:
@@ -588,16 +615,20 @@ namespace Paragon.Runtime.Kernel.Applications
         protected virtual void OnWindowManagerCreatedWindow(IApplicationWindow w, bool isFirst)
         {
             // Used by subclasses to be notified when a new window has been created.
+            _refreshInProgress = false;
         }
 
         private void OnWindowManagerNoWindowsOpen(object sender, EventArgs e)
         {
-            if (Metadata.UpdateLaunchStatus != null)
+            if (!_refreshInProgress)
             {
-                Metadata.UpdateLaunchStatus("No windows created. Shutting down ...");
-            }
+                if (Metadata.UpdateLaunchStatus != null)
+                {
+                    Metadata.UpdateLaunchStatus("No windows created. Shutting down ...");
+                }
 
-            Close();
+                Close();
+            }
         }
 
         /// <summary>
