@@ -86,6 +86,11 @@ namespace Paragon.Runtime.Kernel.Windowing
         public bool LaunchOnStartup { get; set; }
 
         /// <summary>
+        /// If true, app will launch when Windows starts. Defaults to false.
+        /// </summary>
+        public bool LaunchOnStartup { get; set; }
+
+        /// <summary>
         /// If true, enables the support of hot keys for this window. Defaults to false.
         /// </summary>
         public bool HotKeysEnabled { get; set; }
