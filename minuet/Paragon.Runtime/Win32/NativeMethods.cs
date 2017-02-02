@@ -310,5 +310,25 @@ namespace Paragon.Runtime.Win32
 
         [DllImport("clrdump.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern Int32 CreateDump(Int32 processId, string fileName, Int32 dumpType, Int32 excThreadId, IntPtr extPtrs);
+
+        [DllImport("Shell32.dll")]
+        public static extern int SHGetKnownFolderPath(
+            [MarshalAs(UnmanagedType.LPStruct)]Guid rfid, uint dwFlags, IntPtr hToken,
+            out IntPtr ppszPath);
+
+        [Flags]
+        public enum KnownFolderFlags : uint
+        {
+            SimpleIDList = 0x00000100,
+            NotParentRelative = 0x00000200,
+            DefaultPath = 0x00000400,
+            Init = 0x00000800,
+            NoAlias = 0x00001000,
+            DontUnexpand = 0x00002000,
+            DontVerify = 0x00004000,
+            Create = 0x00008000,
+            NoAppcontainerRedirection = 0x00010000,
+            AliasOnly = 0x80000000
+        }
     }
 }
