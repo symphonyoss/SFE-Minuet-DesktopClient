@@ -1210,11 +1210,22 @@ namespace Paragon.Runtime.Kernel.Windowing
         string getDownLoadFullPath(string fileName)
         {
 
-            string pathUser = Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
-            string pathDownload = Path.Combine(pathUser, "Downloads");
+            string pathDownload = null;
 
-            // fall back to a temp file if directory doesn't exist or doesn't have write permissions
-            if (!System.IO.Directory.Exists(pathDownload) || !hasDirWritePerms(pathDownload))
+
+            IntPtr outPath;
+            String DownloadFolderGuid = "{374DE290-123F-4565-9164-39C4925E467B}";
+            Boolean defaultUser = false;
+            
+            int result = NativeMethods.SHGetKnownFolderPath(new Guid(DownloadFolderGuid),
+                (uint)NativeMethods.KnownFolderFlags.DontVerify, new IntPtr(defaultUser ? -1 : 0), out outPath);
+            
+            if (result >= 0)
+            {
+                pathDownload = Marshal.PtrToStringUni(outPath);
+            }
+
+            if (String.IsNullOrEmpty(pathDownload) || !System.IO.Directory.Exists(pathDownload) || !hasDirWritePerms(pathDownload))
             {
                 string newfileName = Path.GetTempFileName();
                 string newFullPath = System.IO.Path.ChangeExtension(newfileName, System.IO.Path.GetExtension(fileName));
