@@ -550,6 +550,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         [JavaScriptPluginMember(Name = "refresh")]
         public void RefreshWindow(bool ignoreCache = true)
         {
+            // Refreshing should restart this app, let weapplication know about it.
             WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
             runningApp.Refresh();
         }
@@ -1584,7 +1585,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private void Reload(bool ignoreCache)
         {
-            _browser.Reload(ignoreCache);
+            RefreshWindow(ignoreCache);
         }
 
         private void ShowPopup(object sender, ShowPopupEventArgs eventArgs)

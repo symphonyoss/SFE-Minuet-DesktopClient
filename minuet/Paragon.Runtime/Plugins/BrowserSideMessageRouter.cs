@@ -376,12 +376,6 @@ namespace Paragon.Runtime.Plugins
         /// <param name="browser">
         /// The browser to send the response to.
         /// </param>
-        /// <param name="invocationMessage">
-        /// The message that requested the function call.
-        /// </param>
-        /// <param name="result">
-        /// The result of the function (result, errorCode, error).
-        /// </param>
         public void SendKillRenderer(CefBrowser browser)
         {
             var responseMessage = new PluginMessage

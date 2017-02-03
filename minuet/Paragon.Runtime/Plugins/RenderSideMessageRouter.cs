@@ -486,6 +486,7 @@ namespace Paragon.Runtime.Plugins
                     OnBrowserCallbackInvokeReceived(pluginMessage, payload);
                     break;
                 case PluginMessageType.KillRenderer:
+                    // We have been asked to kill ourselves, lets exit the process
                     System.Environment.Exit(1);
                     break;
                 case PluginMessageType.RemoveRetained:
