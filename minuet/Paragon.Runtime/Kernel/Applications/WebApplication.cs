@@ -46,7 +46,7 @@ namespace Paragon.Runtime.Kernel.Applications
         private IBrowserSideMessageRouter _router;
         private PackagedApplicationSchemeHandlerFactory _schemeHandler;
         private bool _sessionEnding;
-        private bool _refreshInProgress;
+        private int _refreshAttempts;
         private ApplicationState _state = ApplicationState.Created;
         private IApplicationWindowManagerEx _windowManager;
         private RenderSidePluginData _renderPlugins;
@@ -74,7 +74,7 @@ namespace Paragon.Runtime.Kernel.Applications
             _eventPageLaunchTimeout = TimeSpan.FromSeconds(startupTimeout);
             _renderPlugins = new RenderSidePluginData() { PackagePath = Package != null ? Package.PackageFilePath : string.Empty, Plugins = new List<ApplicationPlugin>() };
             SystemEvents.SessionEnding += OnSessionEnding;
-            _refreshInProgress = false;
+            _refreshAttempts = 0;
         }
 
         public CefCookieManager CookieManager
@@ -408,7 +408,16 @@ namespace Paragon.Runtime.Kernel.Applications
 
         protected virtual void OnLaunchTimerExpired(object state)
         {
-            Close();
+            // retry 3 times just in case chrome is in weird state. 
+            if (_refreshAttempts < 3)
+            {
+                // Tried to refresh but the window is not up yet. Lets do it one more time. 
+                Refresh();
+            }
+            else
+            {
+                Close();
+            }
         }
 
         private void CloseEventPage(bool closeApp)
@@ -531,7 +540,7 @@ namespace Paragon.Runtime.Kernel.Applications
 
         private void ReStartRenderProcess()
         {
-            _refreshInProgress = true;
+            _refreshAttempts++;
             foreach (var w in _windowManager.AllWindows)
             {
                 w.CloseWindow();
@@ -542,8 +551,7 @@ namespace Paragon.Runtime.Kernel.Applications
             {
                 _eventPageBrowser.Close();
                 _eventPageBrowser = null;
-            }
-            Launch();
+            }            
         }
 
         public void Refresh()
@@ -600,7 +608,7 @@ namespace Paragon.Runtime.Kernel.Applications
             switch (_state)
             {
                 case ApplicationState.Running:
-                    if (!_refreshInProgress)
+                    if (_refreshAttempts == 0)
                     {
                         _appRegistrationToken = ParagonDesktop.RegisterApp(Metadata.Id, Metadata.InstanceId);
                     }                    
@@ -615,12 +623,12 @@ namespace Paragon.Runtime.Kernel.Applications
         protected virtual void OnWindowManagerCreatedWindow(IApplicationWindow w, bool isFirst)
         {
             // Used by subclasses to be notified when a new window has been created.
-            _refreshInProgress = false;
+            _refreshAttempts = 0;
         }
 
         private void OnWindowManagerNoWindowsOpen(object sender, EventArgs e)
         {
-            if (!_refreshInProgress)
+            if (_refreshAttempts == 0)
             {
                 if (Metadata.UpdateLaunchStatus != null)
                 {
@@ -628,6 +636,11 @@ namespace Paragon.Runtime.Kernel.Applications
                 }
 
                 Close();
+            }
+            else
+            {
+                // All the windows died, lets open a new instance
+                Launch();
             }
         }
 
