@@ -68,5 +68,10 @@ namespace Paragon.Runtime.Plugins
         /// Remove a retained callback or listener
         /// </summary>
         RemoveRetained = 256,
+
+        /// <summary>
+        /// Kill the Renderer process so we can start cleanly
+        /// </summary>
+        KillRenderer = 512,
     }
 }

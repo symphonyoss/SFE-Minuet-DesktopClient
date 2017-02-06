@@ -153,6 +153,11 @@ namespace Paragon.Runtime.WPF
             }
         }
 
+        public void SendKillRenderer()
+        {
+            _router.SendKillRenderer(_browser);
+        }
+
         public void Close(bool force = false)
         {
             Logger.Info("Closing browser {0}", Identifier);

@@ -50,7 +50,7 @@ namespace Paragon.Runtime.Plugins
                     Data = args.GetString(4), 
                     BrowserId = args.GetInt(5), 
                     ContextId = args.GetInt(6), 
-                    FrameId = (args.GetInt(8) << 32) | ((long) (args.GetInt(7))), 
+                    FrameId = (long) ((ulong) (args.GetInt(8) << 32) | ((ulong) (args.GetInt(7)))), 
                     V8CallbackId = new Guid(args.GetString(9))
                 };
 
@@ -91,7 +91,7 @@ namespace Paragon.Runtime.Plugins
                 Data = args.GetString(4),
                 BrowserId = args.GetInt(5),
                 ContextId = args.GetInt(6),
-                FrameId = (args.GetInt(8) << 32) | ((long) (args.GetInt(7))),
+                FrameId = (long) ((ulong) (args.GetInt(8) << 32) | (( ulong) (args.GetInt(7)))),
                 V8CallbackId = new Guid(args.GetString(9))
             };
         }
