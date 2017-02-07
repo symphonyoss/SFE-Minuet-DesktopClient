@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2017 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -40,12 +40,12 @@
 
 #include "include/capi/cef_base_capi.h"
 #include "include/capi/cef_values_capi.h"
+#include "include/capi/cef_x509_certificate_capi.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct _cef_x509certificate_t;
 
 ///
 // Structure representing the SSL information for a navigation entry.

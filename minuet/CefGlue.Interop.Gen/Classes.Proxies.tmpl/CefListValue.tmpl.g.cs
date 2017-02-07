@@ -102,7 +102,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Removes the value at the specified index.
         /// </summary>
-        public int Remove(int index)
+        public int Remove(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.Remove
         }
@@ -110,7 +110,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Returns the value type at the specified index.
         /// </summary>
-        public CefValueType GetType(int index)
+        public CefValueType GetType(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.GetType
         }
@@ -122,7 +122,7 @@ namespace Xilium.CefGlue
         /// returned value will reference existing data and modifications to the value
         /// will modify this object.
         /// </summary>
-        public cef_value_t* GetValue(int index)
+        public cef_value_t* GetValue(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.GetValue
         }
@@ -130,7 +130,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Returns the value at the specified index as type bool.
         /// </summary>
-        public int GetBool(int index)
+        public int GetBool(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.GetBool
         }
@@ -138,7 +138,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Returns the value at the specified index as type int.
         /// </summary>
-        public int GetInt(int index)
+        public int GetInt(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.GetInt
         }
@@ -146,7 +146,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Returns the value at the specified index as type double.
         /// </summary>
-        public double GetDouble(int index)
+        public double GetDouble(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.GetDouble
         }
@@ -154,7 +154,7 @@ namespace Xilium.CefGlue
         /// <summary>
         /// Returns the value at the specified index as type string.
         /// </summary>
-        public cef_string_userfree* GetString(int index)
+        public cef_string_userfree* GetString(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.GetString
         }
@@ -163,7 +163,7 @@ namespace Xilium.CefGlue
         /// Returns the value at the specified index as type binary. The returned
         /// value will reference existing data.
         /// </summary>
-        public cef_binary_value_t* GetBinary(int index)
+        public cef_binary_value_t* GetBinary(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.GetBinary
         }
@@ -173,7 +173,7 @@ namespace Xilium.CefGlue
         /// value will reference existing data and modifications to the value will
         /// modify this object.
         /// </summary>
-        public cef_dictionary_value_t* GetDictionary(int index)
+        public cef_dictionary_value_t* GetDictionary(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.GetDictionary
         }
@@ -183,7 +183,7 @@ namespace Xilium.CefGlue
         /// value will reference existing data and modifications to the value will
         /// modify this object.
         /// </summary>
-        public cef_list_value_t* GetList(int index)
+        public cef_list_value_t* GetList(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.GetList
         }
@@ -196,7 +196,7 @@ namespace Xilium.CefGlue
         /// underlying data will be referenced and modifications to |value| will modify
         /// this object.
         /// </summary>
-        public int SetValue(int index, cef_value_t* value)
+        public int SetValue(UIntPtr index, cef_value_t* value)
         {
             throw new NotImplementedException(); // TODO: CefListValue.SetValue
         }
@@ -205,7 +205,7 @@ namespace Xilium.CefGlue
         /// Sets the value at the specified index as type null. Returns true if the
         /// value was set successfully.
         /// </summary>
-        public int SetNull(int index)
+        public int SetNull(UIntPtr index)
         {
             throw new NotImplementedException(); // TODO: CefListValue.SetNull
         }
@@ -214,7 +214,7 @@ namespace Xilium.CefGlue
         /// Sets the value at the specified index as type bool. Returns true if the
         /// value was set successfully.
         /// </summary>
-        public int SetBool(int index, int value)
+        public int SetBool(UIntPtr index, int value)
         {
             throw new NotImplementedException(); // TODO: CefListValue.SetBool
         }
@@ -223,7 +223,7 @@ namespace Xilium.CefGlue
         /// Sets the value at the specified index as type int. Returns true if the
         /// value was set successfully.
         /// </summary>
-        public int SetInt(int index, int value)
+        public int SetInt(UIntPtr index, int value)
         {
             throw new NotImplementedException(); // TODO: CefListValue.SetInt
         }
@@ -232,7 +232,7 @@ namespace Xilium.CefGlue
         /// Sets the value at the specified index as type double. Returns true if the
         /// value was set successfully.
         /// </summary>
-        public int SetDouble(int index, double value)
+        public int SetDouble(UIntPtr index, double value)
         {
             throw new NotImplementedException(); // TODO: CefListValue.SetDouble
         }
@@ -241,7 +241,7 @@ namespace Xilium.CefGlue
         /// Sets the value at the specified index as type string. Returns true if the
         /// value was set successfully.
         /// </summary>
-        public int SetString(int index, cef_string_t* value)
+        public int SetString(UIntPtr index, cef_string_t* value)
         {
             throw new NotImplementedException(); // TODO: CefListValue.SetString
         }
@@ -253,7 +253,7 @@ namespace Xilium.CefGlue
         /// Otherwise, ownership will be transferred to this object and the |value|
         /// reference will be invalidated.
         /// </summary>
-        public int SetBinary(int index, cef_binary_value_t* value)
+        public int SetBinary(UIntPtr index, cef_binary_value_t* value)
         {
             throw new NotImplementedException(); // TODO: CefListValue.SetBinary
         }
@@ -265,7 +265,7 @@ namespace Xilium.CefGlue
         /// Otherwise, ownership will be transferred to this object and the |value|
         /// reference will be invalidated.
         /// </summary>
-        public int SetDictionary(int index, cef_dictionary_value_t* value)
+        public int SetDictionary(UIntPtr index, cef_dictionary_value_t* value)
         {
             throw new NotImplementedException(); // TODO: CefListValue.SetDictionary
         }
@@ -277,7 +277,7 @@ namespace Xilium.CefGlue
         /// Otherwise, ownership will be transferred to this object and the |value|
         /// reference will be invalidated.
         /// </summary>
-        public int SetList(int index, cef_list_value_t* value)
+        public int SetList(UIntPtr index, cef_list_value_t* value)
         {
             throw new NotImplementedException(); // TODO: CefListValue.SetList
         }
