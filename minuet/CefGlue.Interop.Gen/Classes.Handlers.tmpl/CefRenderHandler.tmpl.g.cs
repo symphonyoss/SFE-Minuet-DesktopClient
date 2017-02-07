@@ -163,5 +163,18 @@ namespace Xilium.CefGlue
         /// </summary>
         // protected abstract void OnScrollOffsetChanged(cef_browser_t* browser, double x, double y);
         
+        private void on_ime_composition_range_changed(cef_render_handler_t* self, cef_browser_t* browser, cef_range_t* selected_range, UIntPtr character_boundsCount, cef_rect_t* character_bounds)
+        {
+            CheckSelf(self);
+            throw new NotImplementedException(); // TODO: CefRenderHandler.OnImeCompositionRangeChanged
+        }
+        
+        /// <summary>
+        /// Called when the IME composition range has changed. |selected_range| is the
+        /// range of characters that have been selected. |character_bounds| is the
+        /// bounds of each character in view coordinates.
+        /// </summary>
+        // protected abstract void OnImeCompositionRangeChanged(cef_browser_t* browser, cef_range_t* selected_range, UIntPtr character_boundsCount, cef_rect_t* character_bounds);
+        
     }
 }
