@@ -43,6 +43,9 @@ namespace Paragon.Runtime
 
         protected override void OnBeforeCommandLineProcessing(string processType, CefCommandLine commandLine)
         {
+            // Prevent a separate gpu-process renderer process from being started.
+            commandLine.AppendSwitch("--in-process-gpu");
+            
             if (_enableMediaStream)
                 commandLine.AppendSwitch("--enable-media-stream");
 
