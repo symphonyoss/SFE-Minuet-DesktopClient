@@ -76,6 +76,15 @@ namespace Xilium.CefGlue
         }
         
         /// <summary>
+        /// Returns the title text or the alt text if the context menu was invoked on
+        /// an image.
+        /// </summary>
+        public cef_string_userfree* GetTitleText()
+        {
+            throw new NotImplementedException(); // TODO: CefContextMenuParams.GetTitleText
+        }
+        
+        /// <summary>
         /// Returns the URL of the top level page that the context menu was invoked on.
         /// </summary>
         public cef_string_userfree* GetPageUrl()
