@@ -76,7 +76,7 @@ namespace Paragon.Runtime.Kernel.Plugins
 
             using (RegistryKey symphony = Registry.ClassesRoot.OpenSubKey("symphony"))
             {
-                if (symphony != null && !String.IsNullOrEmpty(podUrl))
+                if (symphony != null)
                 {
                     podUrl = (string)symphony.GetValue("PodUrl", "");
                     Uri uri;
