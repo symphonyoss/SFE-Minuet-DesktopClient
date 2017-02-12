@@ -1169,17 +1169,18 @@ namespace Paragon.Runtime.Kernel.Windowing
         private void OnBeginDownload(object sender, BeginDownloadEventArgs e)
         {
             OnBeforeDownload(e);
-            
-            DispatchIfRequired(new Action(delegate
-            {
-                downloadCtrl.Visibility = System.Windows.Visibility.Visible;
-            }),true);
 
-            if (BeginDownload != null)
-            {
-                BeginDownload(this, e);
+            if (e.IsValid) {
+                DispatchIfRequired(new Action(delegate
+                {
+                    downloadCtrl.Visibility = System.Windows.Visibility.Visible;
+                }),true);
+
+                if (BeginDownload != null)
+                {
+                    BeginDownload(this, e);
+                }
             }
-
         }
 
         #region downloaderHandler
@@ -1230,9 +1231,23 @@ namespace Paragon.Runtime.Kernel.Windowing
 
             if (String.IsNullOrEmpty(pathDownload) || !System.IO.Directory.Exists(pathDownload) || !hasDirWritePerms(pathDownload))
             {
-                string newfileName = Path.GetTempFileName();
-                string newFullPath = System.IO.Path.ChangeExtension(newfileName, System.IO.Path.GetExtension(fileName));
-                return newFullPath;
+                using (var folderDialog = new System.Windows.Forms.SaveFileDialog())
+                {
+                    folderDialog.Filter = "All files (*.*)|*.*";
+                    folderDialog.Title = "Save As";
+                    folderDialog.FileName = fileName;
+                    folderDialog.OverwritePrompt = false;
+                    System.Windows.Forms.DialogResult option = folderDialog.ShowDialog();
+
+                    if (option == System.Windows.Forms.DialogResult.OK && !String.IsNullOrEmpty(folderDialog.FileName))
+                    {
+                        return folderDialog.FileName;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
             }
 
             return Path.Combine(pathDownload, fileName);
@@ -1295,15 +1310,22 @@ namespace Paragon.Runtime.Kernel.Windowing
 
                 string fullPath = getDownLoadFullPath(e.SuggestedName);
 
-                fullPath = GetUniqueFileName(fullPath);
-
-                e.SuggestedName = Path.GetFileName(fullPath);
-
-                e.DownloadPath = fullPath;
-                DispatchIfRequired(new Action(delegate
+                if (!String.IsNullOrEmpty(fullPath))
                 {
-                    downloadCtrl.AddItem(e.Id, e.SuggestedName, e.DownloadPath, e.RecvdBytes, e.IsComplete, e.IsCanceled);
-                }), true);
+                    fullPath = GetUniqueFileName(fullPath);
+
+                    e.SuggestedName = Path.GetFileName(fullPath);
+
+                    e.DownloadPath = fullPath;
+                    DispatchIfRequired(new Action(delegate
+                    {
+                        downloadCtrl.AddItem(e.Id, e.SuggestedName, e.DownloadPath, e.RecvdBytes, e.IsComplete, e.IsCanceled);
+                    }), true);
+                }
+                else
+                {
+                    e.IsValid = false;
+                }
             }
         }
 
