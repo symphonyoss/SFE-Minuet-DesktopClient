@@ -1181,7 +1181,6 @@ namespace Paragon.Runtime.Kernel.Windowing
                     BeginDownload(this, e);
                 }
             }
-
         }
 
         #region downloaderHandler
