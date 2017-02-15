@@ -719,7 +719,7 @@ namespace Paragon.Runtime.WPF
                     {
                         var html = StaticWebContent.GetInvalidCertErrorPage(e.FailedUrl);
                         e.Frame.LoadString(html, PackagedApplicationSchemeHandlerFactory.ErrorPage);
-                        Logger.Error("Unable to load the main frame due to an invalid certifiate: " + e.FailedUrl);
+                        Logger.Error("Unable to load the main frame due to an invalid certifiate: " + e.FailedUrl + ", error code: " + e.ErrorCode + ", error text: " + e.ErrorText);
                     }
                     else if (_mainFrameResourceNotAccessible)
                     {
