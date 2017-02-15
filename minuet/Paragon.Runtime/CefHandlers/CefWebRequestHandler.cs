@@ -63,7 +63,7 @@ namespace Paragon.Runtime
             // Note that OnCertificateError is only called when the top-level resource (the html page being loaded)
             // has a certificate problem. Any additional resources loaded by the main frame will not trigger this callback.
             _core.OnCertificateError();
-            Logger.Error("Failed to load resource due to an invalid certificate: " + requestUrl);
+            Logger.Error("Failed to load resource due to an invalid certificate: " + requestUrl + " with error code: " + certError.ToString());
             return base.OnCertificateError(browser, certError, requestUrl, sslInfo, callback);
         }
 
