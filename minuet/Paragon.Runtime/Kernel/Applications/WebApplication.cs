@@ -78,6 +78,7 @@ namespace Paragon.Runtime.Kernel.Applications
             _refreshAttempts = 0;
         }
 
+        public string RefreshUrl { get; set; }
         public CefCookieManager CookieManager
         {
             get { return CefCookieManager.GetGlobal(null); }
@@ -415,7 +416,7 @@ namespace Paragon.Runtime.Kernel.Applications
             if (_refreshAttempts < 3)
             {
                 // Tried to refresh but the window is not up yet. Lets do it one more time. 
-                Refresh();
+                Refresh(RefreshUrl);
             }
             else
             {
@@ -561,8 +562,9 @@ namespace Paragon.Runtime.Kernel.Applications
             }            
         }
 
-        public void Refresh()
+        public void Refresh(string url)
         {
+            RefreshUrl = url;
             _eventPageBrowser.SendKillRenderer();
         }
 
@@ -631,6 +633,7 @@ namespace Paragon.Runtime.Kernel.Applications
         {
             // Window manager was able to create a new window, refresh has been successful.
             _refreshAttempts = 0;
+            RefreshUrl = null;
         }
 
         private void OnWindowManagerNoWindowsOpen(object sender, EventArgs e)
