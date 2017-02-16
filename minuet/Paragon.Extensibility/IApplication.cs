@@ -29,6 +29,7 @@ namespace Paragon.Plugins
         IApplicationPackage Package { get; }
         string Name { get; }
         string WorkspaceId { get; }
+        string RefreshUrl { get; }
         IApplicationMetadata Metadata { get; }
         IApplicationWindowManager WindowManager { get; }
         List<IParagonPlugin> Plugins { get; }

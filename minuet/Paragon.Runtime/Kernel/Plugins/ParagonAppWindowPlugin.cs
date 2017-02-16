@@ -72,21 +72,25 @@ namespace Paragon.Runtime.Kernel.Plugins
         [JavaScriptPluginMember, UsedImplicitly]
         public void Create(string startUrl, CreateWindowOptions options, JavaScriptPluginCallback callback)
         {
-            String podUrl = "";
-
-            using (RegistryKey symphony = Registry.ClassesRoot.OpenSubKey("symphony"))
+            if( Application.RefreshUrl != null) 
             {
-                if (symphony != null)
+                startUrl = Application.RefreshUrl;
+            }
+            else 
+            {
+                using (RegistryKey symphony = Registry.ClassesRoot.OpenSubKey("symphony"))
                 {
-                    podUrl = (string)symphony.GetValue("PodUrl", "");
-                    Uri uri;
-                    if (Uri.TryCreate(podUrl, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps)
+                    if (symphony != null)
                     {
-                        startUrl = uri.ToString();
-                        Logger.Info(string.Format("PodUrl at Registry key : {0}", startUrl));
-                    }
-                }            
-
+                        String podUrl = (string)symphony.GetValue("PodUrl", "");
+                        Uri uri;
+                        if (Uri.TryCreate(podUrl, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps)
+                        {
+                            startUrl = uri.ToString();
+                            Logger.Info(string.Format("PodUrl at Registry key : {0}", startUrl));
+                        }
+                    }            
+                }
             }
 
             Logger.Info(string.Format("Create window : {0}", startUrl));

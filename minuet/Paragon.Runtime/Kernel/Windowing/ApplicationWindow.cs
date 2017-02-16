@@ -552,7 +552,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         {
             // Refreshing should restart this app, let weapplication know about it.
             WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
-            runningApp.Refresh();
+            runningApp.Refresh(_browser.Source);
         }
 
         [JavaScriptPluginMember(Name = "executeJavaScript")]

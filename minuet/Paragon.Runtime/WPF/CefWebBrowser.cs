@@ -131,7 +131,7 @@ namespace Paragon.Runtime.WPF
 
         public string Source
         {
-            get { return _sourceUrl; }
+            get { return _browser.GetMainFrame().Url; } // Get the actual URL where we are. 
             set
             {
                 if (!_sourceUrl.Equals(value))
