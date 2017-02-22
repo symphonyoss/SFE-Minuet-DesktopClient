@@ -65,7 +65,8 @@ namespace Paragon.Runtime.Plugins
 
                     var v8Callback = CefV8Value.CreateUndefined();
                     var parameters = arguments;
-
+                    
+                    //Check if callback is passed on last argument. Backward compatibility.
                     if (arguments != null && arguments.Length != 0 && arguments[arguments.Length - 1].IsFunction)
                     {
                         v8Callback = arguments[arguments.Length - 1];
@@ -73,6 +74,7 @@ namespace Paragon.Runtime.Plugins
                     }
                     else
                     {
+                        //Check if callback is passed on first argument. RTC-671.
                         if (arguments != null && arguments.Length != 0 && arguments[0].IsFunction)
                         {
                             v8Callback = arguments[0];
