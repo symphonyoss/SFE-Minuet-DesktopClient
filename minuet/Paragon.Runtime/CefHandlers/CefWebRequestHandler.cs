@@ -62,11 +62,23 @@ namespace Paragon.Runtime
         {
             // Note that OnCertificateError is only called when the top-level resource (the html page being loaded)
             // has a certificate problem. Any additional resources loaded by the main frame will not trigger this callback.
-            _core.OnCertificateError();
             Logger.Error("Failed to load resource due to an invalid certificate: " + requestUrl + " with error code: " + certError.ToString());
             Logger.Error("Cert Status: " + sslInfo.CertStatus.ToString());
-            if (sslInfo.CertStatus == CefCertStatus.CTComplianceFailed)
-                Logger.Error("Cert Error: Certificate Compliance check failed.");
+            if (((sslInfo.CertStatus & CefCertStatus.CTComplianceFailed) != CefCertStatus.None) || 
+                ((sslInfo.CertStatus & CefCertStatus.CTCompliancedRequired) != CefCertStatus.None))
+            {
+                // DES-12985: add command line option to ignore certificate tranparency errors
+                string[] args = Environment.GetCommandLineArgs();
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i] == "--ignore-ct-errors")
+                    {
+                        Logger.Error("Ignoring certificate transparency errors");
+                        return true;
+                    }
+                }
+            }
+            _core.OnCertificateError();
             return base.OnCertificateError(browser, certError, requestUrl, sslInfo, callback);
         }
 
