@@ -72,6 +72,8 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private Grid _mainPanel;
 
+        private const string MAIN_WINDOW_ID = "main";
+
         public ApplicationWindow()
         {
             Activated += ApplicationWindow_Activated;
@@ -550,16 +552,27 @@ namespace Paragon.Runtime.Kernel.Windowing
         [JavaScriptPluginMember(Name = "refresh")]
         public void RefreshWindow(bool ignoreCache = true)
         {
-            // Refreshing should restart this app, let weapplication know about it.
-            WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
-            runningApp.Refresh(_browser.Source);
+            if (GetId() == MAIN_WINDOW_ID)
+            {
+                // Refreshing should restart this app, let weapplication know about it.
+                WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
+                runningApp.Refresh(_browser.Source);
+            }
+            else
+            {
+                foreach (var applicationWindow in _windowManager.AllWindows)
+                {
+                    if (applicationWindow.GetId() == MAIN_WINDOW_ID)
+                        applicationWindow.RefreshWindow(ignoreCache);
+                }
+            }
         }
 
         [JavaScriptPluginMember(Name = "executeJavaScript")]
         public void ExecuteJavaScript(string script)
         {
             DispatchIfRequired(() => _browser.ExecuteJavaScript(script), true);
-        }
+        }       
 
         public IntPtr Handle
         {
