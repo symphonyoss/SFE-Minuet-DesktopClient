@@ -64,6 +64,9 @@ namespace Paragon.Runtime
             // has a certificate problem. Any additional resources loaded by the main frame will not trigger this callback.
             _core.OnCertificateError();
             Logger.Error("Failed to load resource due to an invalid certificate: " + requestUrl + " with error code: " + certError.ToString());
+            Logger.Error("Cert Status: " + sslInfo.CertStatus.ToString());
+            if (sslInfo.CertStatus == CefCertStatus.CTComplianceFailed)
+                Logger.Error("Cert Error: Certificate Compliance check failed.");
             return base.OnCertificateError(browser, certError, requestUrl, sslInfo, callback);
         }
 
