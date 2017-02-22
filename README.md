@@ -35,3 +35,6 @@ Note that the `/start-app` switch can not take a relative path.
 ```powershell
 $ call "bin/paragon/paragon.exe" /start-app:"C:/full-path-to-sample-pgx/bin/apps/sample.pgx"
 ```
+## License
+
+This project is distributed under the Apache License v2. See [LICENSE](./LICENSE) and [NOTICE](./NOTICE) for additional licensing information.
