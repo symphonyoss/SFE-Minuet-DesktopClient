@@ -63,11 +63,26 @@ namespace Paragon.Runtime.Plugins
 
                     var context = CefV8Context.GetCurrentContext();
 
-                    var v8Callback = arguments != null && arguments.Length != 0 && arguments[arguments.Length - 1].IsFunction
-                        ? arguments[arguments.Length - 1]
-                        : null;
-                    var parameters = v8Callback != null ? arguments.Take(arguments.Length - 1).ToArray() : arguments;
+                    var v8Callback = CefV8Value.CreateUndefined();
+                    var parameters = arguments;
 
+                    if (arguments != null && arguments.Length != 0 && arguments[arguments.Length - 1].IsFunction)
+                    {
+                        v8Callback = arguments[arguments.Length - 1];
+                        parameters = v8Callback != null ? arguments.Take(arguments.Length - 1).ToArray() : arguments;
+                    }
+                    else
+                    {
+                        if (arguments != null && arguments.Length != 0 && arguments[0].IsFunction)
+                        {
+                            v8Callback = arguments[0];
+                            parameters = v8Callback != null && arguments.Length > 1 ? arguments.Skip(1).ToArray() : arguments;
+                        }
+                        else
+                        {
+                            v8Callback = null;
+                        }
+                    }
                     _plugin.ExecuteFunction(context, name, parameters, v8Callback, out returnValue, out exception);
                     return true;
                 }
