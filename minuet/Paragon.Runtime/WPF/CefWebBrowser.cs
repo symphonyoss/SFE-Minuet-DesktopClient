@@ -57,6 +57,7 @@ namespace Paragon.Runtime.WPF
         private string _name = Guid.NewGuid().ToString();
         private IBrowserSideMessageRouter _router;
         private string _sourceUrl = "about:blank";
+        private System.Threading.Timer _newWindowTimer;
 
         public event EventHandler<BrowserCreateEventArgs> BeforeBrowserCreate;
         public event EventHandler<ContextMenuEventArgs> BeforeContextMenu;
@@ -362,6 +363,11 @@ namespace Paragon.Runtime.WPF
                     _browser.Dispose();
                     _browser = null;
                 }
+                if (_newWindowTimer != null)
+                {
+                    _newWindowTimer.Dispose();
+                    _newWindowTimer = null;
+                }
                 _browserWindowHandle = IntPtr.Zero;
             }
         }
@@ -560,18 +566,12 @@ namespace Paragon.Runtime.WPF
             }
         }
 
-        void ICefWebBrowserInternal.OnBrowserAfterCreated(CefBrowser browser)
+        protected virtual void CreateBrowserWindow(object state)
         {
             this.DispatchIfRequired(() =>
             {
                 try
                 {
-                    if (_browser != null)
-                    {
-                        return;
-                    }
-
-                    _browser = browser;
                     using (var browserHost = _browser.GetHost())
                     {
                         _browserWindowHandle = browserHost.GetWindowHandle();
@@ -584,7 +584,7 @@ namespace Paragon.Runtime.WPF
 
                     if (!IsPopup)
                     {
-                        if( BrowserAfterCreated != null )
+                        if (BrowserAfterCreated != null)
                             BrowserAfterCreated(this, EventArgs.Empty);
                     }
                     else
@@ -612,6 +612,18 @@ namespace Paragon.Runtime.WPF
                     throw;
                 }
             }, true);
+        }
+
+        void ICefWebBrowserInternal.OnBrowserAfterCreated(CefBrowser browser)
+        {
+            if (_browser != null)
+            {
+                return;
+            }
+
+            _browser = browser;
+
+            _newWindowTimer = new System.Threading.Timer(CreateBrowserWindow, this, 100, Timeout.Infinite);
         }
 
         void ICefWebBrowserInternal.OnClosed(CefBrowser browser)
