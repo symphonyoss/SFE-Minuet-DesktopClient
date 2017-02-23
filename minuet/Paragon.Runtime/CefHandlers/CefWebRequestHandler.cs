@@ -74,6 +74,7 @@ namespace Paragon.Runtime
                     if (args[i] == "--ignore-ct-errors")
                     {
                         Logger.Error("Ignoring certificate transparency errors");
+                        callback.Continue(true);
                         return true;
                     }
                 }
