@@ -623,6 +623,8 @@ namespace Paragon.Runtime.WPF
 
             _browser = browser;
 
+            // We are called by CEF in this callback. Let's create a timer and return immediately.
+            // This helps with not dead locking while creating the browser window
             _newWindowTimer = new System.Threading.Timer(CreateBrowserWindow, this, 100, Timeout.Infinite);
         }
 
