@@ -1451,10 +1451,13 @@ namespace Paragon.Runtime.Kernel.Windowing
             if (_browser != null)
             {
                 DetachFromBrowser();
-                
-                //Remove Download Control from App Window
-                _mainPanel.Children.Remove(downloadCtrl);
 
+                if (_mainPanel != null && _mainPanel.Children != null)
+                {
+                    //Remove Download Control from App Window
+                    _mainPanel.Children.Remove(downloadCtrl);
+                }
+                
                 _browser.BrowserClosed -= OnBrowserClosed;
                 _browser.Dispose();
                 _browser = null;

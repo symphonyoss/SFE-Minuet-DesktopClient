@@ -632,8 +632,11 @@ namespace Paragon.Runtime.Kernel.Applications
         protected virtual void OnWindowManagerCreatedWindow(IApplicationWindow w, bool isFirst)
         {
             // Window manager was able to create a new window, refresh has been successful.
-            _refreshAttempts = 0;
-            RefreshUrl = null;
+            if (isFirst)
+            {
+                _refreshAttempts = 0;
+                RefreshUrl = null;
+            }
         }
 
         private void OnWindowManagerNoWindowsOpen(object sender, EventArgs e)
