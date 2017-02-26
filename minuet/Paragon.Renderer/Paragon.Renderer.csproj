@@ -67,8 +67,14 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>call "$(VS120COMNTOOLS)\vsvars32.bat"
-editbin /largeaddressaware "$(TargetPath)"</PostBuildEvent>
+    <PostBuildEvent>if EXIST "$(VSAPPIDDIR)..\Tools\VsDevCmd.bat" (
+  call "$(VSAPPIDDIR)..\Tools\VsDevCmd.bat"
+) else (
+  call "$(VS120COMNTOOLS)\vsvars32.bat"
+)
+editbin /largeaddressaware "$(TargetPath)"
+
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
