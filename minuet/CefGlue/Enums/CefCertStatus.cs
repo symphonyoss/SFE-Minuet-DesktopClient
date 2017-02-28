@@ -35,5 +35,8 @@ namespace Xilium.CefGlue
         // Bit 18 was CERT_STATUS_IS_DNSSEC
         Sha1SignaturePresent = 1 << 19,
         CTComplianceFailed = 1 << 20,
+
+        // added from: https://chromium.googlesource.com/chromium/src/+/master/net/cert/cert_status_flags_list.h
+        CTCompliancedRequired = 1 << 24
     }
 }
