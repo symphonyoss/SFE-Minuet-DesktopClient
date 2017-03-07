@@ -15,6 +15,7 @@
 //specific language governing permissions and limitations
 //under the License.
 
+using Paragon.Plugins;
 using System;
 using Xilium.CefGlue;
 
@@ -28,6 +29,7 @@ namespace Paragon.Runtime
         private readonly bool _disableSpellChecking = false;
         private readonly string _spellCheckLanguage = string.Empty;
         private readonly bool _enableMediaStream = false;
+        private static readonly ILogger Logger = ParagonLogManager.GetLogger();
 
         public CefBrowserApplication()
             : this(false, string.Empty, false)
@@ -45,9 +47,17 @@ namespace Paragon.Runtime
         {
             // Prevent a separate gpu-process renderer process from being started.
             commandLine.AppendSwitch("--in-process-gpu");
-            
+            Logger.Info("adding command line switch: --in-process-gpu");
+
+            // as per DES-13210, re-test when chromium 56 is available and see if we can remove this flag
+            commandLine.AppendSwitch("--winhttp-proxy-resolver");
+            Logger.Info("adding command line switch: --winhttp-proxy-resolver");
+
             if (_enableMediaStream)
+            {
                 commandLine.AppendSwitch("--enable-media-stream");
+                Logger.Info("adding command line switch: --enable-media-stream");
+            }
 
             base.OnBeforeCommandLineProcessing(processType, commandLine);
         }
