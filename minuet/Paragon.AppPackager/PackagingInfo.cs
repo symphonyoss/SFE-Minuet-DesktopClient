@@ -23,6 +23,8 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Paragon.Runtime.Kernel.Applications;
+using System.Threading;
+using System.Diagnostics;
 
 namespace Paragon.AppPackager
 {
@@ -31,7 +33,7 @@ namespace Paragon.AppPackager
         private static object _lock = new object();
         private static PackagingInfo _inst;
 
-        private PackagingInfo() { }
+        private PackagingInfo() {}
 
         public static PackagingInfo Instance
         {
@@ -43,6 +45,24 @@ namespace Paragon.AppPackager
                     {
                         var inst = new PackagingInfo();
                         var p = new ParagonCommandLineParser(Environment.GetCommandLineArgs());
+
+                        //Determine the PodUrl to update.
+                        string podUrl = null;
+                        p.GetValue("update", out podUrl);
+                        if (string.IsNullOrEmpty(podUrl))
+                            p.GetValue("u", out podUrl);
+                        inst.PodUrlToUpdate = podUrl;
+
+                        //Determine the PgxPath to update.
+                        string pgxPath = null;
+                        p.GetValue("pgx", out pgxPath);
+                        if (string.IsNullOrEmpty(pgxPath))
+                            p.GetValue("p", out pgxPath);
+                        inst.PgxPath = pgxPath;
+
+                        //Determine if podurl should be updated
+                        Uri poduri;
+                        inst.ShouldUpdateUrl = (Uri.TryCreate(podUrl, UriKind.Absolute, out poduri) && poduri.Scheme == Uri.UriSchemeHttps) && File.Exists(inst.PgxPath);
 
                         // Determine the input path
                         string inputPath = null;
@@ -170,7 +190,7 @@ namespace Paragon.AppPackager
                 return false;
             }
 
-            if (ShouldPackage)
+            if (ShouldPackage && !ShouldUpdateUrl)
             {
                 if (!Directory.Exists(InputPath))
                 {
@@ -231,10 +251,13 @@ namespace Paragon.AppPackager
         public string InputPath { get; private set; }
         public string UnsignedPackagePath { get; private set; }
         public string OutputPackagePath { get; private set; }
+        public string PodUrlToUpdate { get; private set; }
+        public string PgxPath { get; private set; }
         public X509Certificate2 Cert { get; private set; }
         public bool Verbose { get; private set; }
         public bool ShouldSign { get; private set; }
         public bool ShouldPackage { get; private set; }
+        public bool ShouldUpdateUrl { get; private set; }
         public bool ShouldVerify { get; private set; }
         public bool DeleteUnsignedPackage { get; set; }
     }

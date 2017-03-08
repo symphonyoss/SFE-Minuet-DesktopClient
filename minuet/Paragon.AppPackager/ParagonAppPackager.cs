@@ -15,6 +15,8 @@
 //specific language governing permissions and limitations
 //under the License.
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -93,6 +95,77 @@ namespace Paragon.AppPackager
             }
 
             Console.WriteLine("Unsigned package {0} created.", destinationPath);
+            return true;
+        }
+
+        public static bool UpdatePodUrl(string podUrl, string sourcePgx)
+        {
+            Uri poduri;
+            if (string.IsNullOrEmpty(sourcePgx) || !File.Exists(sourcePgx) || string.IsNullOrEmpty(podUrl) || !Uri.TryCreate(podUrl, UriKind.Absolute, out poduri) || poduri.Scheme != Uri.UriSchemeHttps)
+            {
+                throw new ArgumentException("Invalid input folder.");
+            }
+
+            using (var package = System.IO.Packaging.Package.Open(sourcePgx, FileMode.Open))
+            {
+                foreach (PackagePart part in package.GetParts())
+                {
+                    //Extract Config Json File
+                    if (part.Uri.OriginalString.EndsWith("config.json"))
+                    {
+                        string target = Path.Combine(Path.GetDirectoryName(sourcePgx),"config.json");
+                        using (Stream source = part.GetStream(
+                            FileMode.Open, FileAccess.Read))
+                        using (Stream destination = File.OpenWrite(target))
+                        {
+                            byte[] buffer = new byte[0x1000];
+                            int read;
+                            while ((read = source.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                destination.Write(buffer, 0, read);
+                            }
+                        }
+                        //Remove Config Json File from package
+                        package.DeletePart(part.Uri);
+                        package.Close();
+                        break;
+                    }
+                }
+            }
+            
+            using (var package = System.IO.Packaging.Package.Open(sourcePgx, FileMode.Open)){
+                //Update Config Json File.
+                String path = Path.Combine(Path.GetDirectoryName(sourcePgx), "config.json");
+                JObject jsonFile = JObject.Parse(File.ReadAllText(path));
+                jsonFile.Property("url").Value = podUrl;
+
+                using (StreamWriter file = (StreamWriter)File.CreateText(path))
+                using (JsonTextWriter writer = new JsonTextWriter(file))
+                {
+                    jsonFile.WriteTo(writer);
+                }
+
+                //Re-Add file to package.
+                var currentFile = Path.Combine(Path.GetDirectoryName(sourcePgx), "config.json");
+                var uri = GetRelativeUri("config.json");
+                var contentType = GetContentType(currentFile);
+                var packagePart = package.CreatePart(uri, contentType, CompressionOption.Maximum);
+
+                using (var fileStream = new FileStream(currentFile, FileMode.Open, FileAccess.Read))
+                using (var packageStream = packagePart.GetStream())
+                {
+                    var array = new byte[81920];
+                    int count;
+                    while ((count = fileStream.Read(array, 0, array.Length)) != 0)
+                    {
+                        packageStream.Write(array, 0, count);
+                    }
+                }
+                string target = Path.Combine(Path.GetDirectoryName(sourcePgx), "config.json");
+                File.Delete(target);
+                package.Close();
+            }
+
             return true;
         }
 
