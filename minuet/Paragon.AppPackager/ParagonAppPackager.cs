@@ -98,12 +98,11 @@ namespace Paragon.AppPackager
             return true;
         }
 
-        public static bool UpdatePodUrl(string podUrl, string sourcePgx)
+        public static bool UpdatePodUrl(Uri poduri, string sourcePgx)
         {
-            Uri poduri;
-            if (string.IsNullOrEmpty(sourcePgx) || !File.Exists(sourcePgx) || string.IsNullOrEmpty(podUrl) || !Uri.TryCreate(podUrl, UriKind.Absolute, out poduri) || poduri.Scheme != Uri.UriSchemeHttps)
+            if (string.IsNullOrEmpty(sourcePgx) || !File.Exists(sourcePgx) || poduri == null || poduri.Scheme != Uri.UriSchemeHttps)
             {
-                throw new ArgumentException("Invalid input folder.");
+                throw new ArgumentException("Invalid parameters to update podurl.");
             }
 
             using (var package = System.IO.Packaging.Package.Open(sourcePgx, FileMode.Open))
@@ -137,7 +136,7 @@ namespace Paragon.AppPackager
                 //Update Config Json File.
                 String path = Path.Combine(Path.GetDirectoryName(sourcePgx), "config.json");
                 JObject jsonFile = JObject.Parse(File.ReadAllText(path));
-                jsonFile.Property("url").Value = podUrl;
+                jsonFile.Property("url").Value = poduri.OriginalString;
 
                 using (StreamWriter file = (StreamWriter)File.CreateText(path))
                 using (JsonTextWriter writer = new JsonTextWriter(file))

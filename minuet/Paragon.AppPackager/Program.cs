@@ -16,14 +16,10 @@
 //under the License.
 
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Packaging;
-using System.Reflection;
-using Paragon.Runtime.Kernel.Applications;
 using Paragon.Runtime.PackagedApplication;
-using System.Threading;
 
 namespace Paragon.AppPackager
 {

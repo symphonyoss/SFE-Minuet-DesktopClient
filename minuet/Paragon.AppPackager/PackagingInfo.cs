@@ -16,15 +16,10 @@
 //under the License.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using Paragon.Runtime.Kernel.Applications;
-using System.Threading;
-using System.Diagnostics;
 
 namespace Paragon.AppPackager
 {
@@ -48,10 +43,10 @@ namespace Paragon.AppPackager
 
                         //Determine the PodUrl to update.
                         string podUrl = null;
-                        p.GetValue("update", out podUrl);
-                        if (string.IsNullOrEmpty(podUrl))
-                            p.GetValue("u", out podUrl);
-                        inst.PodUrlToUpdate = podUrl;
+
+                        //Determine if podurl should be updated
+                        if (p.GetValue("update", out podUrl) || p.GetValue("u", out podUrl))
+                            inst.ShouldUpdateUrl = true;
 
                         //Determine the PgxPath to update.
                         string pgxPath = null;
@@ -60,9 +55,19 @@ namespace Paragon.AppPackager
                             p.GetValue("p", out pgxPath);
                         inst.PgxPath = pgxPath;
 
-                        //Determine if podurl should be updated
-                        Uri poduri;
-                        inst.ShouldUpdateUrl = (Uri.TryCreate(podUrl, UriKind.Absolute, out poduri) && poduri.Scheme == Uri.UriSchemeHttps) && File.Exists(inst.PgxPath);
+                        //Determine if podurl is valid
+                        Uri poduri = null;
+                        try
+                        {
+                            poduri = new Uri(podUrl);
+                        }
+                        catch (UriFormatException) 
+                        {
+                            //try to add https schema.
+                            if (!String.IsNullOrEmpty(podUrl))
+                              poduri = new Uri(String.Concat("https://", podUrl));
+                        }
+                        inst.PodUrlToUpdate = poduri;
 
                         // Determine the input path
                         string inputPath = null;
@@ -251,7 +256,7 @@ namespace Paragon.AppPackager
         public string InputPath { get; private set; }
         public string UnsignedPackagePath { get; private set; }
         public string OutputPackagePath { get; private set; }
-        public string PodUrlToUpdate { get; private set; }
+        public Uri PodUrlToUpdate { get; private set; }
         public string PgxPath { get; private set; }
         public X509Certificate2 Cert { get; private set; }
         public bool Verbose { get; private set; }
