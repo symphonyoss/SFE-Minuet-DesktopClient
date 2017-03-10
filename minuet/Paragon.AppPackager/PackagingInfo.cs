@@ -56,18 +56,21 @@ namespace Paragon.AppPackager
                         inst.PgxPath = pgxPath;
 
                         //Determine if podurl is valid
-                        Uri poduri = null;
-                        try
+                        if (inst.ShouldUpdateUrl)
                         {
-                            poduri = new Uri(podUrl);
+                            Uri poduri = null;
+                            try
+                            {
+                                poduri = new Uri(podUrl);
+                            }
+                            catch (UriFormatException)
+                            {
+                                //try to add https schema.
+                                if (!String.IsNullOrEmpty(podUrl))
+                                    poduri = new Uri(String.Concat("https://", podUrl));
+                            }
+                            inst.PodUrlToUpdate = poduri;
                         }
-                        catch (UriFormatException) 
-                        {
-                            //try to add https schema.
-                            if (!String.IsNullOrEmpty(podUrl))
-                              poduri = new Uri(String.Concat("https://", podUrl));
-                        }
-                        inst.PodUrlToUpdate = poduri;
 
                         // Determine the input path
                         string inputPath = null;
