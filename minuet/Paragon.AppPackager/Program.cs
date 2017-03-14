@@ -16,12 +16,9 @@
 //under the License.
 
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Packaging;
-using System.Reflection;
-using Paragon.Runtime.Kernel.Applications;
 using Paragon.Runtime.PackagedApplication;
 
 namespace Paragon.AppPackager
@@ -38,15 +35,18 @@ namespace Paragon.AppPackager
                 if (info == null)
                     throw new Exception("Input error.");
 
-                if (info.ShouldPackage && !ParagonAppPackager.Package(info.InputPath, info.UnsignedPackagePath) )
+                if (!info.ShouldUpdateUrl && info.ShouldPackage && !ParagonAppPackager.Package(info.InputPath, info.UnsignedPackagePath) )
                     throw new Exception("Error in packaging.");
+
+                if (info.ShouldUpdateUrl && !ParagonAppPackager.UpdatePodUrl(info.PodUrlToUpdate, info.PgxPath))
+                    throw new Exception("Error in PodUrl update.");
 
                 if (info.ShouldSign)
                 {
                     if (!ParagonPackageSigner.Sign(info.UnsignedPackagePath, info.OutputPackagePath, info.Cert))
                         throw new Exception("Error in signing package.");
                 }
-                else if (info.ShouldPackage)
+                else if (info.ShouldPackage && !info.ShouldUpdateUrl)
                     File.Copy(info.UnsignedPackagePath, info.OutputPackagePath, true);
 
                 if (info.ShouldVerify)

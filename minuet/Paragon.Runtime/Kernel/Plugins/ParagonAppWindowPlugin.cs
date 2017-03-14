@@ -21,6 +21,8 @@ using Paragon.Runtime.Annotations;
 using Paragon.Runtime.Kernel.Windowing;
 using Microsoft.Win32;
 using System;
+using System.Diagnostics;
+using System.Threading;
 
 namespace Paragon.Runtime.Kernel.Plugins
 {
@@ -78,19 +80,23 @@ namespace Paragon.Runtime.Kernel.Plugins
             }
             else 
             {
-                using (RegistryKey symphony = Registry.ClassesRoot.OpenSubKey("symphony"))
-                {
-                    if (symphony != null)
-                    {
-                        String podUrl = (string)symphony.GetValue("PodUrl", "");
-                        Uri uri;
-                        if (Uri.TryCreate(podUrl, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps)
-                        {
-                            startUrl = uri.ToString();
-                            Logger.Info(string.Format("PodUrl at Registry key : {0}", startUrl));
-                        }
-                    }            
+                //Check for single user config.
+                RegistryKey symphony = Registry.CurrentUser.OpenSubKey("Software\\" + Application.Name + "\\" + Application.Name);
+                if (symphony == null) {
+                    //check for all users config
+                    symphony = Registry.LocalMachine.OpenSubKey("Software\\" + Application.Name + "\\" + Application.Name);
                 }
+
+                if (symphony != null)
+                {
+                    String podUrl = (string)symphony.GetValue("PodUrl", "");
+                    Uri uri;
+                    if (Uri.TryCreate(podUrl, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps)
+                    {
+                        startUrl = uri.ToString();
+                        Logger.Info(string.Format("PodUrl at Registry key : {0}", startUrl));
+                    }
+                }            
             }
 
             Logger.Info(string.Format("Create window : {0}", startUrl));
