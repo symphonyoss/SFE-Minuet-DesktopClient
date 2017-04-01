@@ -1,5 +1,7 @@
 # Build Instructions for Minuet
 
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fsymphonyoss%2FSFE-Minuet-DesktopClient.svg?size=small)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fsymphonyoss%2FSFE-Minuet-DesktopClient?ref=badge_small)
+
 ## Prerequisites
 
 * Download Express 2013 for Windows Desktop - [download VS2013 Community Edition for free](http://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx)
