@@ -49,7 +49,7 @@ namespace Paragon.Runtime.Plugins
                     MemberName = args.GetString(3), 
                     Data = args.GetString(4), 
                     BrowserId = args.GetInt(5), 
-                    ContextId = args.GetInt(6), 
+                    ContextId = args.GetInt(6),
                     FrameId = (long) ((ulong) (args.GetInt(8) << 32) | ((ulong) (args.GetInt(7)))), 
                     V8CallbackId = new Guid(args.GetString(9))
                 };

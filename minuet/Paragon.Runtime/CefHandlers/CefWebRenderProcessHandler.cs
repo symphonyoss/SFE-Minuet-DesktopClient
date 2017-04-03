@@ -213,6 +213,7 @@ namespace Paragon.Runtime
             Logger.Info("Context released");
             _router.ContextReleased(browser, frame, context);
             base.OnContextReleased(browser, frame, context);
+            context.Dispose();
         }
 
         protected override bool OnProcessMessageReceived(CefBrowser browser, CefProcessId sourceProcess, CefProcessMessage message)
