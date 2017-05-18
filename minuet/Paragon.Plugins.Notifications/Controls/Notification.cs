@@ -133,8 +133,8 @@ namespace Paragon.Plugins.Notifications.Controls
 
                     //resize and move NotificationWindow.
                     notificationWindow = GetNotificationWindow(this);
-                    if ((notificationWindow.Height + this.ActualHeight + 8) > 0)                    
-                        notificationWindow.Height += this.ActualHeight + 8;
+                    if ((notificationWindow.Height + this.ActualHeight + 8) > 0)
+                        notificationWindow.Height = notificationWindow.Height + this.ActualHeight + 8;
                     else
                         notificationWindow.Height = 0;
                     
@@ -153,8 +153,8 @@ namespace Paragon.Plugins.Notifications.Controls
                     }
 
                     //resize and move NotificationWindow.
-                    if ((notificationWindow.Height - this.ActualHeight + 8) > 0)
-                        notificationWindow.Height -= this.ActualHeight + 8;
+                    if ((notificationWindow.Height - (this.ActualHeight + 8)) > 0)
+                        notificationWindow.Height = notificationWindow.Height - (this.ActualHeight + 8);
                     else
                         notificationWindow.Height = 0;
 
