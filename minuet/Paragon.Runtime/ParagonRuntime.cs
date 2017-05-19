@@ -134,6 +134,9 @@ namespace Paragon.Runtime
                     List<string> appArgs = new List<string>();
                     appArgs.Add("--process-per-tab");
 
+                    // as per DES-13210, re-test when chromium 56 is available and see if we can remove this flag
+                    appArgs.Add("--winhttp-proxy-resolver");
+
                     // Pass through Kerberos and proxy parameters.
                     for (int i = 0; i < argArray.Length; i++)
                     {
