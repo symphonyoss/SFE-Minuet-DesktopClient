@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-* Download Express 2013 for Windows Desktop - [download VS2013 Community Edition for free](http://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx)
+* Download Visual Studio Community for Windows - [download VS Community Edition for free](http://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx)
 
 ## Get the code
 
