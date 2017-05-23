@@ -33,6 +33,8 @@ namespace Paragon.Plugins.Notifications.Views
         private readonly IntPtr handle;
         private IMonitor monitor;
         private Position notificationPosition;
+        private Object lockNotification = new Object();
+        private List<Notification> notificationList = new List<Notification>();
 
         public NotificationWindow()
         {
@@ -49,7 +51,39 @@ namespace Paragon.Plugins.Notifications.Views
 
             Show();
         }
+        
+        //Calculate notification window height based on notifications present on listNotification.
+        private double notificationWindowHeight(List<Notification> listNotification)
+        {
+            double height = 0;
+            foreach (Notification item in listNotification)
+            {
+                height += item.ActualHeight + 8;
+                if (height > monitor.WorkingArea.Height)
+                {
+                    height = monitor.WorkingArea.Height;
+                    break;
+                }
+            }
+            return height;
+        }
 
+        public void AddNotification(Notification notification)
+        {
+            notificationList.Add(notification);
+            this.Height = notificationWindowHeight(notificationList);
+            this.MoveNotificationWindow();
+        }
+
+        public void RemoveNotification(Notification notification)
+        {
+            if (notificationList.Remove(notification))
+            {
+                this.Height = notificationWindowHeight(notificationList);
+            }
+            this.MoveNotificationWindow();
+        }
+        
         public void MoveNotificationWindow()
         {
             switch (notificationPosition)
