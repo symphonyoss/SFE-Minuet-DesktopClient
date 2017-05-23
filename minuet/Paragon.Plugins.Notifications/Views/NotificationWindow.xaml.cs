@@ -51,12 +51,12 @@ namespace Paragon.Plugins.Notifications.Views
 
             Show();
         }
-
-        public void AddNotification(Notification notification)
+        
+        //Calculate notification window height based on notifications present on listNotification.
+        private double notificationWindowHeight(List<Notification> listNotification)
         {
-            notificationList.Add(notification);
             double height = 0;
-            foreach (Notification item in notificationList)
+            foreach (Notification item in listNotification)
             {
                 height += item.ActualHeight + 8;
                 if (height > monitor.WorkingArea.Height)
@@ -65,7 +65,13 @@ namespace Paragon.Plugins.Notifications.Views
                     break;
                 }
             }
-            this.Height = height;
+            return height;
+        }
+
+        public void AddNotification(Notification notification)
+        {
+            notificationList.Add(notification);
+            this.Height = notificationWindowHeight(notificationList);
             this.MoveNotificationWindow();
         }
 
@@ -73,22 +79,10 @@ namespace Paragon.Plugins.Notifications.Views
         {
             if (notificationList.Remove(notification))
             {
-                double height = 0;
-                foreach (Notification item in notificationList)
-                {
-                    height += item.ActualHeight + 8;
-                    if (height > monitor.WorkingArea.Height)
-                    {
-                        height = monitor.WorkingArea.Height;
-                        break;
-                    }
-                }
-
-                this.Height = height;
+                this.Height = notificationWindowHeight(notificationList);
             }
             this.MoveNotificationWindow();
         }
-
         
         public void MoveNotificationWindow()
         {
