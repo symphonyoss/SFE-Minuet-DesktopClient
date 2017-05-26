@@ -243,6 +243,9 @@ namespace Paragon.Runtime.WPF
 
         public void Reload(bool ignoreCache)
         {
+            if (_browser.IsLoading)
+                return;
+
             if (ignoreCache)
             {
                 if (_browser != null)

@@ -765,22 +765,23 @@ namespace Paragon.Runtime.Plugins
         /// <param name="context"></param>
         /// <param name="remove">If true the context will also be removed from the map.</param>
         /// <returns></returns>
-        private int GetIdForContext(CefV8Context context, bool remove)
-        {
-            lock (_contexts)
-            {
-                foreach (var kvp in _contexts.Where(kvp => kvp.Value.IsSame(context)))
+                private int GetIdForContext(CefV8Context context, bool remove)
                 {
-                    if (remove)
+                    lock (_contexts)
                     {
-                        _contexts.Remove(kvp.Key);
+                        foreach (var kvp in _contexts.Where(kvp => kvp.Value.IsSame(context)))
+                        {
+                            if (remove)
+                            {
+                                _contexts.Remove(kvp.Key);
+                                kvp.Value.Dispose();
+                            }
+                            return kvp.Key;
+                        }
                     }
-                    return kvp.Key;
+                    return ReservedId;
                 }
-            }
-            return ReservedId;
-        }
-
+        
         private CefV8Context GetContextById(int contextId)
         {
             lock (_contexts)

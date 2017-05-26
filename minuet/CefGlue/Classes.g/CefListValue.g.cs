@@ -57,16 +57,7 @@ namespace Xilium.CefGlue
         
         internal bool Release()
         {
-            try
-            {
-                return cef_list_value_t.release(_self) != 0;
-            }
-            catch (System.AccessViolationException e)
-            {
-                // this is temp fix for DES-11765, until root cause is tracked down.
-                System.Console.WriteLine("Exception: " + e.ToString());
-                return false;
-            }
+            return cef_list_value_t.release(_self) != 0;
         }
         
         internal bool HasOneRef

@@ -557,7 +557,7 @@ namespace Paragon.Runtime.Kernel.Windowing
                 // Refreshing should restart this app, let weapplication know about it.
                 WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
                 runningApp.Refresh(_browser.Source);
-            }
+        }
             else
             {
                 foreach (var applicationWindow in _windowManager.AllWindows)
@@ -1490,7 +1490,7 @@ namespace Paragon.Runtime.Kernel.Windowing
 
         private void OnBrowserPreviewKeyDown(object sender, KeyEventArgs e)
         {
-            HandleKeyPress(e.Key);
+            
         }
 
         private void OnJavaScriptDialog(object sender, JsDialogEventArgs ea)

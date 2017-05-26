@@ -75,7 +75,7 @@ namespace Paragon.Runtime.Kernel.Applications
             _eventPageLaunchTimeout = TimeSpan.FromSeconds(startupTimeout);
             _renderPlugins = new RenderSidePluginData() { PackagePath = Package != null ? Package.PackageFilePath : string.Empty, Plugins = new List<ApplicationPlugin>() };
             SystemEvents.SessionEnding += OnSessionEnding;
-            _refreshAttempts = 0;
+            ParagonRuntime.RenderProcessInitialize += OnRenderProcessInitialize;
         }
 
         public string RefreshUrl { get; set; }
@@ -420,8 +420,8 @@ namespace Paragon.Runtime.Kernel.Applications
             }
             else
             {
-                Close();
-            }
+            Close();
+        }
         }
 
         private void CloseEventPage(bool closeApp)
@@ -495,7 +495,7 @@ namespace Paragon.Runtime.Kernel.Applications
             {
                 // Now that a new _eventPageBrowser has been created, let window manager know about it. 
                 _windowManager.Initialize(this, _createNewWindow, () => _eventPageBrowser);
-            }
+        }
         }
 
         private void OnBeforeEventPageBrowserCreate(object sender, BrowserCreateEventArgs e)
@@ -619,7 +619,7 @@ namespace Paragon.Runtime.Kernel.Applications
                     // Do it only for regular loads, not for refresh as it was already done before. 
                     if (_refreshAttempts == 0)
                     {
-                        _appRegistrationToken = ParagonDesktop.RegisterApp(Metadata.Id, Metadata.InstanceId);
+                    _appRegistrationToken = ParagonDesktop.RegisterApp(Metadata.Id, Metadata.InstanceId);
                     }                    
                     break;
 
@@ -636,7 +636,7 @@ namespace Paragon.Runtime.Kernel.Applications
             {
                 _refreshAttempts = 0;
                 RefreshUrl = null;
-            }
+        }
         }
 
         private void OnWindowManagerNoWindowsOpen(object sender, EventArgs e)
@@ -648,13 +648,13 @@ namespace Paragon.Runtime.Kernel.Applications
             }
             else
             {
-                if (Metadata.UpdateLaunchStatus != null)
-                {
-                    Metadata.UpdateLaunchStatus("No windows created. Shutting down ...");
-                }
-
-                Close();
+            if (Metadata.UpdateLaunchStatus != null)
+            {
+                Metadata.UpdateLaunchStatus("No windows created. Shutting down ...");
             }
+
+            Close();
+        }
         }
 
         /// <summary>
