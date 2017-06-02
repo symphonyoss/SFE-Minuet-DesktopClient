@@ -760,7 +760,7 @@ namespace Paragon.Runtime.WPF
                         // that a real problem has occurred. For example, it is called when the main frame
                         // is refreshed. We log it here at INFO because in most cases it does not represent
                         // a real error condition.
-                        Logger.Info("Main frame load aborted: " + e.FailedUrl);
+                        Logger.Info("Main frame load aborted: url = {0}, Could be legit abort, possible Error = {1} {2}", e.FailedUrl, e.ErrorCode, e.ErrorText);
                     }
                     if (LoadError != null)
                         LoadError(this, e);
