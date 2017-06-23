@@ -113,6 +113,14 @@
 
         #region cef_version
 
+        public static string ChromeVersion
+        {
+            get
+            {
+                return string.Format("{0}.{1}.{2}.{3}", libcef.CHROME_VERSION_MAJOR, libcef.CHROME_VERSION_MINOR, libcef.CHROME_VERSION_BUILD, libcef.CHROME_VERSION_PATCH);
+            }
+        }
+
         private static void CheckVersion()
         {
             CheckVersionByApiHash();
@@ -1027,14 +1035,6 @@
         #region cef_sandbox_win
         // TODO: investigate using of sandbox on windows and .net
         #endregion
-
-		public static string ChromeVersion
-        {
-            get
-            {
-                return string.Format("{0}.{1}.{2}.{3}", libcef.CHROME_VERSION_MAJOR, libcef.CHROME_VERSION_MINOR, libcef.CHROME_VERSION_BUILD, libcef.CHROME_VERSION_PATCH);
-            }
-        }	
 
         #region cef_ssl_info
 
