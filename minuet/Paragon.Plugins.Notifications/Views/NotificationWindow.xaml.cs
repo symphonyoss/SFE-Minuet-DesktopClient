@@ -88,7 +88,7 @@ namespace Paragon.Plugins.Notifications.Views
         public void MoveNotificationWindow()
         {
 
-            Matrix m = PresentationSource.FromVisual(Application.Current.MainWindow).CompositionTarget.TransformToDevice;
+            Matrix m = PresentationSource.FromVisual(this).CompositionTarget.TransformToDevice;
             double dx = m.M11;
             double dy = m.M22;
 
