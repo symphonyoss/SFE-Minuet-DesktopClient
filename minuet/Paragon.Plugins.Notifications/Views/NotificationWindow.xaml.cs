@@ -22,6 +22,7 @@ using Paragon.Plugins.Notifications.ViewModels;
 using System.Collections.Generic;
 using Paragon.Plugins.Notifications.Controls;
 using System.Collections;
+using System.Windows.Media;
 
 namespace Paragon.Plugins.Notifications.Views
 {
@@ -86,26 +87,31 @@ namespace Paragon.Plugins.Notifications.Views
         
         public void MoveNotificationWindow()
         {
+
+            Matrix m = PresentationSource.FromVisual(this).CompositionTarget.TransformToDevice;
+            double dx = m.M11;
+            double dy = m.M22;
+
             switch (notificationPosition)
             {
                 case Position.TopLeft:
-                    this.Left = monitor.WorkingArea.TopLeft.X;
-                    this.Top = monitor.WorkingArea.TopLeft.Y;
+                    this.Left = monitor.WorkingArea.TopLeft.X/dx;
+                    this.Top = monitor.WorkingArea.TopLeft.Y/dy;
                     break;
 
                 case Position.BottomLeft:
-                    this.Left = monitor.WorkingArea.BottomLeft.X;
-                    this.Top = monitor.WorkingArea.BottomLeft.Y - this.Height;
+                    this.Left = monitor.WorkingArea.BottomLeft.X/dx;
+                    this.Top = monitor.WorkingArea.BottomLeft.Y/dy - this.Height;
                     break;
 
                 case Position.TopRight:
-                    this.Left = monitor.WorkingArea.TopRight.X - this.Width;
-                    this.Top = monitor.WorkingArea.TopRight.Y;
+                    this.Left = monitor.WorkingArea.TopRight.X/dx - this.Width;
+                    this.Top = monitor.WorkingArea.TopRight.Y/dy;
                     break;
 
                 case Position.BottomRight:
-                    this.Left = monitor.WorkingArea.BottomRight.X - this.Width;
-                    this.Top = monitor.WorkingArea.BottomRight.Y - this.Height;
+                    this.Left = monitor.WorkingArea.BottomRight.X/dx - this.Width;
+                    this.Top = monitor.WorkingArea.BottomRight.Y/dy - this.Height;
                     break;
 
                 default:
