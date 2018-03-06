@@ -12,7 +12,7 @@ namespace Xilium.CefGlue.Interop
     [SuppressMessage("Microsoft.Design", "CA1049:TypesThatOwnNativeResourcesShouldBeDisposable")]
     internal unsafe struct cef_display_handler_t
     {
-        internal cef_base_t _base;
+        internal cef_base_ref_counted_t _base;
         internal IntPtr _on_address_change;
         internal IntPtr _on_title_change;
         internal IntPtr _on_favicon_urlchange;
@@ -20,6 +20,7 @@ namespace Xilium.CefGlue.Interop
         internal IntPtr _on_tooltip;
         internal IntPtr _on_status_message;
         internal IntPtr _on_console_message;
+        internal IntPtr _on_auto_resize;
         
         [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
         #if !DEBUG
@@ -79,7 +80,13 @@ namespace Xilium.CefGlue.Interop
         #if !DEBUG
         [SuppressUnmanagedCodeSecurity]
         #endif
-        internal delegate int on_console_message_delegate(cef_display_handler_t* self, cef_browser_t* browser, cef_string_t* message, cef_string_t* source, int line);
+        internal delegate int on_console_message_delegate(cef_display_handler_t* self, cef_browser_t* browser, CefLogSeverity level, cef_string_t* message, cef_string_t* source, int line);
+        
+        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
+        #if !DEBUG
+        [SuppressUnmanagedCodeSecurity]
+        #endif
+        internal delegate int on_auto_resize_delegate(cef_display_handler_t* self, cef_browser_t* browser, cef_size_t* new_size);
         
         private static int _sizeof;
         

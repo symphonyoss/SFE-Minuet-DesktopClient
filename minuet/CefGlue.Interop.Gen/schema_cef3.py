@@ -142,4 +142,13 @@ classdef = {
 	# 55
 	'CefThread': { 'role': ROLE_PROXY },
 	'CefWaitableEvent': { 'role': ROLE_PROXY },
+    # 59
+    'CefAccessibilityHandler': { 'role': ROLE_HANDLER },
+    # 62
+    'CefExtension': { 'role': ROLE_PROXY },
+    'CefExtensionHandler': { 'role': ROLE_HANDLER, 'reversible': True },
+    'CefGetExtensionResourceCallback': { 'role': ROLE_PROXY },
+    # 63
+    'CefServer': { 'role': ROLE_PROXY },
+    'CefServerHandler': { 'role': ROLE_HANDLER },
     }

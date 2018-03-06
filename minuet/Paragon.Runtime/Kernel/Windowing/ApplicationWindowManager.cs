@@ -121,12 +121,6 @@ namespace Paragon.Runtime.Kernel.Windowing
                 };
 
                 options.InitialState = "normal";
-                if (eventArgs.PopupFeatures.Fullscreen)
-                {
-                    options.InitialState = "fullscreen";
-                }
-
-                options.Resizable = eventArgs.PopupFeatures.Resizable;
                 options.Frame = new FrameOptions {Type = Application.Package.Manifest.DefaultFrameType};
                 options.AlwaysOnTop = false;
                 options.Focused = true;

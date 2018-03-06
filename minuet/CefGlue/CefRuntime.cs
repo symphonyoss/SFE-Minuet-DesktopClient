@@ -113,6 +113,14 @@
 
         #region cef_version
 
+        public static string ChromeVersion
+        {
+            get
+            {
+                return string.Format("{0}.{1}.{2}.{3}", libcef.CHROME_VERSION_MAJOR, libcef.CHROME_VERSION_MINOR, libcef.CHROME_VERSION_BUILD, libcef.CHROME_VERSION_PATCH);
+            }
+        }
+
         private static void CheckVersion()
         {
             CheckVersionByApiHash();
@@ -1028,14 +1036,6 @@
         // TODO: investigate using of sandbox on windows and .net
         #endregion
 
-		public static string ChromeVersion
-        {
-            get
-            {
-                return string.Format("{0}.{1}.{2}.{3}", libcef.CHROME_VERSION_MAJOR, libcef.CHROME_VERSION_MINOR, libcef.CHROME_VERSION_BUILD, libcef.CHROME_VERSION_PATCH);
-            }
-        }	
-
         #region cef_ssl_info
 
         /// <summary>
@@ -1167,6 +1167,29 @@
                 var n_key = new cef_string_t(key_ptr, key.Length);
                 var n_value = new cef_string_t(value_ptr, value != null ? value.Length : 0);
                 libcef.set_crash_key_value(&n_key, &n_value);
+            }
+        }
+
+        #endregion
+
+        #region file_util
+
+        /// <summary>
+        /// Loads the existing "Certificate Revocation Lists" file that is managed by
+        /// Google Chrome. This file can generally be found in Chrome's User Data
+        /// directory (e.g. "C:\Users\[User]\AppData\Local\Google\Chrome\User Data\" on
+        /// Windows) and is updated periodically by Chrome's component updater service.
+        /// Must be called in the browser process after the context has been initialized.
+        /// See https://dev.chromium.org/Home/chromium-security/crlsets for background.
+        /// </summary>
+        public static void LoadCrlSetsFile(string path)
+        {
+            if (path == null) throw new ArgumentNullException(nameof(path));
+
+            fixed (char* path_ptr = path)
+            {
+                var n_path = new cef_string_t(path_ptr, path.Length);
+                libcef.load_crlsets_file(&n_path);
             }
         }
 
