@@ -31,6 +31,8 @@ c2cs_types = {
     'void': 'void',
     'char': 'byte',
     'int': 'int',
+    'int16': 'short',
+    'uint16': 'ushort',
     'int32': 'int',
     'uint32': 'uint',
     'int64': 'long',
@@ -53,6 +55,8 @@ c2cs_types = {
     'cef_cursor_handle_t': 'IntPtr',
 
     'cef_base_t': 'cef_base_t',
+    'cef_base_ref_counted_t': 'cef_base_ref_counted_t',
+    'cef_base_scoped_t': 'cef_base_scoped_t',
 
     'cef_color_t': 'uint',
 
@@ -153,6 +157,8 @@ c2cs_enumtypes = {
     'cef_cdm_registration_error_t': 'CefCdmRegistrationError',
 	'cef_ssl_version_t': 'CefSslVersion',
 	'cef_ssl_content_status_t': 'CefSslContentStatus',
+    'cef_menu_color_type_t': 'CefMenuColorType',
+    'cef_state_t': 'CefState',
     }
 
 c2cs_structtypes = { }
