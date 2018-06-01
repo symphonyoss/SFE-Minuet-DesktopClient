@@ -25,6 +25,7 @@ using Paragon.Runtime.Annotations;
 using Paragon.Runtime.Kernel.Windowing;
 using Xilium.CefGlue;
 using System.Diagnostics;
+using Paragon.Runtime.Win32;
 
 namespace Paragon.Runtime.Kernel.Plugins
 {
@@ -124,7 +125,7 @@ namespace Paragon.Runtime.Kernel.Plugins
                     else if (e.Command == OpenLinkMenuItem.Id) //DES-10489
                     {
                         //Open link on default browser.
-                        Process.Start(e.State.LinkUrl);
+                        Process.Start(Win32Api.GetDefaultBrowserPath(), e.State.LinkUrl);
                     }
                     else if (e.Command == CopyLinkMenuItem.Id) //DES-10489
                     {

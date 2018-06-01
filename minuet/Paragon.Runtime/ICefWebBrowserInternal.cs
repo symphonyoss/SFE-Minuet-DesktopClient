@@ -35,6 +35,7 @@ namespace Paragon.Runtime
         void OnContextMenuCommand(ContextMenuCommandEventArgs args);
         void OnDownloadUpdated(DownloadUpdatedEventArgs args);
         bool OnProcessMessageReceived(CefBrowser browser, CefProcessMessage message);
+        bool OnOpenUrlFromTab(CefBrowser browser, CefFrame frame, string targetUrl, CefWindowOpenDisposition targetDisposition, bool userGesture);
         void OnBeforeResourceLoad(ResourceLoadEventArgs ea);
         void OnJSDialog(JsDialogEventArgs ea);
         void OnBeforeUnloadDialog(UnloadDialogEventArgs ea);

@@ -38,6 +38,11 @@ namespace Paragon.Runtime
             _core.OnRenderProcessTerminated(new RenderProcessTerminatedEventArgs(browser, status));
         }
 
+        protected override bool OnOpenUrlFromTab(CefBrowser browser, CefFrame frame, string targetUrl, CefWindowOpenDisposition targetDisposition, bool userGesture)
+        {
+            return _core.OnOpenUrlFromTab(browser, frame, targetUrl, targetDisposition, userGesture);
+        }
+
         protected override CefReturnValue OnBeforeResourceLoad(CefBrowser browser, CefFrame frame, CefRequest request, CefRequestCallback callback)
         {
             var ea = new ResourceLoadEventArgs(request.Url, request.ResourceType, callback);
