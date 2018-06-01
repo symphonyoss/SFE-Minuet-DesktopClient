@@ -863,6 +863,16 @@ namespace Paragon.Runtime.WPF
             }
         }
 
+        bool ICefWebBrowserInternal.OnOpenUrlFromTab(CefBrowser browser, CefFrame frame, string targetUrl, CefWindowOpenDisposition targetDisposition, bool userGesture)
+        {
+            CefUrlParts parts;
+            if (CefRuntime.ParseUrl(targetUrl, out parts))
+            {
+                System.Diagnostics.Process.Start(Win32Api.GetDefaultBrowserPath(), targetUrl);
+            }
+            return true;
+        }
+
         bool ICefWebBrowserInternal.OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool isRedirect)
         {
             string scheme = null;
