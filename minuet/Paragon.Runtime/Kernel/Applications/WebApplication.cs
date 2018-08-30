@@ -559,7 +559,7 @@ namespace Paragon.Runtime.Kernel.Applications
             {
                 _eventPageBrowser.Close();
                 _eventPageBrowser = null;
-            }            
+            }
         }
 
         public void Refresh(string url)

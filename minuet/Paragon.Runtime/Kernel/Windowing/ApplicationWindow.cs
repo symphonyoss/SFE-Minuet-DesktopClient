@@ -69,6 +69,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         private JavaScriptPluginCallback _closeHandler;
         private AutoSaveWindowPositionBehavior _autoSaveWindowPositionBehavior;
         private bool _taskbarYellowState;
+        private int _reloadAttempts;
 
         private Grid _mainPanel;
 
@@ -80,6 +81,7 @@ namespace Paragon.Runtime.Kernel.Windowing
             Loaded += OnLoaded;
             var nativeWindow = new NativeApplicationWindow(this);
             nativeWindow.AddHook(WndProc);
+            _reloadAttempts = 0;
         }
 
         void ApplicationWindow_Activated(object sender, EventArgs e)
@@ -552,18 +554,29 @@ namespace Paragon.Runtime.Kernel.Windowing
         [JavaScriptPluginMember(Name = "refresh")]
         public void RefreshWindow(bool ignoreCache = true)
         {
-            if (GetId() == MAIN_WINDOW_ID)
+            ParagonRuntime.ForceClearCacheOnStart();
+            if (_reloadAttempts < 2)
             {
-                // Refreshing should restart this app, let weapplication know about it.
-                WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
-                runningApp.Refresh(_browser.Source);
+                _reloadAttempts++;
+                Logger.Info("An attempt to Refresh has been made. ignoreCache is " + ignoreCache);
+                DispatchIfRequired(() => _browser.Reload(ignoreCache), true);
             }
-            else
-            {
-                foreach (var applicationWindow in _windowManager.AllWindows)
+            else {
+                _reloadAttempts = 0;
+                if (GetId() == MAIN_WINDOW_ID)
                 {
-                    if (applicationWindow.GetId() == MAIN_WINDOW_ID)
-                        applicationWindow.RefreshWindow(ignoreCache);
+                    // Refreshing should restart this app, let WebApplication know about it.
+                    WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
+                    Logger.Info("Third attemp to Refresh. Restart Renderer process.");
+                    runningApp.Refresh(_browser.Source);
+                }
+                else
+                {
+                    foreach (var applicationWindow in _windowManager.AllWindows)
+                    {
+                        if (applicationWindow.GetId() == MAIN_WINDOW_ID)
+                            applicationWindow.RefreshWindow(ignoreCache);
+                    }
                 }
             }
         }
@@ -1704,7 +1717,8 @@ namespace Paragon.Runtime.Kernel.Windowing
                     break;
 
                 case Key.F5:
-                    Reload((key & Key.LeftCtrl) == Key.LeftCtrl);
+                    ModifierKeys modKeys = Keyboard.Modifiers;
+                    Reload((modKeys & ModifierKeys.Control) > 0);
                     break;
 
                 case Key.Escape:

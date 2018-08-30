@@ -795,18 +795,6 @@ namespace Paragon.Runtime.WPF
                 if (keyEvent.EventType == CefKeyEventType.RawKeyDown)
                 {
                     var keys = (Keys)keyEvent.WindowsKeyCode;
-                    if ((keyEvent.Modifiers & CefEventFlags.ControlDown) == CefEventFlags.ControlDown)
-                    {
-                        keys |= Keys.Control;
-                    }
-                    if ((keyEvent.Modifiers & CefEventFlags.ShiftDown) == CefEventFlags.ShiftDown)
-                    {
-                        keys |= Keys.Shift;
-                    }
-                    if ((keyEvent.Modifiers & CefEventFlags.AltDown) == CefEventFlags.AltDown)
-                    {
-                        keys |= Keys.Alt;
-                    }
                     var source = PresentationSource.FromDependencyObject(this);
                     var key = KeyInterop.KeyFromVirtualKey((int)keys);
                     var args = new System.Windows.Input.KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) { RoutedEvent = PreviewKeyDownEvent };
