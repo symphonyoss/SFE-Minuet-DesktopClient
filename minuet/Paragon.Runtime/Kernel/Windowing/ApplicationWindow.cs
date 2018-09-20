@@ -69,7 +69,6 @@ namespace Paragon.Runtime.Kernel.Windowing
         private JavaScriptPluginCallback _closeHandler;
         private AutoSaveWindowPositionBehavior _autoSaveWindowPositionBehavior;
         private bool _taskbarYellowState;
-        private int _reloadAttempts;
 
         private Grid _mainPanel;
 
@@ -81,7 +80,6 @@ namespace Paragon.Runtime.Kernel.Windowing
             Loaded += OnLoaded;
             var nativeWindow = new NativeApplicationWindow(this);
             nativeWindow.AddHook(WndProc);
-            _reloadAttempts = 0;
         }
 
         void ApplicationWindow_Activated(object sender, EventArgs e)
