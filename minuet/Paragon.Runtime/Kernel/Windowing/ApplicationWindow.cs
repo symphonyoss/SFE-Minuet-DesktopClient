@@ -551,32 +551,31 @@ namespace Paragon.Runtime.Kernel.Windowing
             }, true);
         }
 
+        [JavaScriptPluginMember(Name = "refreshClearCache")]
+        public void RefreshWindowClearCache()
+        {
+            ParagonRuntime.ForceClearCacheOnStart();
+            Logger.Info("Refresh ignore and clear cache");
+            DispatchIfRequired(() => _browser.Reload(true), true);
+        }
+
         [JavaScriptPluginMember(Name = "refresh")]
         public void RefreshWindow(bool ignoreCache = true)
         {
             ParagonRuntime.ForceClearCacheOnStart();
-            if (_reloadAttempts < 2)
+            if (GetId() == MAIN_WINDOW_ID)
             {
-                _reloadAttempts++;
-                Logger.Info("An attempt to Refresh has been made. ignoreCache is " + ignoreCache);
-                DispatchIfRequired(() => _browser.Reload(ignoreCache), true);
+                // Refreshing should restart this app, let WebApplication know about it.
+                WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
+                Logger.Info("Restart Renderer process.");
+                runningApp.Refresh(_browser.Source);
             }
-            else {
-                _reloadAttempts = 0;
-                if (GetId() == MAIN_WINDOW_ID)
+            else
+            {
+                foreach (var applicationWindow in _windowManager.AllWindows)
                 {
-                    // Refreshing should restart this app, let WebApplication know about it.
-                    WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
-                    Logger.Info("Third attemp to Refresh. Restart Renderer process.");
-                    runningApp.Refresh(_browser.Source);
-                }
-                else
-                {
-                    foreach (var applicationWindow in _windowManager.AllWindows)
-                    {
-                        if (applicationWindow.GetId() == MAIN_WINDOW_ID)
-                            applicationWindow.RefreshWindow(ignoreCache);
-                    }
+                    if (applicationWindow.GetId() == MAIN_WINDOW_ID)
+                        applicationWindow.RefreshWindow(ignoreCache);
                 }
             }
         }
