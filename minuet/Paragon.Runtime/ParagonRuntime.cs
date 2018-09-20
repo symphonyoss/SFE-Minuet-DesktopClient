@@ -247,11 +247,11 @@ namespace Paragon.Runtime
                     if (string.IsNullOrEmpty(currentVal) || !Boolean.TryParse(currentVal, out shouldClearCache) || shouldClearCache)
                     {
                         System.IO.Directory.Delete(_cachePath, true);
-                        using (var writer = new StreamWriter(new IsolatedStorageFileStream(_storageFilePath, FileMode.Create, FileAccess.Write, _store)))
-                        {
-                            writer.Write(Boolean.FalseString);
-                            writer.Flush();
-                        }
+                    }
+                    using (var writer = new StreamWriter(new IsolatedStorageFileStream(_storageFilePath, FileMode.Create, FileAccess.Write, _store)))
+                    {
+                        writer.Write(Boolean.TrueString);
+                        writer.Flush();
                     }
                 }
                 else if (!currentVal.Equals("forced"))
