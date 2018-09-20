@@ -69,6 +69,7 @@ namespace Paragon.Runtime.Kernel.Windowing
         private JavaScriptPluginCallback _closeHandler;
         private AutoSaveWindowPositionBehavior _autoSaveWindowPositionBehavior;
         private bool _taskbarYellowState;
+        private int _reloadAttempts;
 
         private Grid _mainPanel;
 
@@ -80,6 +81,7 @@ namespace Paragon.Runtime.Kernel.Windowing
             Loaded += OnLoaded;
             var nativeWindow = new NativeApplicationWindow(this);
             nativeWindow.AddHook(WndProc);
+            _reloadAttempts = 0;
         }
 
         void ApplicationWindow_Activated(object sender, EventArgs e)
@@ -549,13 +551,23 @@ namespace Paragon.Runtime.Kernel.Windowing
             }, true);
         }
 
+        [JavaScriptPluginMember(Name = "refreshClearCache")]
+        public void RefreshWindowClearCache()
+        {
+            ParagonRuntime.ForceClearCacheOnStart();
+            Logger.Info("Refresh ignore and clear cache");
+            DispatchIfRequired(() => _browser.Reload(true), true);
+        }
+
         [JavaScriptPluginMember(Name = "refresh")]
         public void RefreshWindow(bool ignoreCache = true)
         {
+            ParagonRuntime.ForceClearCacheOnStart();
             if (GetId() == MAIN_WINDOW_ID)
             {
-                // Refreshing should restart this app, let weapplication know about it.
+                // Refreshing should restart this app, let WebApplication know about it.
                 WebApplication runningApp = (WebApplication)ApplicationManager.GetInstance().AllApplicaions.FirstOrDefault();
+                Logger.Info("Restart Renderer process.");
                 runningApp.Refresh(_browser.Source);
             }
             else
@@ -1704,7 +1716,8 @@ namespace Paragon.Runtime.Kernel.Windowing
                     break;
 
                 case Key.F5:
-                    Reload((key & Key.LeftCtrl) == Key.LeftCtrl);
+                    ModifierKeys modKeys = Keyboard.Modifiers;
+                    Reload((modKeys & ModifierKeys.Control) > 0);
                     break;
 
                 case Key.Escape:

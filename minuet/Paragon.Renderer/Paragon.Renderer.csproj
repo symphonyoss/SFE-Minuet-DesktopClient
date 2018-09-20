@@ -71,7 +71,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>call "$(VS120COMNTOOLS)\vsvars32.bat"
+    <PostBuildEvent>call "$(VS140COMNTOOLS)\vsvars32.bat"
 editbin /largeaddressaware "$(TargetPath)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
