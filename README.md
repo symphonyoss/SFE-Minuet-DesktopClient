@@ -1,5 +1,7 @@
 # Build Instructions for Minuet
 
+[![FINOS - Archived](https://cdn.jsdelivr.net/gh/finos/contrib-toolbox@master/images/badge-archived.svg)](https://finosfoundation.atlassian.net/wiki/display/FINOS/Archived)
+
 ## Prerequisites
 
 * Download Express 2013 for Windows Desktop - [download VS2013 Community Edition for free](http://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx)
